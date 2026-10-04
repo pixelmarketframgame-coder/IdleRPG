@@ -32,6 +32,7 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+            background-color: #000;
         }
 
         /* Dashboard & Control Panel */
@@ -97,7 +98,7 @@
         }
 
         .item-slot {
-            width: 36px;
+            min-width: 36px;
             height: 36px;
             background: #222736;
             border: 1px solid #f1c40f;
@@ -151,13 +152,16 @@
         </div>
     </div>
 
+    <!-- ลิงก์ไปยังไฟล์ game.js ของคุณ -->
     <script src="game.js?v=2"></script>
+    
     <script>
         // รับ Event จาก Canvas มาแสดงผลไอเทมดรอปใน HTML Inventory Panel
         window.addEventListener('message', function(e) {
             // รองรับทั้งการเรียกผ่าน window.postMessage และ FlutterChannel
         });
 
+        // ฟังก์ชันสำหรับเพิ่มไอคอนไอเทมลงในกล่องกระเป๋าจำลอง
         function addLootToInventoryUI(iconSymbol, name) {
             const container = document.getElementById('inventory-list');
             const emptyText = document.getElementById('empty-text');
