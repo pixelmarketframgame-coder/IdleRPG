@@ -18,9 +18,22 @@ let isBossFight = false;
 // ==========================================
 window.changePetSkin = function(skinType) {
     if (!pet) return;
+
+    // ถ้าส่งค่า 'none' หรือไม่ส่งอะไรมา ให้ซ่อนสัตว์เลี้ยง
+    if (!skinType || skinType === 'none') {
+        pet.setVisible(false);
+        console.log("Pet unequipped (Hidden)");
+        return;
+    }
+
+    // 🌟 พระเอกอยู่ตรงนี้: สั่งให้กลับมาแสดงตัวอีกครั้ง!
+    pet.setVisible(true);
+    
+    // เปลี่ยนรูปตามที่ส่งมา
     if (skinType === 'dragon') pet.setTexture('pet_dragon');
     else if (skinType === 'phoenix') pet.setTexture('pet_phoenix');
     else pet.setTexture('pet_slime');
+    
     console.log("Pet changed to:", skinType);
 };
 
