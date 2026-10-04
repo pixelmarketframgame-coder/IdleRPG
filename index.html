@@ -149,6 +149,45 @@
                 <button onclick="changeMapTheme('dungeon')">🏰 ฉาก: ดันเจี้ยน</button>
                 <button onclick="changeMapTheme('lava')">🌋 ฉาก: ถ้ำลาวา</button>
             </div>
+            <div class="panel-title" style="margin-top: 15px;">🚀 ระบบซิงค์ข้อมูล (State Sync)</div>
+            <div class="btn-group">
+                <button onclick="simulateFlutterFlowData('stage1')" style="background: #27ae60;">▶️ จำลองโหลดข้อมูล ด่านป่าไม้ (ไม่มีสัตว์เลี้ยง)</button>
+                <button onclick="simulateFlutterFlowData('stage10')" style="background: #c0392b;">▶️ จำลองโหลดข้อมูล บอสลาวา (ใส่มังกร)</button>
+            </div>
+
+            <script>
+                // ฟังก์ชันจำลองว่า FlutterFlow ยิงข้อมูล JSON มาให้
+                function simulateFlutterFlowData(scenario) {
+                    let dummyData = {};
+                    
+                    if (scenario === 'stage1') {
+                        dummyData = {
+                            player: { level: 1, pet: "none" },
+                            map: { stageId: "1-1", theme: "forest" },
+                            monster: { name: "Green Slime", isBoss: false, maxHp: 80 }
+                        };
+                    } else if (scenario === 'stage10') {
+                        dummyData = {
+                            player: { level: 15, pet: "dragon" },
+                            map: { stageId: "10-Boss", theme: "lava" },
+                            monster: { name: "Ifrit Golem", isBoss: true, maxHp: 800 }
+                        };
+                    }
+
+                    // แปลงเป็น JSON String แล้วส่งเข้าเกม (เหมือนที่ FlutterFlow จะทำ)
+                    const jsonString = JSON.stringify(dummyData);
+                    window.initGameState(jsonString);
+                }
+            </script>
+            <!-- ============================================== -->
+            <!-- 🔼 จบส่วนที่ต้องวางเพิ่ม 🔼 -->
+            <!-- ============================================== -->
+
+            <!-- (โค้ดเดิม) ส่วนของกระเป๋าเก็บไอเทม จะถูกดันลงมาอยู่ด้านล่าง -->
+            <div class="panel-title" style="margin-top: 15px;">🎒 กระเป๋าเก็บไอเทมที่ฟาร์มได้ (Loot Preview)</div>
+            <div class="inventory-box" id="inventory-list">
+                <span style="font-size: 11px; color: #888;" id="empty-text">ยังไม่มีไอเทมดรอป...</span>
+            </div>
 
             <div class="panel-title" style="margin-top: 5px;">🎒 กระเป๋าเก็บไอเทมที่ฟาร์มได้ (Loot Preview)</div>
             <div class="inventory-box" id="inventory-list">
