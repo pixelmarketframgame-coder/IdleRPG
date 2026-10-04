@@ -334,3 +334,53 @@ function showTopNotification(text) {
         targets: [topBanner, topBannerText], y: 20, duration: 200, hold: 1200, yoyo: true
     });
 }
+// ==========================================
+// 7. Initial State Sync (รับข้อมูลก้อนแรกตอนเริ่มเกม)
+// ==========================================
+let isGameRunning = false; // ตัวแปรเช็คว่าเริ่มตีหรือยัง
+
+window.initGameState = function(jsonPayload) {
+    // 1. แปลงข้อมูลจาก String เป็น Object (เผื่อส่งมาจาก FlutterFlow)
+    const state = typeof jsonPayload === 'string' ? JSON.parse(jsonPayload) : jsonPayload;
+    console.log("🎮 Game State Received:", state);
+
+    if (!gameScene) {
+        console.error("Game Scene is not ready yet!");
+        return;
+    }
+
+    // 2. เซ็ตอัปฉาก (Map)
+    changeMapTheme(state.map.theme);
+    currentStage = state.map.stageId;
+    gameScene.add.text(50, 130, currentStage, { fontSize: '11px', backgroundColor: '#00000088', padding: { x: 4, y: 2 } }).setOrigin(0.5);
+
+    // 3. เซ็ตอัปสัตว์เลี้ยง (Pet)
+    changePetSkin(state.player.pet);
+
+    // 4. เซ็ตอัปมอนสเตอร์ตัวแรก (Monster)
+    isBossFight = state.monster.isBoss;
+    maxEnemyHp = state.monster.maxHp;
+    enemyHp = state.monster.maxHp;
+
+    if (!enemy) {
+        enemy = gameScene.add.sprite(180, 165, isBossFight ? 'enemy_boss' : 'enemy_normal');
+        gameScene.add.rectangle(180, 138, 42, 5, 0x000000);
+        enemyHpBar = gameScene.add.rectangle(180, 138, 40, 3, 0xe74c3c);
+        enemyNameText = gameScene.add.text(180, 126, state.monster.name, { fontSize: '10px', color: '#fff' }).setOrigin(0.5);
+    } else {
+        enemy.setTexture(isBossFight ? 'enemy_boss' : 'enemy_normal');
+        enemyNameText.setText(state.monster.name);
+    }
+    
+    enemy.setPosition(180, isBossFight ? 155 : 165);
+    enemyNameText.setColor(isBossFight ? "#f1c40f" : "#ffffff");
+    enemy.setVisible(true);
+    enemy.setAlpha(1);
+    updateEnemyHpBar();
+
+    // 5. ปล่อยให้ฮีโร่เริ่มโจมตี (ถ้ายังไม่เคยเริ่ม)
+    if (!isGameRunning) {
+        gameScene.time.addEvent({ delay: 1100, callback: performRangedAttack, callbackScope: gameScene, loop: true });
+        isGameRunning = true;
+    }
+};
