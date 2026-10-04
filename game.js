@@ -92,6 +92,10 @@ const config = {
     type: Phaser.AUTO,
     width: 520,
     height: 220,
+    scale: {
+        mode: Phaser.Scale.FIT, // สั่งให้ย่อ/ขยายภาพพอดีกับกรอบ WebView
+        autoCenter: Phaser.Scale.CENTER_BOTH // จัดกึ่งกลางอัตโนมัติทั้งแนวตั้งและแนวนอน
+    },
     parent: 'game-container',
     pixelArt: true,
     physics: { default: 'arcade', arcade: { debug: false } },
