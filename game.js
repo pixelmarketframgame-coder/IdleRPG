@@ -137,7 +137,7 @@ function preload() {
 }
 
 function create() {
-    gameScene = this; // บันทึก Reference Reference หลัก
+    gameScene = this; // บันทึก Reference หลัก
 
     bgFar = this.add.tileSprite(260, 110, 520, 220, 'bg_forest_far');
     bgMid = this.add.tileSprite(260, 110, 520, 220, 'bg_forest_mid');
