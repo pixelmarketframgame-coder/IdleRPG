@@ -151,8 +151,9 @@ function create() {
 
     hero = this.add.sprite(390, 165, 'hero_sprite');
     pet = this.add.sprite(430, 170, 'pet_slime');
+    pet.setVisible(false); // ซ่อนสัตว์เลี้ยงตอนเริ่มเกม
 
-    spawnEnemy();
+    // ❌ ลบบรรทัด spawnEnemy(); ออกไปเลยครับ
 
     topBanner = this.add.rectangle(260, -30, 340, 24, 0x000000, 0.85).setStrokeStyle(1, 0x555555);
     topBannerText = this.add.text(260, -30, '', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
@@ -161,7 +162,7 @@ function create() {
     stageProgressBar = this.add.rectangle(410, 205, 0, 6, 0xe74c3c).setOrigin(0, 0.5);
     this.add.text(495, 205, '👹', { fontSize: '10px' }).setOrigin(0.5);
 
-    this.time.addEvent({ delay: 1100, callback: performRangedAttack, callbackScope: this, loop: true });
+    // ❌ ลบบรรทัด this.time.addEvent(...) ที่เป็นลูปโจมตีออกไปด้วยครับ
 }
 
 function update() {
