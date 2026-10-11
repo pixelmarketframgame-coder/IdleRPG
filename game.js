@@ -455,7 +455,10 @@ window.onFlutterFlowResponse = function(jsonPayload) {
         awaitingServerResponse = false;
         combatPaused = true;
         showTopNotification(response.message || "ยังไม่สามารถ Challenge ได้");
-    } else if (response.event === "STAGE_CLEARED" && response.success !== false) {
+    } else if ((response.event === "CHALLENGE_RESULT" || response.event === "STAGE_CLEARED") && response.success !== false) {
         triggerStageClearEffect();
+        if (response.state) window.initGameState(response.state);
+    } else if (response.event === "MONSTER_KILL_RESULT" && response.success === true && response.state) {
+        window.initGameState(response.state);
     }
 };
