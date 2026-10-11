@@ -8,10 +8,17 @@ let hero, pet, enemy, portal;
 let enemyHp = 100, maxEnemyHp = 100;
 let enemyHpBar, enemyNameText, topBanner, topBannerText, stageProgressBar;
 
-let currentStage = "2-8";
+let currentStage = "1";
 let killsInStage = 0;
-const maxKillsPerStage = 5;
+const maxKillsPerStage = 100;
 let isBossFight = false;
+let currentMonsterId = null;
+let currentMonsterType = "normal";
+let isChallengeTarget = false;
+let awaitingServerResponse = false;
+let combatPaused = true;
+let stageLabelText = null;
+let combatTimer = null;
 
 // ==========================================
 // Bridge Functions (เรียกจาก HTML Control Panel)
@@ -38,7 +45,7 @@ window.changePetSkin = function(skinType) {
 };
 
 window.triggerHeroSkill = function(skillName) {
-    if (!gameScene || !enemy) return;
+    if (!gameScene || !enemy || combatPaused || awaitingServerResponse || !currentMonsterId) return;
     gameScene.cameras.main.shake(250, 0.012);
     const beam = gameScene.add.rectangle(enemy.x, 110, 50, 220, 0xf1c40f, 0.8);
     gameScene.tweens.add({
@@ -71,6 +78,7 @@ window.changeMapTheme = function(themeName) {
 
 window.forceSpawnBoss = function() {
     if (!gameScene) return;
+    // โหมดทดสอบภาพเท่านั้น ไม่ได้เปลี่ยนสถานะด่านหรือให้รางวัลใน Supabase
     
     killsInStage = maxKillsPerStage;
     isBossFight = true;
@@ -87,6 +95,18 @@ window.forceSpawnBoss = function() {
         showTopNotification("⚠ WARNING! บอสประจำด่านปรากฏตัว!");
     }
     console.log("Boss spawned!");
+};
+
+window.challengeCurrentStage = function() {
+    if (killsInStage < maxKillsPerStage) {
+        showTopNotification("ต้องกำจัดมอนสเตอร์ครบ 100 ตัวก่อน!");
+        return;
+    }
+    if (awaitingServerResponse) return;
+    combatPaused = true;
+    awaitingServerResponse = true;
+    if (enemy) enemy.setVisible(false);
+    sendToFlutterFlow({ event: "STAGE_CHALLENGE_REQUEST", stage: currentStage });
 };
 
 function sendToFlutterFlow(payload) {
@@ -160,7 +180,7 @@ function create() {
     magicCircle.setStrokeStyle(2, 0xe67e22);
 
     portal = this.add.rectangle(50, 160, 24, 30, 0x0984e3);
-    this.add.text(50, 130, currentStage, { fontSize: '11px', backgroundColor: '#00000088', padding: { x: 4, y: 2 } }).setOrigin(0.5);
+    stageLabelText = this.add.text(50, 130, currentStage, { fontSize: '11px', backgroundColor: '#00000088', padding: { x: 4, y: 2 } }).setOrigin(0.5);
 
     hero = this.add.sprite(390, 165, 'hero_sprite');
     pet = this.add.sprite(430, 170, 'pet_slime');
@@ -186,11 +206,16 @@ function update() {
 }
 
 function spawnEnemy() {
+    // ไม่สร้างมอนสเตอร์/บอสจากตัวนับฝั่ง client; ต้องรับเป้าหมายจาก Supabase ผ่าน FlutterFlow
+    if (!currentMonsterId) return;
     if (killsInStage >= maxKillsPerStage) {
-        isBossFight = true; enemyHp = 300; maxEnemyHp = 300;
-    } else {
-        isBossFight = false; enemyHp = 100; maxEnemyHp = 100;
+        combatPaused = true;
+        if (enemy) enemy.setVisible(false);
+        showTopNotification("ครบ 100 ตัวแล้ว! กด Challenge เพื่อสู้ด่านถัดไป");
+        return;
     }
+    isBossFight = currentMonsterType === "boss";
+    enemyHp = maxEnemyHp = 100;
 
     if (!enemy) {
         enemy = gameScene.add.sprite(180, 165, 'enemy_normal');
@@ -222,7 +247,7 @@ function updateEnemyHpBar() {
 }
 
 function performRangedAttack() {
-    if (!enemy || enemyHp <= 0 || !enemy.visible) return;
+    if (combatPaused || awaitingServerResponse || !currentMonsterId || !enemy || enemyHp <= 0 || !enemy.visible) return;
 
     const arrow = gameScene.add.sprite(hero.x - 10, hero.y - 5, 'arrow_sprite');
     gameScene.tweens.add({
@@ -232,7 +257,7 @@ function performRangedAttack() {
 }
 
 function applyDamage() {
-    if (!enemy || enemyHp <= 0) return;
+    if (combatPaused || awaitingServerResponse || !currentMonsterId || !enemy || enemyHp <= 0) return;
 
     const isCrit = Math.random() < 0.3;
     const damage = isCrit ? Math.floor(Math.random() * 25) + 35 : Math.floor(Math.random() * 10) + 15;
@@ -273,39 +298,30 @@ function showDamageText(x, y, damage, isCrit) {
 }
 
 function onEnemyKilled() {
+    if (awaitingServerResponse || !currentMonsterId) return;
+
+    combatPaused = true;
+    awaitingServerResponse = true;
     enemy.setVisible(false);
+    createImpactSparks(enemy.x, enemy.y);
 
-    if (isBossFight) {
-        triggerStageClearEffect();
-    } else {
-        killsInStage++;
-        stageProgressBar.width = 80 * (killsInStage / maxKillsPerStage);
-        spawnCoinBurst(enemy.x, enemy.y);
-        showLootChestAnimation(enemy.x, enemy.y);
-
-        if (Math.random() < 0.4) spawnEquipmentDrop(enemy.x, enemy.y);
-
-        sendToFlutterFlow({ event: 'MONSTER_DIED', stage: currentStage, goldReward: 15, expReward: 30 });
-        gameScene.time.delayedCall(1000, () => spawnEnemy());
-    }
+    // รางวัลและความคืบหน้าต้องมาจาก RPC; ห้ามเชื่อ reward ที่คำนวณใน client
+    sendToFlutterFlow({
+        event: "MONSTER_KILL_REQUEST",
+        monsterId: currentMonsterId,
+        stage: currentStage,
+        isChallengeTarget: isChallengeTarget
+    });
 }
 
 function triggerStageClearEffect() {
-    const clearText = gameScene.add.text(260, 110, '🎉 STAGE CLEAR! 🎉', {
+    // ใช้เฉพาะเอฟเฟกต์ภาพเมื่อ FlutterFlow แจ้งว่าผ่าน Challenge แล้ว
+    const clearText = gameScene.add.text(260, 110, '🎉 CHALLENGE CLEAR! 🎉', {
         fontSize: '24px', fontStyle: 'bold', color: '#f1c40f', stroke: '#000000', strokeThickness: 4
     }).setOrigin(0.5).setScale(0);
-
     gameScene.tweens.add({
-        targets: clearText, scale: 1.2, duration: 400, yoyo: true, hold: 800,
-        onComplete: () => {
-            clearText.destroy();
-            killsInStage = 0;
-            stageProgressBar.width = 0;
-            currentStage = "2-9";
-            showTopNotification("เข้าสู่ด่านใหม่: Stage 2-9");
-            sendToFlutterFlow({ event: 'STAGE_CLEARED', newStage: currentStage, bonusGold: 100 });
-            spawnEnemy();
-        }
+        targets: clearText, scale: 1.1, duration: 400, yoyo: true, hold: 500,
+        onComplete: () => clearText.destroy()
     });
 }
 
@@ -320,7 +336,7 @@ function spawnEquipmentDrop(x, y) {
             });
         }
     });
-    sendToFlutterFlow({ event: 'ITEM_DROPPED', itemName: 'Flame Sword +1', icon: '⚔️' });
+    // อุปกรณ์จริงต้องมาจากผล RPC ไม่สุ่มรางวัลใน client
 }
 
 function spawnCoinBurst(x, y) {
@@ -351,50 +367,95 @@ function showTopNotification(text) {
 // ==========================================
 // 7. Initial State Sync (รับข้อมูลก้อนแรกตอนเริ่มเกม)
 // ==========================================
-let isGameRunning = false; // ตัวแปรเช็คว่าเริ่มตีหรือยัง
+let isGameRunning = false;
 
+// FlutterFlow เรียกฟังก์ชันนี้หลัง RPC สำเร็จ โดยส่งสถานะและเป้าหมายล่าสุดจาก Supabase
 window.initGameState = function(jsonPayload) {
-    // 1. แปลงข้อมูลจาก String เป็น Object (เผื่อส่งมาจาก FlutterFlow)
-    const state = typeof jsonPayload === 'string' ? JSON.parse(jsonPayload) : jsonPayload;
-    console.log("🎮 Game State Received:", state);
-
-    if (!gameScene) {
-        console.error("Game Scene is not ready yet!");
+    let state;
+    try {
+        state = typeof jsonPayload === 'string' ? JSON.parse(jsonPayload) : jsonPayload;
+    } catch (err) {
+        console.error("Invalid game state JSON", err);
+        return;
+    }
+    if (!gameScene || !state || !state.player || !state.map) {
+        console.error("Game scene or required state is missing");
         return;
     }
 
-    // 2. เซ็ตอัปฉาก (Map)
-    changeMapTheme(state.map.theme);
-    currentStage = state.map.stageId;
-    gameScene.add.text(50, 130, currentStage, { fontSize: '11px', backgroundColor: '#00000088', padding: { x: 4, y: 2 } }).setOrigin(0.5);
+    console.log("🎮 Server state received:", state);
+    if (state.map.theme) changeMapTheme(state.map.theme);
 
-    // 3. เซ็ตอัปสัตว์เลี้ยง (Pet)
-    changePetSkin(state.player.pet);
+    const status = state.stageStatus || state.stage_status || {};
+    const stageNum = status.current_farm_stage ?? status.currentFarmStage ?? state.map.stageId ?? currentStage;
+    currentStage = String(stageNum);
+    if (stageLabelText) stageLabelText.setText(currentStage);
+    changePetSkin(state.player.pet || state.player.active_pet_skin || "none");
 
-    // 4. เซ็ตอัปมอนสเตอร์ตัวแรก (Monster)
-    isBossFight = state.monster.isBoss;
-    maxEnemyHp = state.monster.maxHp;
-    enemyHp = state.monster.maxHp;
+    killsInStage = Number(status.kills_in_stage ?? status.killsInStage ?? state.killsInStage ?? killsInStage) || 0;
+    if (stageProgressBar) stageProgressBar.width = 80 * Math.min(1, killsInStage / maxKillsPerStage);
+
+    const monster = state.monster || state.target || null;
+    awaitingServerResponse = false;
+    if (!monster || !(monster.id || monster.monster_id || monster.monsterId)) {
+        currentMonsterId = null;
+        combatPaused = true;
+        if (enemy) enemy.setVisible(false);
+        if (status.challenge_ready || status.challengeReady || killsInStage >= maxKillsPerStage) {
+            showTopNotification("ครบ 100 ตัวแล้ว! กด Challenge เพื่อท้าทายด่านถัดไป");
+        } else if (state.error) {
+            showTopNotification("โหลดเป้าหมายไม่สำเร็จ กรุณาลองใหม่");
+        }
+        return;
+    }
+
+    currentMonsterId = String(monster.id || monster.monster_id || monster.monsterId);
+    currentMonsterType = String(monster.monster_type || monster.type || (monster.is_boss ? "boss" : "normal")).toLowerCase();
+    isBossFight = Boolean(monster.is_boss ?? monster.isBoss ?? (currentMonsterType === "boss"));
+    isChallengeTarget = Boolean(monster.is_challenge ?? monster.isChallenge ?? false);
+    maxEnemyHp = Number(monster.monster_hp ?? monster.maxHp ?? monster.max_hp ?? 100) || 100;
+    enemyHp = Number(monster.current_hp ?? monster.currentHp ?? maxEnemyHp) || maxEnemyHp;
 
     if (!enemy) {
         enemy = gameScene.add.sprite(180, 165, isBossFight ? 'enemy_boss' : 'enemy_normal');
         gameScene.add.rectangle(180, 138, 42, 5, 0x000000);
         enemyHpBar = gameScene.add.rectangle(180, 138, 40, 3, 0xe74c3c);
-        enemyNameText = gameScene.add.text(180, 126, state.monster.name, { fontSize: '10px', color: '#fff' }).setOrigin(0.5);
-    } else {
-        enemy.setTexture(isBossFight ? 'enemy_boss' : 'enemy_normal');
-        enemyNameText.setText(state.monster.name);
+        enemyNameText = gameScene.add.text(180, 126, '', { fontSize: '10px', color: '#fff' }).setOrigin(0.5);
     }
-    
+    enemy.setTexture(isBossFight ? 'enemy_boss' : 'enemy_normal');
     enemy.setPosition(180, isBossFight ? 155 : 165);
+    enemyNameText.setText(monster.monster_name || monster.name || "Monster");
     enemyNameText.setColor(isBossFight ? "#f1c40f" : "#ffffff");
     enemy.setVisible(true);
     enemy.setAlpha(1);
     updateEnemyHpBar();
+    combatPaused = false;
 
-    // 5. ปล่อยให้ฮีโร่เริ่มโจมตี (ถ้ายังไม่เคยเริ่ม)
     if (!isGameRunning) {
-        gameScene.time.addEvent({ delay: 1100, callback: performRangedAttack, callbackScope: gameScene, loop: true });
+        combatTimer = gameScene.time.addEvent({ delay: 1100, callback: performRangedAttack, callbackScope: gameScene, loop: true });
         isGameRunning = true;
+    }
+};
+
+// Optional acknowledgement/error callback for FlutterFlow WebView JavaScript calls
+window.onFlutterFlowResponse = function(jsonPayload) {
+    let response;
+    try {
+        response = typeof jsonPayload === 'string' ? JSON.parse(jsonPayload) : jsonPayload;
+    } catch (err) {
+        console.error("Invalid FlutterFlow response", err);
+        return;
+    }
+    if (!response) return;
+    if (response.event === "MONSTER_KILL_RESULT" && response.success === false) {
+        awaitingServerResponse = false;
+        combatPaused = true;
+        showTopNotification(response.message || "บันทึกผลการต่อสู้ไม่สำเร็จ");
+    } else if (response.event === "CHALLENGE_RESULT" && response.success === false) {
+        awaitingServerResponse = false;
+        combatPaused = true;
+        showTopNotification(response.message || "ยังไม่สามารถ Challenge ได้");
+    } else if (response.event === "STAGE_CLEARED" && response.success !== false) {
+        triggerStageClearEffect();
     }
 };
