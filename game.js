@@ -300,17 +300,33 @@ function showDamageText(x, y, damage, isCrit) {
 function onEnemyKilled() {
     if (awaitingServerResponse || !currentMonsterId) return;
 
+    // ล็อกคำขอหนึ่งครั้งต่อการตาย ป้องกันการส่งซ้ำจากลูกศร/ท่าไม้ตายที่กำลังเล่นอยู่
+    const killedMonsterId = currentMonsterId;
+    const requestId = `kill-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    pendingKillRequestId = requestId;
+    pendingKilledMonsterId = killedMonsterId;
     combatPaused = true;
     awaitingServerResponse = true;
-    enemy.setVisible(false);
-    createImpactSparks(enemy.x, enemy.y);
 
-    // รางวัลและความคืบหน้าต้องมาจาก RPC; ห้ามเชื่อ reward ที่คำนวณใน client
+    // เอฟเฟกต์ตายและฮีโร่วิ่งต่อได้ทันที แต่ยังไม่แสดงรางวัลจนกว่าเซิร์ฟเวอร์ยืนยัน
+    const deadX = enemy.x;
+    const deadY = enemy.y;
+    createImpactSparks(deadX, deadY);
+    gameScene.tweens.add({
+        targets: enemy, alpha: 0, scale: 0.65, duration: 220,
+        onComplete: () => enemy.setVisible(false)
+    });
+    gameScene.tweens.add({
+        targets: hero, x: 315, duration: 360, ease: "Sine.easeInOut"
+    });
+    showTopNotification("กำลังยืนยันผลการต่อสู้...");
+
     sendToFlutterFlow({
         event: "MONSTER_KILL_REQUEST",
-        monsterId: currentMonsterId,
+        requestId,
+        monsterId: killedMonsterId,
         stage: currentStage,
-        isChallengeTarget: isChallengeTarget
+        isChallengeTarget
     });
 }
 
@@ -364,6 +380,42 @@ function showTopNotification(text) {
         targets: [topBanner, topBannerText], y: 20, duration: 200, hold: 1200, yoyo: true
     });
 }
+// เก็บ request ที่ตอบกลับแล้ว เพื่อไม่ให้ response ซ้ำแสดงรางวัลซ้ำ
+let pendingKillRequestId = null;
+let pendingKilledMonsterId = null;
+const resolvedKillRequests = new Set();
+
+function showConfirmedRewards(reward) {
+    if (!gameScene || !reward) return;
+    const gold = Number(reward.gold_gain ?? reward.goldGain ?? 0) || 0;
+    const exp = Number(reward.exp_gain ?? reward.expGain ?? 0) || 0;
+    const materialQty = Number(reward.material_quantity ?? reward.materialQuantity ?? 0) || 0;
+    const materialId = reward.material_id ?? reward.materialId ?? null;
+
+    if (gold > 0) spawnCoinBurst(enemy ? enemy.x : 180, enemy ? enemy.y : 155);
+    const rewardLines = [];
+    if (gold > 0) rewardLines.push(`+${gold} Gold`);
+    if (exp > 0) rewardLines.push(`+${exp} EXP`);
+    if (materialQty > 0 && materialId) rewardLines.push(`💎 ${materialId} x${materialQty}`);
+
+    if (rewardLines.length) {
+        const label = gameScene.add.text(260, 75, rewardLines.join("   "), {
+            fontSize: "12px", fontStyle: "bold", color: "#f1c40f",
+            stroke: "#000000", strokeThickness: 3, align: "center",
+            backgroundColor: "#00000099", padding: { x: 6, y: 4 }
+        }).setOrigin(0.5);
+        gameScene.tweens.add({
+            targets: label, y: 48, alpha: 0, duration: 1200, delay: 250,
+            onComplete: () => label.destroy()
+        });
+    }
+
+    // อัปเดตกระเป๋าตัวอย่างเฉพาะเมื่อผล RPC ยืนยันว่ามีวัสดุตกจริง
+    if (materialQty > 0 && materialId && typeof addLootToInventoryUI === "function") {
+        addLootToInventoryUI("💎", `${materialId} x${materialQty}`);
+    }
+}
+
 // ==========================================
 // 7. Initial State Sync (รับข้อมูลก้อนแรกตอนเริ่มเกม)
 // ==========================================
@@ -423,12 +475,26 @@ window.initGameState = function(jsonPayload) {
         enemyNameText = gameScene.add.text(180, 126, '', { fontSize: '10px', color: '#fff' }).setOrigin(0.5);
     }
     enemy.setTexture(isBossFight ? 'enemy_boss' : 'enemy_normal');
-    enemy.setPosition(180, isBossFight ? 155 : 165);
+    enemy.setPosition(230, isBossFight ? 155 : 165);
+    enemy.setScale(isBossFight ? 1 : 1);
+    enemy.setAlpha(0);
+    enemyNameText.setPosition(230, 126);
     enemyNameText.setText(monster.monster_name || monster.name || "Monster");
     enemyNameText.setColor(isBossFight ? "#f1c40f" : "#ffffff");
     enemy.setVisible(true);
-    enemy.setAlpha(1);
     updateEnemyHpBar();
+
+    // เล่นวิ่งเข้าหาศัตรูใหม่เฉพาะหลังได้ state ที่เซิร์ฟเวอร์ยืนยันแล้ว
+    if (hero) {
+        gameScene.tweens.add({ targets: hero, x: 390, duration: 260, ease: "Sine.easeOut" });
+    }
+    gameScene.tweens.add({
+        targets: enemy, x: 180, alpha: 1, duration: 260, ease: "Sine.easeOut",
+        onUpdate: () => {
+            if (enemyNameText) enemyNameText.setX(enemy.x);
+            if (enemyHpBar) enemyHpBar.setX(enemy.x);
+        }
+    });
     combatPaused = false;
 
     if (!isGameRunning) {
@@ -437,20 +503,56 @@ window.initGameState = function(jsonPayload) {
     }
 };
 
-// Optional acknowledgement/error callback for FlutterFlow WebView JavaScript calls
+// FlutterFlow ต้องส่งผล RPC กลับเข้ามาที่ callback นี้หลังตรวจสอบสำเร็จ
 window.onFlutterFlowResponse = function(jsonPayload) {
     let response;
     try {
-        response = typeof jsonPayload === 'string' ? JSON.parse(jsonPayload) : jsonPayload;
+        response = typeof jsonPayload === "string" ? JSON.parse(jsonPayload) : jsonPayload;
     } catch (err) {
         console.error("Invalid FlutterFlow response", err);
         return;
     }
     if (!response) return;
-    if (response.event === "MONSTER_KILL_RESULT" && response.success === false) {
-        awaitingServerResponse = false;
-        combatPaused = true;
-        showTopNotification(response.message || "บันทึกผลการต่อสู้ไม่สำเร็จ");
+
+    if (response.event === "MONSTER_KILL_RESULT") {
+        // ต้องเป็นคำขอที่กำลังรออยู่ และยังไม่เคยประมวลผล response นี้
+        const responseRequestId = response.requestId || response.request_id || null;
+        if (!pendingKillRequestId || (responseRequestId && responseRequestId !== pendingKillRequestId)) {
+            console.warn("Ignored duplicate or stale kill response", responseRequestId);
+            return;
+        }
+        if (resolvedKillRequests.has(pendingKillRequestId)) {
+            console.warn("Ignored duplicate kill result", pendingKillRequestId);
+            return;
+        }
+
+        if (response.success !== true) {
+            pendingKillRequestId = null;
+            pendingKilledMonsterId = null;
+            awaitingServerResponse = false;
+            combatPaused = true;
+            if (hero) hero.setX(390);
+            showTopNotification(response.message || "ยืนยันผลไม่สำเร็จ กรุณาลองโหลดเป้าหมายใหม่");
+            return;
+        }
+
+        resolvedKillRequests.add(pendingKillRequestId);
+        // RPC ปัจจุบันคืน reward fields ที่ระดับบนสุด; รองรับกรณี FlutterFlow ห่อไว้ใน reward/result
+        const reward = response.reward || response.result || response;
+        showConfirmedRewards(reward);
+
+        pendingKillRequestId = null;
+        pendingKilledMonsterId = null;
+
+        if (response.state) {
+            // state ควรรวม monster ตัวถัดไปจาก get_current_combat_target() ด้วย
+            window.initGameState(response.state);
+        } else {
+            awaitingServerResponse = false;
+            combatPaused = true;
+            if (hero) hero.setX(390);
+            showTopNotification("บันทึกรางวัลแล้ว แต่ยังไม่ได้รับมอนสเตอร์ตัวถัดไป");
+        }
     } else if (response.event === "CHALLENGE_RESULT" && response.success === false) {
         awaitingServerResponse = false;
         combatPaused = true;
@@ -458,7 +560,5 @@ window.onFlutterFlowResponse = function(jsonPayload) {
     } else if ((response.event === "CHALLENGE_RESULT" || response.event === "STAGE_CLEARED") && response.success !== false) {
         triggerStageClearEffect();
         if (response.state) window.initGameState(response.state);
-    } else if (response.event === "MONSTER_KILL_RESULT" && response.success === true && response.state) {
-        window.initGameState(response.state);
     }
 };
