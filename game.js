@@ -517,7 +517,7 @@ window.onFlutterFlowResponse = function(jsonPayload) {
     if (response.event === "MONSTER_KILL_RESULT") {
         // ต้องเป็นคำขอที่กำลังรออยู่ และยังไม่เคยประมวลผล response นี้
         const responseRequestId = response.requestId || response.request_id || null;
-        if (!pendingKillRequestId || (responseRequestId && responseRequestId !== pendingKillRequestId)) {
+        if (!pendingKillRequestId || responseRequestId !== pendingKillRequestId) {
             console.warn("Ignored duplicate or stale kill response", responseRequestId);
             return;
         }
