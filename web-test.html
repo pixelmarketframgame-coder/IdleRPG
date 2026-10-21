@@ -89,6 +89,31 @@
     $('combat-hint').textContent=target?('เป้าหมาย: '+target.monster_name+' · Lv.'+target.monster_level+' · HP '+Number(target.monster_hp).toLocaleString()):'ไม่มีเป้าหมายต่อสู้ในขณะนี้';
     msg('เชื่อม Supabase สำเร็จ · โหลดข้อมูลตัวละครและเป้าหมายแล้ว');
   }
+  let combatPollBusy = false;
+  async function pollCombat(){
+    if(!currentUser || combatPollBusy || $('game-panel').classList.contains('hidden')) return;
+    combatPollBusy = true;
+    try {
+      const {data,error}=await client.rpc('advance_combat');
+      if(error) throw error;
+      const combat=typeof data==='string'?JSON.parse(data):data;
+      if(!combat || combat.success!==true) return;
+      if(combat.status==='monster_defeated'){
+        await syncProfileOnly();
+        combat.state=await makeState();
+        $('last-reward').textContent='ได้รับ EXP +'+(combat.reward?.exp_gain??0)+' · Gold +'+(combat.reward?.gold_gain??0)+(combat.reward?.material_quantity?' · วัสดุ '+combat.reward.material_id+' x'+combat.reward.material_quantity:'');
+        log('Supabase ยืนยันรางวัล: EXP +'+(combat.reward?.exp_gain??0)+', Gold +'+(combat.reward?.gold_gain??0));
+      }
+      if(typeof window.onServerCombatUpdate==='function') window.onServerCombatUpdate(combat);
+    } catch(e) {
+      if(!window._lastCombatPollError || Date.now()-window._lastCombatPollError>10000){
+        log('RPC advance_combat: '+e.message);
+        window._lastCombatPollError=Date.now();
+      }
+    } finally { combatPollBusy=false; }
+  }
+  setInterval(pollCombat,1000);
+
   async function handleGameMessage(payload){
     if(!currentUser) return;
     if(payload.event==='MONSTER_KILL_REQUEST'){
