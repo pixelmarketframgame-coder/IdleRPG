@@ -16,7 +16,7 @@
 <div class="wrap">
   <header class="top"><div class="brand">⚔ TBH Pixel <span>Auto Battler</span> <small style="font-size:12px;color:#9eaccb">WEB TEST</small></div><button id="signout" class="hidden">ออกจากระบบ</button></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.1.3</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.1.4</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -30,7 +30,7 @@
   </section>
   <section id="game-panel" class="hidden">
     <div class="panel">
-      <div class="top"><h2 class="title" style="margin:0">PLAYER STATUS</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="version-tag" id="game-version">VERSION v0.1.3</span><div id="player-name" class="hint"></div></div></div>
+      <div class="top"><h2 class="title" style="margin:0">PLAYER STATUS</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="version-tag" id="game-version">VERSION v0.1.4</span><div id="player-name" class="hint"></div></div></div>
       <div class="grid" style="margin-top:12px">
         <div class="stat"><small>LEVEL</small><strong id="level">—</strong></div><div class="stat"><small>EXP</small><strong id="exp">—</strong></div><div class="stat"><small>GOLD</small><strong id="gold">—</strong></div><div class="stat"><small>STAGE / KILLS</small><strong id="stage">—</strong></div>
       </div>
@@ -44,7 +44,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.1.3";
+  const APP_VERSION = "v0.1.4";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
