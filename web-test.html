@@ -35,7 +35,7 @@
         <div class="stat"><small>LEVEL</small><strong id="level">—</strong></div><div class="stat"><small>EXP</small><strong id="exp">—</strong></div><div class="stat"><small>GOLD</small><strong id="gold">—</strong></div><div class="stat"><small>STAGE / KILLS</small><strong id="stage">—</strong></div>
       </div>
     </div>
-    <div class="panel"><h2 class="title">BATTLE FIELD</h2><div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">ระบบต่อสู้จะเริ่มเมื่อโหลดเป้าหมายจาก Supabase สำเร็จ รางวัลจะถูกบันทึกผ่าน RPC ฝั่งเซิร์ฟเวอร์เท่านั้น</p></div>
+    <div class="panel"><h2 class="title">BATTLE FIELD</h2><div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">มอนสเตอร์ยึดระดับตามด่านเสมอ หากพลังโจมตีไม่พอ เซิร์ฟเวอร์จะไม่ให้รางวัล ต้องอัปเกรดก่อน รางวัลยืนยันผ่าน RPC เท่านั้น</p></div>
     <div class="panel"><h2 class="title">🎒 ของรางวัล / กิจกรรม</h2><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div></div>
   </section>
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
@@ -66,11 +66,16 @@
   }
   async function loadBattleState(){
     if(!currentUser) return;
-    const [{data:stageData,error:stageErr},{data:targetData,error:targetErr}] = await Promise.all([
-      client.rpc('get_stage_status'),client.rpc('get_current_combat_target')
-    ]);
-    if(stageErr) throw stageErr;if(targetErr) throw targetErr;
+    const {data:stageData,error:stageErr}=await client.rpc('get_stage_status');
+    if(stageErr) throw stageErr;
     const stage=stageData||{};
+    let targetData=null;
+    // เมื่อครบ 100 ตัว ต้องหยุดขอเป้าหมายปกติจนกว่าจะ Challenge
+    if(!stage.challenge_ready){
+      const {data,error}=await client.rpc('get_current_combat_target');
+      if(error) throw error;
+      targetData=data;
+    }
     $('stage').textContent=(stage.current_farm_stage??1)+' / '+(stage.kills_in_stage??0)+'';
     $('challenge').classList.toggle('hidden',!stage.challenge_ready);
     const target=Array.isArray(targetData)?targetData[0]:targetData;
