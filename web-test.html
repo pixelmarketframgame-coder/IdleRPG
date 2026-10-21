@@ -115,9 +115,15 @@
     $('player-name').textContent=data.nickname||'Hero';$('level').textContent=data.level??1;$('exp').textContent=data.exp??0;$('gold').textContent=Number(data.gold??0).toLocaleString();
   }
   async function makeState(){
-    const [{data:sd,error:se},{data:td,error:te}]=await Promise.all([client.rpc('get_stage_status'),client.rpc('get_current_combat_target')]);
-    if(se)throw se;if(te)throw te;
-    const stage=sd||{}, target=Array.isArray(td)?td[0]:td;
+    const {data:sd,error:se}=await client.rpc('get_stage_status');
+    if(se)throw se;
+    const stage=sd||{};
+    let target=null;
+    if(!stage.challenge_ready){
+      const {data:td,error:te}=await client.rpc('get_current_combat_target');
+      if(te)throw te;
+      target=Array.isArray(td)?td[0]:td;
+    }
     $('stage').textContent=(stage.current_farm_stage??1)+' / '+(stage.kills_in_stage??0);
     $('challenge').classList.toggle('hidden',!stage.challenge_ready);
     return {player:{level:profile?.level??1,pet:profile?.active_pet_skin||'none'},map:{stageId:String(stage.current_farm_stage??1),theme:(stage.current_farm_stage??1)>=21?'lava':(stage.current_farm_stage??1)>=11?'dungeon':'forest'},monster:target?{id:target.monster_id,monster_name:target.monster_name,monster_type:target.monster_type,is_boss:target.is_boss,monster_hp:target.monster_hp,monster_level:target.monster_level}:null,stageStatus:stage};
