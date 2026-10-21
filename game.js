@@ -321,6 +321,53 @@ window.onServerCombatUpdate = function(jsonPayload) {
     }
 };
 
+window.onServerCombatUpdate = function(payload) {
+    const state = typeof payload === "string" ? JSON.parse(payload) : payload;
+    if (!state || state.success !== true) return;
+    const oldStatus = lastServerCombatStatus;
+    lastServerCombatStatus = state.status || "fighting";
+    serverPlayerHp = Number(state.player_hp ?? serverPlayerHp);
+    serverPlayerMaxHp = Number(state.player_max_hp ?? serverPlayerMaxHp);
+    if (state.monster_id && currentMonsterId && String(state.monster_id) !== String(currentMonsterId)) return;
+
+    if (state.status === "dead") {
+        combatPaused = true;
+        if (enemy) { enemyHp = maxEnemyHp; updateEnemyHpBar(); }
+        if (hero && oldStatus !== "dead") {
+            gameScene.tweens.killTweensOf(hero);
+            gameScene.tweens.add({ targets: hero, alpha: 0.25, duration: 180, yoyo: true, repeat: 2 });
+            showTopNotification("คุณตายแล้ว! กำลังเกิดใหม่...");
+        }
+    } else if (state.status === "fighting") {
+        if (state.monster_hp != null && state.monster_max_hp != null) {
+            maxEnemyHp = Math.max(1, Number(state.monster_max_hp));
+            enemyHp = Math.max(0, Math.min(maxEnemyHp, Number(state.monster_hp)));
+            updateEnemyHpBar();
+        }
+        combatPaused = false;
+        if (hero && oldStatus === "dead") {
+            gameScene.tweens.killTweensOf(hero);
+            hero.setAlpha(1);
+            showTopNotification("เกิดใหม่แล้ว! ต่อสู้ต่อ...");
+        }
+    } else if (state.status === "no_target") {
+        combatPaused = true;
+    } else if (state.status === "monster_defeated") {
+        combatPaused = true;
+        if (state.reward) showConfirmedRewards(state.reward);
+        if (state.state) window.initGameState(JSON.stringify(state.state));
+    }
+
+    if (typeof document !== "undefined") {
+        const hint = document.getElementById("combat-hint");
+        if (hint) hint.textContent = "HP ผู้เล่น " + serverPlayerHp.toLocaleString() + "/" +
+            serverPlayerMaxHp.toLocaleString() + " · " +
+            (state.status === "dead" ? "กำลังรอเกิดใหม่ · HP มอนสเตอร์รีเซ็ตเต็ม" :
+            "HP มอนสเตอร์ " + enemyHp.toLocaleString() + "/" + maxEnemyHp.toLocaleString() +
+            " · สถานะยืนยันจาก Supabase");
+    }
+};
+
 function createImpactSparks(x, y) {
     for (let i = 0; i < 5; i++) {
         const spark = gameScene.add.sprite(x, y, 'spark_particle');
