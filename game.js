@@ -215,7 +215,7 @@ function spawnEnemy() {
         return;
     }
     isBossFight = currentMonsterType === "boss";
-    enemyHp = maxEnemyHp = 100;
+    // ใช้ HP จากเป้าหมายที่ Supabase ส่งมา ห้ามรีเซ็ตเป็นค่า mock 100\n    maxEnemyHp = Math.max(1, Number(maxEnemyHp) || 1);\n    enemyHp = Math.min(Math.max(1, Number(enemyHp) || maxEnemyHp), maxEnemyHp);
 
     if (!enemy) {
         enemy = gameScene.add.sprite(180, 165, 'enemy_normal');
@@ -262,7 +262,7 @@ function applyDamage() {
     const isCrit = Math.random() < 0.3;
     const damage = isCrit ? Math.floor(Math.random() * 25) + 35 : Math.floor(Math.random() * 10) + 15;
 
-    enemyHp -= damage;
+    enemyHp = Math.max(0, enemyHp - damage);
     updateEnemyHpBar();
 
     if (isCrit || isBossFight) gameScene.cameras.main.shake(120, isBossFight ? 0.008 : 0.004);
@@ -531,8 +531,24 @@ window.onFlutterFlowResponse = function(jsonPayload) {
             pendingKilledMonsterId = null;
             awaitingServerResponse = false;
             combatPaused = true;
+            // การปฏิเสธจากเซิร์ฟเวอร์ไม่ใช่การฆ่ามอนสเตอร์: คืน HP ให้ตรงกับ HP จริงจาก Supabase
+            enemyHp = maxEnemyHp;
+            if (enemy) {
+                enemy.setVisible(true);
+                enemy.setAlpha(1);
+                enemy.setScale(1);
+            }
             if (hero) hero.setX(390);
-            showTopNotification(response.message || "ยืนยันผลไม่สำเร็จ กรุณาลองโหลดเป้าหมายใหม่");
+            updateEnemyHpBar();
+            const serverMessage = response.message || "เซิร์ฟเวอร์ไม่ยืนยันการกำจัดมอนสเตอร์";
+            const powerTooLow = /COMBAT_POWER_TOO_LOW|พลังโจมตีไม่พอ/i.test(serverMessage);
+            showTopNotification(powerTooLow ? "พลังโจมตีไม่พอ! อัปเกรดก่อน" : serverMessage);
+            if (typeof document !== "undefined") {
+                const hint = document.getElementById("combat-hint");
+                if (hint) hint.textContent = powerTooLow
+                    ? "พลังโจมตีไม่ถึงเกณฑ์ของมอนสเตอร์ระดับด่านนี้ · ไม่มีการให้รางวัล · อัปเกรดพลังโจมตี/เลเวลแล้วกดโหลดสถานะจากเซิร์ฟเวอร์"
+                    : serverMessage + " · ไม่มีการให้รางวัลจนกว่าเซิร์ฟเวอร์จะยืนยัน";
+            }
             return;
         }
 
