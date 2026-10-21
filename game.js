@@ -534,11 +534,16 @@ window.onFlutterFlowResponse = function(jsonPayload) {
             // การปฏิเสธจากเซิร์ฟเวอร์ไม่ใช่การฆ่ามอนสเตอร์: คืน HP ให้ตรงกับ HP จริงจาก Supabase
             enemyHp = maxEnemyHp;
             if (enemy) {
+                // ยกเลิก tween การตายที่อาจซ่อนมอนสเตอร์หลัง RPC ปฏิเสธคำขอ
+                gameScene.tweens.killTweensOf(enemy);
                 enemy.setVisible(true);
                 enemy.setAlpha(1);
                 enemy.setScale(1);
             }
-            if (hero) hero.setX(390);
+            if (hero) {
+                gameScene.tweens.killTweensOf(hero);
+                hero.setX(390);
+            }
             updateEnemyHpBar();
             const serverMessage = response.message || "เซิร์ฟเวอร์ไม่ยืนยันการกำจัดมอนสเตอร์";
             const powerTooLow = /COMBAT_POWER_TOO_LOW|พลังโจมตีไม่พอ/i.test(serverMessage);
