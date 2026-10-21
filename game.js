@@ -227,7 +227,9 @@ function spawnEnemy() {
         return;
     }
     isBossFight = currentMonsterType === "boss";
-    // ใช้ HP จากเป้าหมายที่ Supabase ส่งมา ห้ามรีเซ็ตเป็นค่า mock 100\n    maxEnemyHp = Math.max(1, Number(maxEnemyHp) || 1);\n    enemyHp = Math.min(Math.max(1, Number(enemyHp) || maxEnemyHp), maxEnemyHp);
+    // ใช้ HP จากเป้าหมายที่ Supabase ส่งมา ห้ามรีเซ็ตเป็นค่า mock 100
+    maxEnemyHp = Math.max(1, Number(maxEnemyHp) || 1);
+    enemyHp = Math.min(Math.max(1, Number(enemyHp) || maxEnemyHp), maxEnemyHp);
 
     if (!enemy) {
         enemy = gameScene.add.sprite(180, 165, 'enemy_normal');
