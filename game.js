@@ -19,6 +19,8 @@ let awaitingServerResponse = false;
 let combatPaused = true;
 let stageLabelText = null;
 let combatTimer = null;
+let serverPlayerHp = 100, serverPlayerMaxHp = 100;
+let lastServerCombatStatus = null;
 
 // ==========================================
 // Bridge Functions (เรียกจาก HTML Control Panel)
@@ -257,21 +259,66 @@ function performRangedAttack() {
 }
 
 function applyDamage() {
-    if (combatPaused || awaitingServerResponse || !currentMonsterId || !enemy || enemyHp <= 0) return;
-
-    const isCrit = Math.random() < 0.3;
-    const damage = isCrit ? Math.floor(Math.random() * 25) + 35 : Math.floor(Math.random() * 10) + 15;
-
-    enemyHp = Math.max(0, enemyHp - damage);
-    updateEnemyHpBar();
-
-    if (isCrit || isBossFight) gameScene.cameras.main.shake(120, isBossFight ? 0.008 : 0.004);
-
+    // Client แสดงเอฟเฟกต์เท่านั้น; HP/ความเสียหายจริงมาจาก Supabase advance_combat
+    if (combatPaused || !currentMonsterId || !enemy || !enemy.visible) return;
     createImpactSparks(enemy.x, enemy.y);
-    showDamageText(enemy.x, enemy.y - 20, damage, isCrit);
-
-    if (enemyHp <= 0) onEnemyKilled();
 }
+
+window.onServerCombatUpdate = function(jsonPayload) {
+    let state;
+    try { state = typeof jsonPayload === "string" ? JSON.parse(jsonPayload) : jsonPayload; }
+    catch (err) { console.error("Invalid server combat update", err); return; }
+    if (!state || state.success !== true) return;
+
+    const previousStatus = lastServerCombatStatus;
+    lastServerCombatStatus = state.status || "fighting";
+    serverPlayerHp = Number(state.player_hp ?? serverPlayerHp);
+    serverPlayerMaxHp = Number(state.player_max_hp ?? serverPlayerMaxHp);
+    if (state.monster_id && currentMonsterId && String(state.monster_id) !== String(currentMonsterId)) return;
+
+    if (state.status === "dead") {
+        combatPaused = true;
+        if (hero && previousStatus !== "dead") {
+            gameScene.tweens.killTweensOf(hero);
+            gameScene.tweens.add({ targets: hero, alpha: 0.25, y: hero.y + 5, duration: 180, yoyo: true, repeat: 2 });
+            showTopNotification("คุณถูกมอนสเตอร์โค่น! กำลังเกิดใหม่...");
+        }
+        if (enemy) {
+            enemyHp = maxEnemyHp;
+            updateEnemyHpBar();
+        }
+    } else if (state.status === "fighting") {
+        const wasDead = previousStatus === "dead";
+        if (state.monster_hp != null && state.monster_max_hp != null) {
+            maxEnemyHp = Math.max(1, Number(state.monster_max_hp));
+            enemyHp = Math.max(0, Math.min(maxEnemyHp, Number(state.monster_hp)));
+            updateEnemyHpBar();
+        }
+        combatPaused = false;
+        if (hero && wasDead) {
+            gameScene.tweens.killTweensOf(hero);
+            hero.setAlpha(1);
+            hero.setY(165);
+            showTopNotification("เกิดใหม่แล้ว! ต่อสู้ต่อ...");
+        }
+    } else if (state.status === "no_target") {
+        combatPaused = true;
+    } else if (state.status === "monster_defeated") {
+        combatPaused = true;
+        if (state.reward) showConfirmedRewards(state.reward);
+        if (state.state) window.initGameState(JSON.stringify(state.state));
+    }
+
+    if (typeof document !== "undefined") {
+        const hint = document.getElementById("combat-hint");
+        if (hint) {
+            const playerLine = "HP ผู้เล่น " + serverPlayerHp.toLocaleString() + "/" + serverPlayerMaxHp.toLocaleString();
+            if (state.status === "dead") hint.textContent = playerLine + " · ตายแล้ว · กำลังรอเกิดใหม่ · HP มอนสเตอร์รีเซ็ตเต็ม";
+            else if (state.status === "fighting") hint.textContent = playerLine + " · HP มอนสเตอร์ " + enemyHp.toLocaleString() + "/" + maxEnemyHp.toLocaleString() + " · ผลคำนวณจาก Supabase";
+            else if (state.status === "no_target") hint.textContent = playerLine + " · รอเป้าหมายต่อสู้จากเซิร์ฟเวอร์";
+        }
+    }
+};
 
 function createImpactSparks(x, y) {
     for (let i = 0; i < 5; i++) {
