@@ -22,6 +22,8 @@ let combatTimer = null;
 let serverPlayerHp = 100, serverPlayerMaxHp = 100;
 let lastServerCombatStatus = null;
 // Combat HP and outcomes are authoritative in Supabase RPC advance_combat.
+let playerHpBarBg = null, playerHpBar = null, playerHpText = null;
+let lastDisplayedPlayerHp = null;
 
 // ==========================================
 // Bridge Functions (เรียกจาก HTML Control Panel)
@@ -185,7 +187,14 @@ function create() {
     portal = this.add.rectangle(50, 160, 24, 30, 0x0984e3);
     stageLabelText = this.add.text(50, 130, currentStage, { fontSize: '11px', backgroundColor: '#00000088', padding: { x: 4, y: 2 } }).setOrigin(0.5);
 
-    hero = this.add.sprite(390, 165, 'hero_sprite');
+    hero = this.add.sprite(390, 165, 'hero_sprite').setDepth(5);
+    // หลอดเลือดตัวละคร: ตำแหน่งคงที่เหนือหัว และค่าจริงอัปเดตจาก Supabase
+    playerHpBarBg = this.add.rectangle(368, 137, 44, 5, 0x202020).setOrigin(0, 0.5).setDepth(8);
+    playerHpBar = this.add.rectangle(368, 137, 44, 3, 0x2ecc71).setOrigin(0, 0.5).setDepth(9);
+    playerHpText = this.add.text(390, 126, 'HP --/--', {
+        fontSize: '8px', color: '#ffffff', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 2, align: 'center'
+    }).setOrigin(0.5).setDepth(10);
     pet = this.add.sprite(430, 170, 'pet_slime');
     pet.setVisible(false); // ซ่อนสัตว์เลี้ยงตอนเริ่มเกม
 
@@ -265,27 +274,81 @@ function applyDamage() {
     createImpactSparks(enemy.x, enemy.y);
 }
 
-window.onServerCombatUpdate = function(jsonPayload) {
+function updatePlayerHpBar() {
+    if (!playerHpBar || !playerHpText) return;
+    const maxHp = Math.max(1, Number(serverPlayerMaxHp) || 1);
+    const hp = Math.max(0, Math.min(maxHp, Number(serverPlayerHp) || 0));
+    const ratio = hp / maxHp;
+    playerHpBar.width = 44 * ratio;
+    playerHpBar.fillColor = ratio <= 0.25 ? 0xe74c3c : ratio <= 0.5 ? 0xf1c40f : 0x2ecc71;
+    playerHpText.setText(`HP ${hp.toLocaleString()}/${maxHp.toLocaleString()}`);
+    playerHpText.setColor(ratio <= 0.25 ? "#ff7675" : "#ffffff");
+}
+
+function animateMonsterRetaliation(damage) {
+    if (!gameScene || !enemy || !hero || !enemy.visible) return;
+    const amount = Math.max(0, Number(damage) || 0);
+    // ภาพการโจมตีเป็นเพียงเอฟเฟกต์; ค่าความเสียหายมาจาก Supabase เท่านั้น
+    gameScene.tweens.killTweensOf(enemy);
+    gameScene.tweens.add({
+        targets: enemy,
+        x: hero.x - 34,
+        duration: 130,
+        yoyo: true,
+        hold: 35,
+        ease: "Sine.easeInOut",
+        onYoyo: () => {
+            gameScene.cameras.main.shake(90, 0.003);
+            gameScene.tweens.add({
+                targets: hero, x: hero.x + 4, duration: 55, yoyo: true,
+                onStart: () => hero.setTint(0xff7777),
+                onComplete: () => hero.clearTint()
+            });
+        },
+        onComplete: () => { if (enemy) enemy.x = 180; }
+    });
+    if (amount > 0) {
+        const hit = gameScene.add.text(hero.x, hero.y - 30, "-" + amount, {
+            fontSize: "13px", fontStyle: "bold", color: "#ff5b5b",
+            stroke: "#000000", strokeThickness: 3
+        }).setOrigin(0.5).setDepth(20);
+        gameScene.tweens.add({
+            targets: hit, y: hit.y - 18, alpha: 0, duration: 650,
+            onComplete: () => hit.destroy()
+        });
+    }
+}
+
+window.onServerCombatUpdate = function(payload) {
     let state;
-    try { state = typeof jsonPayload === "string" ? JSON.parse(jsonPayload) : jsonPayload; }
+    try { state = typeof payload === "string" ? JSON.parse(payload) : payload; }
     catch (err) { console.error("Invalid server combat update", err); return; }
     if (!state || state.success !== true) return;
 
     const previousStatus = lastServerCombatStatus;
+    const previousHp = lastDisplayedPlayerHp ?? serverPlayerHp;
     lastServerCombatStatus = state.status || "fighting";
     serverPlayerHp = Number(state.player_hp ?? serverPlayerHp);
     serverPlayerMaxHp = Number(state.player_max_hp ?? serverPlayerMaxHp);
     if (state.monster_id && currentMonsterId && String(state.monster_id) !== String(currentMonsterId)) return;
 
+    updatePlayerHpBar();
+    if (lastDisplayedPlayerHp !== null && serverPlayerHp < previousHp) {
+        animateMonsterRetaliation(previousHp - serverPlayerHp);
+    }
+    lastDisplayedPlayerHp = serverPlayerHp;
+
     if (state.status === "dead") {
         combatPaused = true;
         if (hero && previousStatus !== "dead") {
             gameScene.tweens.killTweensOf(hero);
+            hero.clearTint();
             gameScene.tweens.add({ targets: hero, alpha: 0.25, y: hero.y + 5, duration: 180, yoyo: true, repeat: 2 });
             showTopNotification("คุณถูกมอนสเตอร์โค่น! กำลังเกิดใหม่...");
         }
         if (enemy) {
-            enemyHp = maxEnemyHp;
+            enemyHp = Math.max(1, Number(state.monster_max_hp ?? maxEnemyHp));
+            maxEnemyHp = enemyHp;
             updateEnemyHpBar();
         }
     } else if (state.status === "fighting") {
@@ -299,8 +362,9 @@ window.onServerCombatUpdate = function(jsonPayload) {
         if (hero && wasDead) {
             gameScene.tweens.killTweensOf(hero);
             hero.setAlpha(1);
+            hero.clearTint();
             hero.setY(165);
-            showTopNotification("เกิดใหม่แล้ว! ต่อสู้ต่อ...");
+            showTopNotification("เกิดใหม่แล้ว! HP ตัวละครและมอนสเตอร์เต็ม");
         }
     } else if (state.status === "no_target") {
         combatPaused = true;
@@ -318,53 +382,6 @@ window.onServerCombatUpdate = function(jsonPayload) {
             else if (state.status === "fighting") hint.textContent = playerLine + " · HP มอนสเตอร์ " + enemyHp.toLocaleString() + "/" + maxEnemyHp.toLocaleString() + " · ผลคำนวณจาก Supabase";
             else if (state.status === "no_target") hint.textContent = playerLine + " · รอเป้าหมายต่อสู้จากเซิร์ฟเวอร์";
         }
-    }
-};
-
-window.onServerCombatUpdate = function(payload) {
-    const state = typeof payload === "string" ? JSON.parse(payload) : payload;
-    if (!state || state.success !== true) return;
-    const oldStatus = lastServerCombatStatus;
-    lastServerCombatStatus = state.status || "fighting";
-    serverPlayerHp = Number(state.player_hp ?? serverPlayerHp);
-    serverPlayerMaxHp = Number(state.player_max_hp ?? serverPlayerMaxHp);
-    if (state.monster_id && currentMonsterId && String(state.monster_id) !== String(currentMonsterId)) return;
-
-    if (state.status === "dead") {
-        combatPaused = true;
-        if (enemy) { enemyHp = maxEnemyHp; updateEnemyHpBar(); }
-        if (hero && oldStatus !== "dead") {
-            gameScene.tweens.killTweensOf(hero);
-            gameScene.tweens.add({ targets: hero, alpha: 0.25, duration: 180, yoyo: true, repeat: 2 });
-            showTopNotification("คุณตายแล้ว! กำลังเกิดใหม่...");
-        }
-    } else if (state.status === "fighting") {
-        if (state.monster_hp != null && state.monster_max_hp != null) {
-            maxEnemyHp = Math.max(1, Number(state.monster_max_hp));
-            enemyHp = Math.max(0, Math.min(maxEnemyHp, Number(state.monster_hp)));
-            updateEnemyHpBar();
-        }
-        combatPaused = false;
-        if (hero && oldStatus === "dead") {
-            gameScene.tweens.killTweensOf(hero);
-            hero.setAlpha(1);
-            showTopNotification("เกิดใหม่แล้ว! ต่อสู้ต่อ...");
-        }
-    } else if (state.status === "no_target") {
-        combatPaused = true;
-    } else if (state.status === "monster_defeated") {
-        combatPaused = true;
-        if (state.reward) showConfirmedRewards(state.reward);
-        if (state.state) window.initGameState(JSON.stringify(state.state));
-    }
-
-    if (typeof document !== "undefined") {
-        const hint = document.getElementById("combat-hint");
-        if (hint) hint.textContent = "HP ผู้เล่น " + serverPlayerHp.toLocaleString() + "/" +
-            serverPlayerMaxHp.toLocaleString() + " · " +
-            (state.status === "dead" ? "กำลังรอเกิดใหม่ · HP มอนสเตอร์รีเซ็ตเต็ม" :
-            "HP มอนสเตอร์ " + enemyHp.toLocaleString() + "/" + maxEnemyHp.toLocaleString() +
-            " · สถานะยืนยันจาก Supabase");
     }
 };
 
