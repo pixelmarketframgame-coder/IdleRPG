@@ -22,8 +22,6 @@ let combatTimer = null;
 let serverPlayerHp = 100, serverPlayerMaxHp = 100;
 let lastServerCombatStatus = null;
 // Combat HP and outcomes are authoritative in Supabase RPC advance_combat.
-let serverPlayerHp = 100, serverPlayerMaxHp = 100;
-let lastServerCombatStatus = null;
 
 // ==========================================
 // Bridge Functions (เรียกจาก HTML Control Panel)
