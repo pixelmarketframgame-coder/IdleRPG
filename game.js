@@ -19,6 +19,7 @@ let awaitingServerResponse = false;
 let combatPaused = true;
 let stageLabelText = null;
 let combatTimer = null;
+// Combat HP and outcomes are authoritative in Supabase RPC advance_combat.
 let serverPlayerHp = 100, serverPlayerMaxHp = 100;
 let lastServerCombatStatus = null;
 
