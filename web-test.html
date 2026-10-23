@@ -44,7 +44,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.1.6";
+  const APP_VERSION = "v0.1.7";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -103,7 +103,10 @@
       monsterMaxHp: Number.isFinite(monsterMaxHp) ? monsterMaxHp : (prev ? prev.monsterMaxHp : NaN),
       monsterId
     };
-    return { newDefeat: status === 'monster_defeated' && (!prev || prev.status !== 'monster_defeated' || newTarget) };
+    return {
+      newDefeat: status === 'monster_defeated' && (!prev || prev.status !== 'monster_defeated' || newTarget),
+      respawned: !!prev && prev.status === 'dead' && (status === 'fighting' || status === 'no_target')
+    };
   }
   const setBusy = value => { busy=value; ['login','register','create-character','ultimate','challenge','refresh'].forEach(id=>{if($(id)) $(id).disabled=value;}); };
   function showAuth(){ $('auth-panel').classList.remove('hidden'); $('character-panel').classList.add('hidden'); $('game-panel').classList.add('hidden'); $('signout').classList.add('hidden'); }
@@ -151,6 +154,10 @@
       const combat=typeof data==='string'?JSON.parse(data):data;
       if(!combat || combat.success!==true) return;
       const combatEvent = logCombatState(combat);
+      if(combatEvent.respawned && combat.status === 'fighting') {
+        await loadBattleState();
+        log('🎲 หลังเกิดใหม่: สุ่มมอนสเตอร์ตัวใหม่ในด่านเดิมแล้ว');
+      }
       if(combat.status==='monster_defeated' && combatEvent.newDefeat){
         await syncProfileOnly();
         combat.state=await makeState();
@@ -227,6 +234,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.1.6"></script>
+<script src="game.js?v=0.1.7"></script>
 </body>
 </html>
