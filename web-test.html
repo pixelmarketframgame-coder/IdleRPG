@@ -44,7 +44,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.1.4";
+  const APP_VERSION = "v0.1.5";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -54,7 +54,56 @@
   const $ = id => document.getElementById(id);
   let currentUser = null, profile = null, busy = false;
   const msg = (text, error=false) => { $('message').textContent = text; $('message').style.borderColor = error ? '#b84c62' : '#2a3858'; };
-  const log = text => { const el=document.createElement('div'); el.textContent='• '+new Date().toLocaleTimeString()+' '+text; $('log').prepend(el); };
+  const log = text => {
+    const el=document.createElement('div');
+    el.textContent='• '+new Date().toLocaleTimeString()+' '+text;
+    $('log').prepend(el);
+    while ($('log').children.length > 150) $('log').lastElementChild.remove();
+  };
+  let lastCombatSnapshot = null;
+  function logCombatState(combat) {
+    const status = String(combat.status || 'unknown');
+    const playerHp = Number(combat.player_hp);
+    const monsterHp = Number(combat.monster_hp);
+    const playerMaxHp = Number(combat.player_max_hp);
+    const monsterMaxHp = Number(combat.monster_max_hp);
+    const monsterId = String(combat.monster_id || combat.target_id || '');
+    const prev = lastCombatSnapshot;
+    const newTarget = !prev || (!!monsterId && !!prev.monsterId && monsterId !== prev.monsterId);
+    const newStatus = !prev || status !== prev.status || newTarget;
+    const playerHpKnown = Number.isFinite(playerHp);
+    const monsterHpKnown = Number.isFinite(monsterHp);
+    if (newTarget) {
+      log('🎯 เป้าหมายต่อสู้: '+(combat.monster_name || combat.target_name || monsterId || 'มอนสเตอร์')+
+        (Number.isFinite(monsterMaxHp) ? ' · HP '+(Number.isFinite(monsterHp)?monsterHp:0).toLocaleString()+'/'+monsterMaxHp.toLocaleString() : ''));
+    } else if (prev && playerHpKnown && Number.isFinite(prev.playerHp) && playerHp < prev.playerHp) {
+      log('💥 มอนสเตอร์โจมตีตัวละคร! HP ลด '+(prev.playerHp-playerHp).toLocaleString()+
+        ' · เหลือ '+playerHp.toLocaleString()+(Number.isFinite(playerMaxHp)?'/'+playerMaxHp.toLocaleString():''));
+    } else if (prev && playerHpKnown && Number.isFinite(prev.playerHp) && playerHp > prev.playerHp) {
+      log('💚 ฟื้นฟู HP ตัวละคร '+(playerHp-prev.playerHp).toLocaleString()+' · ตอนนี้ '+playerHp.toLocaleString()+
+        (Number.isFinite(playerMaxHp)?'/'+playerMaxHp.toLocaleString():''));
+    }
+    if (!newTarget && prev && monsterHpKnown && Number.isFinite(prev.monsterHp) && monsterHp < prev.monsterHp) {
+      log('⚔️ ตัวละครโจมตีมอนสเตอร์! HP มอนสเตอร์ลด '+(prev.monsterHp-monsterHp).toLocaleString()+
+        ' · เหลือ '+monsterHp.toLocaleString()+(Number.isFinite(monsterMaxHp)?'/'+monsterMaxHp.toLocaleString():''));
+    }
+    if (newStatus) {
+      if (status === 'fighting') log(prev && prev.status === 'dead' ? '✨ ตัวละครเกิดใหม่และกลับเข้าสู่การต่อสู้' : '⚔️ สถานะ: กำลังต่อสู้');
+      else if (status === 'dead') log('☠️ ตัวละคร HP หมด — รอเกิดใหม่; ไม่มีรางวัลจากการตาย');
+      else if (status === 'no_target') log('⏸️ ยังไม่มีเป้าหมายต่อสู้จากเซิร์ฟเวอร์');
+      else if (status === 'monster_defeated') log('🏆 Supabase ยืนยันว่ามอนสเตอร์พ่ายแพ้');
+      else log('ℹ️ สถานะการต่อสู้: '+status);
+    }
+    lastCombatSnapshot = {
+      status,
+      playerHp: playerHpKnown ? playerHp : (prev ? prev.playerHp : NaN),
+      playerMaxHp: Number.isFinite(playerMaxHp) ? playerMaxHp : (prev ? prev.playerMaxHp : NaN),
+      monsterHp: monsterHpKnown ? monsterHp : (prev ? prev.monsterHp : NaN),
+      monsterMaxHp: Number.isFinite(monsterMaxHp) ? monsterMaxHp : (prev ? prev.monsterMaxHp : NaN),
+      monsterId
+    };
+    return { newDefeat: status === 'monster_defeated' && (!prev || prev.status !== 'monster_defeated' || newTarget) };
+  }
   const setBusy = value => { busy=value; ['login','register','create-character','ultimate','challenge','refresh'].forEach(id=>{if($(id)) $(id).disabled=value;}); };
   function showAuth(){ $('auth-panel').classList.remove('hidden'); $('character-panel').classList.add('hidden'); $('game-panel').classList.add('hidden'); $('signout').classList.add('hidden'); }
   async function syncPlayer(){
@@ -66,6 +115,7 @@
     $('auth-panel').classList.add('hidden');$('character-panel').classList.add('hidden');$('game-panel').classList.remove('hidden');$('signout').classList.remove('hidden');
     $('player-name').textContent=data.nickname||'Hero';
     $('level').textContent=data.level??1;$('exp').textContent=data.exp??0;$('gold').textContent=Number(data.gold??0).toLocaleString();
+    log("👤 เข้าสู่ระบบ: "+(data.nickname||"ตัวละคร")+" · Lv."+(data.level??1));
     await loadBattleState();
   }
   async function loadBattleState(){
@@ -87,6 +137,7 @@
     const state={player:{level:profile?.level??1,pet:profile?.active_pet_skin||'none'},map:{stageId:String(stage.current_farm_stage??1),theme},monster:target?{id:target.monster_id,monster_name:target.monster_name,monster_type:target.monster_type,is_boss:target.is_boss,monster_hp:target.monster_hp,monster_level:target.monster_level}:null,stageStatus:stage};
     if(typeof window.initGameState==='function') window.initGameState(JSON.stringify(state));
     $('combat-hint').textContent=target?('เป้าหมาย: '+target.monster_name+' · Lv.'+target.monster_level+' · HP '+Number(target.monster_hp).toLocaleString()):'ไม่มีเป้าหมายต่อสู้ในขณะนี้';
+    log(target ? '📡 ซิงก์สถานะจาก Supabase สำเร็จ · '+target.monster_name+' Lv.'+target.monster_level : '📡 ซิงก์ Supabase สำเร็จ · ยังไม่มีเป้าหมาย');
     msg('เชื่อม Supabase สำเร็จ · โหลดข้อมูลตัวละครและเป้าหมายแล้ว');
   }
   let combatPollBusy = false;
@@ -98,11 +149,12 @@
       if(error) throw error;
       const combat=typeof data==='string'?JSON.parse(data):data;
       if(!combat || combat.success!==true) return;
-      if(combat.status==='monster_defeated'){
+      const combatEvent = logCombatState(combat);
+      if(combat.status==='monster_defeated' && combatEvent.newDefeat){
         await syncProfileOnly();
         combat.state=await makeState();
         $('last-reward').textContent='ได้รับ EXP +'+(combat.reward?.exp_gain??0)+' · Gold +'+(combat.reward?.gold_gain??0)+(combat.reward?.material_quantity?' · วัสดุ '+combat.reward.material_id+' x'+combat.reward.material_quantity:'');
-        log('Supabase ยืนยันรางวัล: EXP +'+(combat.reward?.exp_gain??0)+', Gold +'+(combat.reward?.gold_gain??0));
+        log('🎁 รางวัลยืนยันแล้ว: EXP +'+(combat.reward?.exp_gain??0)+', Gold +'+(combat.reward?.gold_gain??0));
       }
       if(typeof window.onServerCombatUpdate==='function') window.onServerCombatUpdate(combat);
     } catch(e) {
