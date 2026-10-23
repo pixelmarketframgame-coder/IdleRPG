@@ -35,6 +35,20 @@
         <div class="stat"><small>LEVEL</small><strong id="level">—</strong></div><div class="stat"><small>EXP</small><strong id="exp">—</strong></div><div class="stat"><small>GOLD</small><strong id="gold">—</strong></div><div class="stat"><small>STAGE / KILLS</small><strong id="stage">—</strong></div>
       </div>
     </div>
+    <div class="panel">
+      <h2 class="title">📊 CHARACTER STATS</h2>
+      <p class="hint">ได้รับ 3 Stat Points ต่อเลเวลที่เพิ่มขึ้น · แต้มและค่าสถานะบันทึกใน Supabase</p>
+      <div class="grid" id="stats-grid">
+        <div class="stat"><small>STR · พลังโจมตี</small><strong id="stat-str">—</strong><button data-stat="str" class="allocate-stat" style="margin-top:8px;width:100%">+ STR</button></div>
+        <div class="stat"><small>AGI · หลบหลีก</small><strong id="stat-agi">—</strong><button data-stat="agi" class="allocate-stat" style="margin-top:8px;width:100%">+ AGI</button></div>
+        <div class="stat"><small>DEX · แม่นยำ</small><strong id="stat-dex">—</strong><button data-stat="dex" class="allocate-stat" style="margin-top:8px;width:100%">+ DEX</button></div>
+        <div class="stat"><small>LUK · คริติคอล</small><strong id="stat-luk">—</strong><button data-stat="luk" class="allocate-stat" style="margin-top:8px;width:100%">+ LUK</button></div>
+        <div class="stat"><small>INT · พลังสกิล</small><strong id="stat-int">—</strong><button data-stat="int" class="allocate-stat" style="margin-top:8px;width:100%">+ INT</button></div>
+        <div class="stat"><small>VIT · Max HP</small><strong id="stat-vit">—</strong><button data-stat="vit" class="allocate-stat" style="margin-top:8px;width:100%">+ VIT</button></div>
+        <div class="stat"><small>STAT POINTS</small><strong id="stat-points">—</strong></div>
+      </div>
+      <p class="hint" id="stats-hint">กำลังโหลดค่าสถานะ…</p>
+    </div>
     <div class="panel"><h2 class="title">BATTLE FIELD</h2><div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
     <div class="panel"><h2 class="title">🎒 ของรางวัล / กิจกรรม</h2><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div></div>
   </section>
@@ -44,7 +58,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.1.9";
+  const APP_VERSION = "v0.2.0";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -120,6 +134,7 @@
     $('player-name').textContent=data.nickname||'Hero';
     $('level').textContent=data.level??1;$('exp').textContent=data.exp??0;$('gold').textContent=Number(data.gold??0).toLocaleString();
     log("👤 เข้าสู่ระบบ: "+(data.nickname||"ตัวละคร")+" · Lv."+(data.level??1));
+    await loadStats();
     await loadBattleState();
   }
   async function loadBattleState(){
@@ -207,6 +222,18 @@
     const {data,error}=await client.from('profiles').select('id,nickname,level,exp,gold,current_stage,character_created,active_pet_skin').eq('id',currentUser.id).single();
     if(error)throw error;profile=data;
     $('player-name').textContent=data.nickname||'Hero';$('level').textContent=data.level??1;$('exp').textContent=data.exp??0;$('gold').textContent=Number(data.gold??0).toLocaleString();
+    await loadStats();
+  }
+  async function loadStats(){
+    if(!currentUser) return;
+    const {data,error}=await client.from('player_stats').select('str,agi,dex,luk,int_stat,vit,stat_points').eq('player_id',currentUser.id).maybeSingle();
+    if(error) throw error;
+    if(!data) throw new Error('ไม่พบข้อมูลค่าสถานะของตัวละคร');
+    const values={str:data.str??0,agi:data.agi??0,dex:data.dex??0,luk:data.luk??0,int:data.int_stat??0,vit:data.vit??0};
+    Object.entries(values).forEach(([key,value])=>{if($('stat-'+key)) $('stat-'+key).textContent=String(value);});
+    $('stat-points').textContent=String(data.stat_points??0);
+    $('stats-hint').textContent='แต้มคงเหลือ '+(data.stat_points??0)+' · STR เพิ่ม ATK, DEX เพิ่มความแม่นยำ, AGI เพิ่มหลบหลีก, LUK เพิ่มคริติคอล, VIT เพิ่ม Max HP; INT ยังรอเชื่อมกับสกิลฝั่งเซิร์ฟเวอร์';
+    document.querySelectorAll('.allocate-stat').forEach(btn=>btn.disabled=(data.stat_points??0)<1 || busy);
   }
   async function makeState(){
     const {data:sd,error:se}=await client.rpc('get_stage_status');
@@ -228,6 +255,23 @@
   $('register').onclick=async()=>{setBusy(true);try{const {data,error}=await client.auth.signUp({email:$('email').value.trim(),password:$('password').value});if(error)throw error;if(data.session){currentUser=data.user;await syncPlayer();}else msg('สมัครบัญชีแล้ว หากเปิดการยืนยันอีเมลไว้ กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ');}catch(e){msg(e.message,true);}finally{setBusy(false);}};
   $('create-character').onclick=async()=>{setBusy(true);try{const {data,error}=await client.rpc('create_character',{p_nickname:$('nickname').value.trim()});if(error)throw error;const result=typeof data==='string'?JSON.parse(data):data;if(!result?.success)throw new Error(result?.message||result?.error||'สร้างตัวละครไม่สำเร็จ');await syncPlayer();msg('สร้างตัวละครสำเร็จ');}catch(e){msg(e.message,true);}finally{setBusy(false);}};
   $('signout').onclick=async()=>{await client.auth.signOut();currentUser=null;profile=null;showAuth();msg('ออกจากระบบแล้ว');};
+  document.querySelectorAll('.allocate-stat').forEach(btn=>{
+    btn.onclick=async()=>{
+      const stat=btn.dataset.stat;
+      if(!currentUser || busy) return;
+      setBusy(true);
+      try{
+        const {data,error}=await client.rpc('allocate_stat_point',{p_stat:stat,p_points:1});
+        if(error) throw error;
+        const result=typeof data==='string'?JSON.parse(data):data;
+        if(!result?.success) throw new Error(result?.message||result?.error||'จัดสรรค่าสถานะไม่สำเร็จ');
+        await loadStats();
+        log('📈 เพิ่ม '+stat.toUpperCase()+' +1 · เหลือ '+result.stat_points+' แต้ม');
+        msg('จัดสรรค่าสถานะสำเร็จ');
+      }catch(e){msg('จัดสรรค่าสถานะไม่สำเร็จ: '+e.message,true);log('RPC allocate_stat_point: '+e.message);}
+      finally{setBusy(false);await loadStats().catch(()=>{});}
+    };
+  });
   $('ultimate').onclick=()=>{if(typeof window.triggerHeroSkill==='function')window.triggerHeroSkill('ultimate');};
   $('challenge').onclick=()=>{if(typeof window.challengeCurrentStage==='function')window.challengeCurrentStage();};
   $('refresh').onclick=async()=>{setBusy(true);try{await syncPlayer();}catch(e){msg('โหลดข้อมูลไม่สำเร็จ: '+e.message,true);}finally{setBusy(false);}};
