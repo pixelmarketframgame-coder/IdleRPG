@@ -366,7 +366,7 @@ window.onServerCombatUpdate = function(payload) {
             hero.setAlpha(1);
             hero.clearTint();
             hero.setY(165);
-            showTopNotification("เกิดใหม่แล้ว! HP ตัวละครและมอนสเตอร์เต็ม");
+            showTopNotification("เกิดใหม่แล้ว! สุ่มมอนสเตอร์ตัวใหม่ในด่านเดิม");
         }
     } else if (state.status === "no_target") {
         combatPaused = true;
@@ -380,7 +380,7 @@ window.onServerCombatUpdate = function(payload) {
         const hint = document.getElementById("combat-hint");
         if (hint) {
             const playerLine = "HP ผู้เล่น " + serverPlayerHp.toLocaleString() + "/" + serverPlayerMaxHp.toLocaleString();
-            if (state.status === "dead") hint.textContent = playerLine + " · ตายแล้ว · กำลังรอเกิดใหม่ · HP มอนสเตอร์รีเซ็ตเต็ม";
+            if (state.status === "dead") hint.textContent = playerLine + " · ตายแล้ว · กำลังรอเกิดใหม่ · หลังเกิดใหม่จะสุ่มมอนสเตอร์ใหม่ในด่านเดิม";
             else if (state.status === "fighting") hint.textContent = playerLine + " · HP มอนสเตอร์ " + enemyHp.toLocaleString() + "/" + maxEnemyHp.toLocaleString() + " · ผลคำนวณจาก Supabase";
             else if (state.status === "no_target") hint.textContent = playerLine + " · รอเป้าหมายต่อสู้จากเซิร์ฟเวอร์";
         }
