@@ -7,7 +7,7 @@
 <style>
 :root{color-scheme:dark;--bg:#0b1020;--panel:#141d32;--line:#2a3858;--gold:#ffd166;--text:#edf2ff;--muted:#9eaccb;--blue:#385bd6;--green:#1d9b72}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#18264a,#090d19 65%);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif;padding:18px}
-.wrap{max-width:980px;margin:auto;display:grid;gap:14px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.brand{font-size:20px;font-weight:800;letter-spacing:.3px}.brand span{color:var(--gold)}.panel{background:linear-gradient(145deg,#17223b,#101729);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 12px 32px #0004}.title{font-weight:800;color:var(--gold);margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{background:#0b1224;border:1px solid #253452;border-radius:10px;padding:12px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:20px;display:block;margin-top:3px;overflow-wrap:anywhere}input,button{font:inherit;border-radius:9px;padding:11px 12px}input{background:#0a1121;color:var(--text);border:1px solid #344363;width:100%;min-width:0}button{border:1px solid #526ba6;background:#253b70;color:white;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.15)}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--blue)}.green{background:#17694f;border-color:#278b6b}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{color:var(--muted);font-size:13px;line-height:1.5}.status{padding:10px 12px;border:1px solid var(--line);background:#0a1121;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere}.hidden{display:none!important}#game-container{width:100%;max-width:720px;aspect-ratio:520/220;margin:auto;border:2px solid #354568;border-radius:10px;overflow:hidden;background:#05070d}#game-container canvas{display:block!important;width:100%!important;height:100%!important}.game-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.game-actions button{min-width:150px}.log{max-height:150px;overflow:auto;font-size:13px;color:#c3d0ee;line-height:1.6}.version-tag{display:inline-flex;align-items:center;border:1px solid #b38a36;background:#332711;color:#ffd166;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;letter-spacing:.4px;white-space:nowrap}.footer{color:#8290b0;text-align:center;font-size:12px}
+.wrap{max-width:980px;margin:auto;display:grid;gap:14px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.brand{font-size:20px;font-weight:800;letter-spacing:.3px}.brand span{color:var(--gold)}.panel{background:linear-gradient(145deg,#17223b,#101729);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 12px 32px #0004}.title{font-weight:800;color:var(--gold);margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{background:#0b1224;border:1px solid #253452;border-radius:10px;padding:12px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:20px;display:block;margin-top:3px;overflow-wrap:anywhere}input,button{font:inherit;border-radius:9px;padding:11px 12px}input{background:#0a1121;color:var(--text);border:1px solid #344363;width:100%;min-width:0}button{border:1px solid #526ba6;background:#253b70;color:white;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.15)}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--blue)}.green{background:#17694f;border-color:#278b6b}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{color:var(--muted);font-size:13px;line-height:1.5}.status{padding:10px 12px;border:1px solid var(--line);background:#0a1121;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere}.hidden{display:none!important}#game-container{width:100%;max-width:720px;aspect-ratio:520/220;margin:auto;border:2px solid #354568;border-radius:10px;overflow:hidden;background:#05070d}#game-container canvas{display:block!important;width:100%!important;height:100%!important}.pixel-status-bar{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;margin:0 auto 10px;padding:7px 10px;background:linear-gradient(180deg,#1d2a36,#111a23);border:2px solid #586574;border-radius:9px;box-shadow:inset 0 0 0 2px #10151c,0 3px 0 #070a0e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;image-rendering:pixelated}.pixel-avatar{flex:0 0 76px;width:76px;height:76px;display:flex;align-items:center;justify-content:center;border:3px solid #b49a61;border-radius:50%;background:radial-gradient(circle at 35% 25%,#59677b,#202a3c 65%,#101722);box-shadow:0 0 0 3px #090d14,inset 0 0 0 2px #d4bd7c;font-size:39px;text-shadow:2px 2px #000}.pixel-status-main{flex:1;min-width:0;display:grid;gap:4px}.pixel-status-name{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#fff4c4;font-size:13px;text-shadow:1px 2px #000}.pixel-status-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pixel-status-name span{white-space:nowrap}.pixel-meter{height:17px;position:relative;overflow:hidden;border:2px solid #090d12;border-radius:10px;background:#10151b;box-shadow:inset 0 1px 3px #000}.pixel-meter-fill{height:100%;width:0;transition:width .25s ease;border-radius:7px}.pixel-meter span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900;text-shadow:1px 1px #000,-1px -1px #000;line-height:1}.hp-meter .pixel-meter-fill{background:linear-gradient(#ff7979,#e32636 60%,#a90f20)}.mana-meter .pixel-meter-fill{background:linear-gradient(#8dd8ff,#2588e9 60%,#1450a3)}.exp-meter .pixel-meter-fill{background:linear-gradient(#fff09a,#e8b940 60%,#9a6a16)}.pixel-exp-caption{text-align:center;color:#f4df9b;font-size:10px;text-shadow:1px 1px #000;line-height:1.1}@media(max-width:420px){.pixel-status-bar{gap:9px;padding:6px}.pixel-avatar{flex-basis:62px;width:62px;height:62px;font-size:32px}.pixel-status-name{font-size:12px}.pixel-meter{height:16px}.pixel-meter span{font-size:10px}}.game-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.game-actions button{min-width:150px}.log{max-height:150px;overflow:auto;font-size:13px;color:#c3d0ee;line-height:1.6}.version-tag{display:inline-flex;align-items:center;border:1px solid #b38a36;background:#332711;color:#ffd166;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;letter-spacing:.4px;white-space:nowrap}.footer{color:#8290b0;text-align:center;font-size:12px}
 .modal-backdrop{position:fixed;inset:0;z-index:1000;background:#020611d9;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px)}
 .modal-backdrop.hidden{display:none!important}.status-modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #526ba6;border-radius:18px;padding:18px;box-shadow:0 24px 80px #000b}
 .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.modal-close{min-width:42px;padding:8px 12px;background:#202b43;border-color:#445477}.status-menu-button{min-width:unset;padding:9px 15px;background:#253b70;border-color:#8d9fc9}
@@ -39,7 +39,18 @@
         <div class="stat"><small>LEVEL</small><strong id="level">—</strong></div><div class="stat"><small>EXP</small><strong id="exp">—</strong></div><div class="stat"><small>GOLD</small><strong id="gold">—</strong></div><div class="stat"><small>STAGE / KILLS</small><strong id="stage">—</strong></div>
       </div>
     </div>
-    <div class="panel"><h2 class="title">BATTLE FIELD</h2><div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
+    <div class="panel"><h2 class="title">BATTLE FIELD</h2>
+      <div id="pixel-status-bar" class="pixel-status-bar" aria-label="สถานะตัวละคร">
+        <div class="pixel-avatar" id="pixel-avatar">🧑🏻</div>
+        <div class="pixel-status-main">
+          <div class="pixel-status-name"><strong id="pixel-name">Hero</strong><span id="pixel-level">Lv.1</span></div>
+          <div class="pixel-meter hp-meter"><div class="pixel-meter-fill" id="pixel-hp-fill"></div><span id="pixel-hp-text">HP --/--</span></div>
+          <div class="pixel-meter mana-meter"><div class="pixel-meter-fill" id="pixel-mana-fill"></div><span id="pixel-mana-text">GOLD 0</span></div>
+          <div class="pixel-meter exp-meter"><div class="pixel-meter-fill" id="pixel-exp-fill"></div><span id="pixel-exp-text">EXP 0</span></div>
+          <div class="pixel-exp-caption" id="pixel-exp-caption">กำลังซิงก์ข้อมูลตัวละคร…</div>
+        </div>
+      </div>
+      <div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
     <div class="panel"><h2 class="title">🎒 ของรางวัล / กิจกรรม</h2><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div></div>
   </section>
   <div id="status-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
@@ -63,7 +74,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.2.1";
+  const APP_VERSION = "v0.2.2";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -129,6 +140,26 @@
   }
   const setBusy = value => { busy=value; ['login','register','create-character','ultimate','challenge','refresh'].forEach(id=>{if($(id)) $(id).disabled=value;}); };
   function showAuth(){ $('auth-panel').classList.remove('hidden'); $('character-panel').classList.add('hidden'); $('game-panel').classList.add('hidden'); $('signout').classList.add('hidden'); }
+  function updatePixelStatus(data={}) {
+    const name = data.nickname ?? profile?.nickname ?? 'Hero';
+    const level = Math.max(1, Number(data.level ?? profile?.level ?? 1));
+    const exp = Math.max(0, Number(data.exp ?? profile?.exp ?? 0));
+    const gold = Math.max(0, Number(data.gold ?? profile?.gold ?? 0));
+    if ($('pixel-name')) $('pixel-name').textContent = name;
+    if ($('pixel-level')) $('pixel-level').textContent = 'Lv.' + level;
+    if ($('pixel-exp-text')) $('pixel-exp-text').textContent = 'EXP ' + exp.toLocaleString();
+    if ($('pixel-exp-fill')) $('pixel-exp-fill').style.width = (exp % 100) + '%';
+    if ($('pixel-exp-caption')) $('pixel-exp-caption').textContent = 'EXP สะสม · Lv.' + level;
+    if ($('pixel-mana-text')) $('pixel-mana-text').textContent = 'GOLD ' + gold.toLocaleString();
+    if ($('pixel-mana-fill')) $('pixel-mana-fill').style.width = '100%';
+  }
+  function updatePixelHp(hp,maxHp) {
+    const max = Math.max(1, Number(maxHp) || 1);
+    const value = Math.max(0, Math.min(max, Number(hp) || 0));
+    if ($('pixel-hp-text')) $('pixel-hp-text').textContent = value.toLocaleString() + '/' + max.toLocaleString();
+    if ($('pixel-hp-fill')) $('pixel-hp-fill').style.width = (value/max*100) + '%';
+    if ($('pixel-hp-fill')) $('pixel-hp-fill').style.background = value/max <= .25 ? 'linear-gradient(#ff7979,#e32636 60%,#a90f20)' : 'linear-gradient(#ff7979,#e32636 60%,#a90f20)';
+  }
   async function syncPlayer(){
     const {data,error}=await client.from('profiles').select('id,nickname,level,exp,gold,current_stage,character_created,active_pet_skin').eq('id',currentUser.id).maybeSingle();
     if(error) throw error;
@@ -136,7 +167,7 @@
     profile=data;
     if(!data.character_created){$('auth-panel').classList.add('hidden');$('game-panel').classList.add('hidden');$('character-panel').classList.remove('hidden');$('signout').classList.remove('hidden');msg('เข้าสู่ระบบแล้ว กรุณาสร้างตัวละคร');return;}
     $('auth-panel').classList.add('hidden');$('character-panel').classList.add('hidden');$('game-panel').classList.remove('hidden');$('signout').classList.remove('hidden');
-    $('player-name').textContent=data.nickname||'Hero';
+    $('player-name').textContent=data.nickname||'Hero'; updatePixelStatus({nickname:data.nickname,level:data.level,exp:data.exp,gold:data.gold});
     $('level').textContent=data.level??1;$('exp').textContent=data.exp??0;$('gold').textContent=Number(data.gold??0).toLocaleString();
     log("👤 เข้าสู่ระบบ: "+(data.nickname||"ตัวละคร")+" · Lv."+(data.level??1));
     await loadStats();
@@ -174,6 +205,7 @@
       const combat=typeof data==='string'?JSON.parse(data):data;
       if(!combat || combat.success!==true) return;
       const combatEvent = logCombatState(combat);
+      updatePixelHp(combat.player_hp,combat.player_max_hp);
       if(combatEvent.respawned && combat.status === 'fighting') {
         await loadBattleState();
         log('🎲 หลังเกิดใหม่: สุ่มมอนสเตอร์ตัวใหม่ในด่านเดิมแล้ว');
@@ -226,7 +258,7 @@
   async function syncProfileOnly(){
     const {data,error}=await client.from('profiles').select('id,nickname,level,exp,gold,current_stage,character_created,active_pet_skin').eq('id',currentUser.id).single();
     if(error)throw error;profile=data;
-    $('player-name').textContent=data.nickname||'Hero';$('level').textContent=data.level??1;$('exp').textContent=data.exp??0;$('gold').textContent=Number(data.gold??0).toLocaleString();
+    $('player-name').textContent=data.nickname||'Hero';updatePixelStatus({nickname:data.nickname,level:data.level,exp:data.exp,gold:data.gold});$('level').textContent=data.level??1;$('exp').textContent=data.exp??0;$('gold').textContent=Number(data.gold??0).toLocaleString();
     await loadStats();
   }
   async function loadStats(){
@@ -289,6 +321,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.2.1"></script>
+<script src="game.js?v=0.2.2"></script>
 </body>
 </html>
