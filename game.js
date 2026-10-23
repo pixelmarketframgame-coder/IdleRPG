@@ -373,6 +373,28 @@ window.onServerCombatUpdate = function(payload) {
     }
     lastDisplayedPlayerHp = serverPlayerHp;
 
+    // แสดงตัวเลขดาเมจจากผลต่าง HP ที่ Supabase ยืนยัน รวมถึงจังหวะที่มอนสเตอร์ตายพอดี
+    if ((state.status === "fighting" || state.status === "monster_defeated") &&
+        state.monster_hp != null && state.monster_max_hp != null) {
+        maxEnemyHp = Math.max(1, Number(state.monster_max_hp));
+        enemyHp = Math.max(0, Math.min(maxEnemyHp, Number(state.monster_hp)));
+        if (enemy && !enemy.visible && currentMonsterId) enemy.setVisible(true);
+        updateEnemyHpBar();
+        if (!changedMonster && previousMonsterHp != null && enemyHp < previousMonsterHp) {
+            showDamageText(enemy ? enemy.x : 180, enemy ? enemy.y - 20 : 145, previousMonsterHp - enemyHp, false);
+            createImpactSparks(enemy ? enemy.x : 180, enemy ? enemy.y : 165);
+            if (enemy) {
+                gameScene.tweens.killTweensOf(enemy);
+                const originalX = enemy.x;
+                gameScene.tweens.add({ targets: enemy, x: originalX - 5, duration: 45, yoyo: true, repeat: 1 });
+                enemy.setTint(0xffdddd);
+                gameScene.time.delayedCall(120, () => { if (enemy) enemy.clearTint(); });
+            }
+        }
+        lastDisplayedMonsterHp = enemyHp;
+        lastDisplayedMonsterId = currentMonsterId;
+    }
+
     if (state.status === "dead") {
         combatPaused = true;
         if (hero && previousStatus !== "dead") {
@@ -391,21 +413,7 @@ window.onServerCombatUpdate = function(payload) {
         if (state.monster_hp != null && state.monster_max_hp != null) {
             maxEnemyHp = Math.max(1, Number(state.monster_max_hp));
             enemyHp = Math.max(0, Math.min(maxEnemyHp, Number(state.monster_hp)));
-            if (enemy && !enemy.visible && currentMonsterId) enemy.setVisible(true);
             updateEnemyHpBar();
-            if (!changedMonster && previousMonsterHp != null && enemyHp < previousMonsterHp) {
-                showDamageText(enemy ? enemy.x : 180, enemy ? enemy.y - 20 : 145, previousMonsterHp - enemyHp, false);
-                createImpactSparks(enemy ? enemy.x : 180, enemy ? enemy.y : 165);
-                if (enemy) {
-                    gameScene.tweens.killTweensOf(enemy);
-                    const originalX = enemy.x;
-                    gameScene.tweens.add({ targets: enemy, x: originalX - 5, duration: 45, yoyo: true, repeat: 1 });
-                    enemy.setTint(0xffdddd);
-                    gameScene.time.delayedCall(120, () => { if (enemy) enemy.clearTint(); });
-                }
-            }
-            lastDisplayedMonsterHp = enemyHp;
-            lastDisplayedMonsterId = currentMonsterId;
         }
         combatPaused = false;
         if (hero && wasDead) {
