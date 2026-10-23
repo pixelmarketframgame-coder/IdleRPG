@@ -6,7 +6,7 @@ let gameScene = null; // เก็บ Reference ตัวเกมให้ HTML
 let bgFar, bgMid, bgFloor;
 let hero, pet, enemy, portal;
 let enemyHp = 100, maxEnemyHp = 100;
-let enemyHpBar, enemyNameText, topBanner, topBannerText, stageProgressBar;
+let enemyHpBarBg, enemyHpBar, enemyHpText, enemyNameText, topBanner, topBannerText, stageProgressBar;
 
 let currentStage = "1";
 let killsInStage = 0;
@@ -24,6 +24,8 @@ let lastServerCombatStatus = null;
 // Combat HP and outcomes are authoritative in Supabase RPC advance_combat.
 let playerHpBarBg = null, playerHpBar = null, playerHpText = null;
 let lastDisplayedPlayerHp = null;
+let lastDisplayedMonsterHp = null;
+let lastDisplayedMonsterId = null;
 
 // ==========================================
 // Bridge Functions (เรียกจาก HTML Control Panel)
@@ -233,9 +235,15 @@ function spawnEnemy() {
 
     if (!enemy) {
         enemy = gameScene.add.sprite(180, 165, 'enemy_normal');
-        gameScene.add.rectangle(180, 138, 42, 5, 0x000000);
-        enemyHpBar = gameScene.add.rectangle(180, 138, 40, 3, 0xe74c3c);
-        enemyNameText = gameScene.add.text(180, 126, '', { fontSize: '10px', color: '#fff' }).setOrigin(0.5);
+        enemyHpBarBg = gameScene.add.rectangle(160, 138, 40, 6, 0x111111).setOrigin(0, 0.5).setDepth(10);
+        enemyHpBar = gameScene.add.rectangle(160, 138, 40, 4, 0xe74c3c).setOrigin(0, 0.5).setDepth(11);
+        enemyHpText = gameScene.add.text(180, 119, '', {
+            fontSize: '9px', color: '#ffffff', fontStyle: 'bold',
+            stroke: '#000000', strokeThickness: 3, align: 'center'
+        }).setOrigin(0.5).setDepth(12);
+        enemyNameText = gameScene.add.text(180, 127, '', {
+            fontSize: '10px', color: '#fff', stroke: '#000000', strokeThickness: 3
+        }).setOrigin(0.5).setDepth(12);
     }
 
     if (isBossFight) {
@@ -255,9 +263,27 @@ function spawnEnemy() {
 }
 
 function updateEnemyHpBar() {
-    if (!enemyHpBar) return;
-    const pct = Math.max(0, enemyHp / maxEnemyHp);
+    if (!enemy || !enemyHpBar || !enemyHpBarBg) return;
+    const maxHp = Math.max(1, Number(maxEnemyHp) || 1);
+    const hp = Math.max(0, Math.min(maxHp, Number(enemyHp) || 0));
+    const pct = hp / maxHp;
+    const barX = enemy.x - 20;
+    const barY = enemy.y - (isBossFight ? 38 : 29);
+    enemyHpBarBg.setPosition(barX, barY);
+    enemyHpBar.setPosition(barX, barY);
     enemyHpBar.width = 40 * pct;
+    enemyHpBar.fillColor = pct <= 0.25 ? 0xe74c3c : pct <= 0.5 ? 0xf1c40f : 0x2ecc71;
+    if (enemyHpText) {
+        enemyHpText.setPosition(enemy.x, barY - 10);
+        enemyHpText.setText(hp.toLocaleString() + '/' + maxHp.toLocaleString());
+        enemyHpText.setVisible(enemy.visible);
+    }
+    if (enemyNameText) {
+        enemyNameText.setPosition(enemy.x, barY - 21);
+        enemyNameText.setVisible(enemy.visible);
+    }
+    enemyHpBarBg.setVisible(enemy.visible);
+    enemyHpBar.setVisible(enemy.visible);
 }
 
 function performRangedAttack() {
@@ -329,10 +355,17 @@ window.onServerCombatUpdate = function(payload) {
 
     const previousStatus = lastServerCombatStatus;
     const previousHp = lastDisplayedPlayerHp ?? serverPlayerHp;
+    const incomingMonsterId = state.monster_id != null ? String(state.monster_id) : currentMonsterId;
+    const changedMonster = !!incomingMonsterId && incomingMonsterId !== lastDisplayedMonsterId;
+    const previousMonsterHp = lastDisplayedMonsterHp;
     lastServerCombatStatus = state.status || "fighting";
     serverPlayerHp = Number(state.player_hp ?? serverPlayerHp);
     serverPlayerMaxHp = Number(state.player_max_hp ?? serverPlayerMaxHp);
-    if (state.monster_id && currentMonsterId && String(state.monster_id) !== String(currentMonsterId)) return;
+    if (incomingMonsterId) currentMonsterId = incomingMonsterId;
+    if (changedMonster) {
+        lastDisplayedMonsterHp = null;
+        lastDisplayedMonsterId = incomingMonsterId;
+    }
 
     updatePlayerHpBar();
     if (lastDisplayedPlayerHp !== null && serverPlayerHp < previousHp) {
@@ -358,7 +391,21 @@ window.onServerCombatUpdate = function(payload) {
         if (state.monster_hp != null && state.monster_max_hp != null) {
             maxEnemyHp = Math.max(1, Number(state.monster_max_hp));
             enemyHp = Math.max(0, Math.min(maxEnemyHp, Number(state.monster_hp)));
+            if (enemy && !enemy.visible && currentMonsterId) enemy.setVisible(true);
             updateEnemyHpBar();
+            if (!changedMonster && previousMonsterHp != null && enemyHp < previousMonsterHp) {
+                showDamageText(enemy ? enemy.x : 180, enemy ? enemy.y - 20 : 145, previousMonsterHp - enemyHp, false);
+                createImpactSparks(enemy ? enemy.x : 180, enemy ? enemy.y : 165);
+                if (enemy) {
+                    gameScene.tweens.killTweensOf(enemy);
+                    const originalX = enemy.x;
+                    gameScene.tweens.add({ targets: enemy, x: originalX - 5, duration: 45, yoyo: true, repeat: 1 });
+                    enemy.setTint(0xffdddd);
+                    gameScene.time.delayedCall(120, () => { if (enemy) enemy.clearTint(); });
+                }
+            }
+            lastDisplayedMonsterHp = enemyHp;
+            lastDisplayedMonsterId = currentMonsterId;
         }
         combatPaused = false;
         if (hero && wasDead) {
@@ -584,9 +631,15 @@ window.initGameState = function(jsonPayload) {
 
     if (!enemy) {
         enemy = gameScene.add.sprite(180, 165, isBossFight ? 'enemy_boss' : 'enemy_normal');
-        gameScene.add.rectangle(180, 138, 42, 5, 0x000000);
-        enemyHpBar = gameScene.add.rectangle(180, 138, 40, 3, 0xe74c3c);
-        enemyNameText = gameScene.add.text(180, 126, '', { fontSize: '10px', color: '#fff' }).setOrigin(0.5);
+        enemyHpBarBg = gameScene.add.rectangle(160, 138, 40, 6, 0x111111).setOrigin(0, 0.5).setDepth(10);
+        enemyHpBar = gameScene.add.rectangle(160, 138, 40, 4, 0xe74c3c).setOrigin(0, 0.5).setDepth(11);
+        enemyHpText = gameScene.add.text(180, 119, '', {
+            fontSize: '9px', color: '#ffffff', fontStyle: 'bold',
+            stroke: '#000000', strokeThickness: 3, align: 'center'
+        }).setOrigin(0.5).setDepth(12);
+        enemyNameText = gameScene.add.text(180, 127, '', {
+            fontSize: '10px', color: '#fff', stroke: '#000000', strokeThickness: 3
+        }).setOrigin(0.5).setDepth(12);
     }
     enemy.setTexture(isBossFight ? 'enemy_boss' : 'enemy_normal');
     enemy.setPosition(230, isBossFight ? 155 : 165);
@@ -596,6 +649,8 @@ window.initGameState = function(jsonPayload) {
     enemyNameText.setText(monster.monster_name || monster.name || "Monster");
     enemyNameText.setColor(isBossFight ? "#f1c40f" : "#ffffff");
     enemy.setVisible(true);
+    lastDisplayedMonsterHp = null;
+    lastDisplayedMonsterId = currentMonsterId;
     updateEnemyHpBar();
 
     // เล่นวิ่งเข้าหาศัตรูใหม่เฉพาะหลังได้ state ที่เซิร์ฟเวอร์ยืนยันแล้ว
@@ -605,8 +660,7 @@ window.initGameState = function(jsonPayload) {
     gameScene.tweens.add({
         targets: enemy, x: 180, alpha: 1, duration: 260, ease: "Sine.easeOut",
         onUpdate: () => {
-            if (enemyNameText) enemyNameText.setX(enemy.x);
-            if (enemyHpBar) enemyHpBar.setX(enemy.x);
+            updateEnemyHpBar();
         }
     });
     combatPaused = false;
