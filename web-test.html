@@ -7,7 +7,11 @@
 <style>
 :root{color-scheme:dark;--bg:#0b1020;--panel:#141d32;--line:#2a3858;--gold:#ffd166;--text:#edf2ff;--muted:#9eaccb;--blue:#385bd6;--green:#1d9b72}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#18264a,#090d19 65%);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif;padding:18px}
-.wrap{max-width:980px;margin:auto;display:grid;gap:14px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.brand{font-size:20px;font-weight:800;letter-spacing:.3px}.brand span{color:var(--gold)}.panel{background:linear-gradient(145deg,#17223b,#101729);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 12px 32px #0004}.title{font-weight:800;color:var(--gold);margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{background:#0b1224;border:1px solid #253452;border-radius:10px;padding:12px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:20px;display:block;margin-top:3px;overflow-wrap:anywhere}input,button{font:inherit;border-radius:9px;padding:11px 12px}input{background:#0a1121;color:var(--text);border:1px solid #344363;width:100%;min-width:0}button{border:1px solid #526ba6;background:#253b70;color:white;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.15)}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--blue)}.green{background:#17694f;border-color:#278b6b}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{color:var(--muted);font-size:13px;line-height:1.5}.status{padding:10px 12px;border:1px solid var(--line);background:#0a1121;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere}.hidden{display:none!important}#game-container{width:100%;max-width:720px;aspect-ratio:520/220;margin:auto;border:2px solid #354568;border-radius:10px;overflow:hidden;background:#05070d}#game-container canvas{display:block!important;width:100%!important;height:100%!important}.game-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.game-actions button{min-width:150px}.log{max-height:150px;overflow:auto;font-size:13px;color:#c3d0ee;line-height:1.6}.version-tag{display:inline-flex;align-items:center;border:1px solid #b38a36;background:#332711;color:#ffd166;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;letter-spacing:.4px;white-space:nowrap}.footer{color:#8290b0;text-align:center;font-size:12px}@media(max-width:620px){body{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.authgrid{grid-template-columns:1fr}.panel{padding:12px}.brand{font-size:17px}}
+.wrap{max-width:980px;margin:auto;display:grid;gap:14px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.brand{font-size:20px;font-weight:800;letter-spacing:.3px}.brand span{color:var(--gold)}.panel{background:linear-gradient(145deg,#17223b,#101729);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 12px 32px #0004}.title{font-weight:800;color:var(--gold);margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{background:#0b1224;border:1px solid #253452;border-radius:10px;padding:12px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:20px;display:block;margin-top:3px;overflow-wrap:anywhere}input,button{font:inherit;border-radius:9px;padding:11px 12px}input{background:#0a1121;color:var(--text);border:1px solid #344363;width:100%;min-width:0}button{border:1px solid #526ba6;background:#253b70;color:white;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.15)}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--blue)}.green{background:#17694f;border-color:#278b6b}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{color:var(--muted);font-size:13px;line-height:1.5}.status{padding:10px 12px;border:1px solid var(--line);background:#0a1121;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere}.hidden{display:none!important}#game-container{width:100%;max-width:720px;aspect-ratio:520/220;margin:auto;border:2px solid #354568;border-radius:10px;overflow:hidden;background:#05070d}#game-container canvas{display:block!important;width:100%!important;height:100%!important}.game-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.game-actions button{min-width:150px}.log{max-height:150px;overflow:auto;font-size:13px;color:#c3d0ee;line-height:1.6}.version-tag{display:inline-flex;align-items:center;border:1px solid #b38a36;background:#332711;color:#ffd166;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;letter-spacing:.4px;white-space:nowrap}.footer{color:#8290b0;text-align:center;font-size:12px}
+.modal-backdrop{position:fixed;inset:0;z-index:1000;background:#020611d9;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px)}
+.modal-backdrop.hidden{display:none!important}.status-modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #526ba6;border-radius:18px;padding:18px;box-shadow:0 24px 80px #000b}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.modal-close{min-width:42px;padding:8px 12px;background:#202b43;border-color:#445477}.status-menu-button{min-width:unset;padding:9px 15px;background:#253b70;border-color:#8d9fc9}
+@media(max-width:620px){.status-modal{padding:13px;max-height:94vh}.modal-backdrop{padding:8px}}@media(max-width:620px){body{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.authgrid{grid-template-columns:1fr}.panel{padding:12px}.brand{font-size:17px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -30,14 +34,17 @@
   </section>
   <section id="game-panel" class="hidden">
     <div class="panel">
-      <div class="top"><h2 class="title" style="margin:0">PLAYER STATUS</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="version-tag" id="game-version">VERSION v0.1.4</span><div id="player-name" class="hint"></div></div></div>
+      <div class="top"><h2 class="title" style="margin:0">PLAYER STATUS</h2><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button id="open-status" class="status-menu-button">📊 Status</button><span class="version-tag" id="game-version">VERSION v0.1.4</span><div id="player-name" class="hint"></div></div></div>
       <div class="grid" style="margin-top:12px">
         <div class="stat"><small>LEVEL</small><strong id="level">—</strong></div><div class="stat"><small>EXP</small><strong id="exp">—</strong></div><div class="stat"><small>GOLD</small><strong id="gold">—</strong></div><div class="stat"><small>STAGE / KILLS</small><strong id="stage">—</strong></div>
       </div>
     </div>
-    <div class="panel">
-      <h2 class="title">📊 CHARACTER STATS</h2>
-      <p class="hint">ได้รับ 3 Stat Points ต่อเลเวลที่เพิ่มขึ้น · แต้มและค่าสถานะบันทึกใน Supabase</p>
+    <div class="panel"><h2 class="title">BATTLE FIELD</h2><div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
+    <div class="panel"><h2 class="title">🎒 ของรางวัล / กิจกรรม</h2><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div></div>
+  </section>
+  <div id="status-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
+    <section class="status-modal">
+      <div class="modal-head"><div><h2 class="title" id="status-modal-title" style="margin:0">📊 STATUS</h2><p class="hint" style="margin:5px 0 0">ได้รับ 3 Stat Points ต่อเลเวลที่เพิ่มขึ้น</p></div><button id="close-status" class="modal-close" aria-label="ปิดเมนู Status">✕</button></div>
       <div class="grid" id="stats-grid">
         <div class="stat"><small>STR · พลังโจมตี</small><strong id="stat-str">—</strong><button data-stat="str" class="allocate-stat" style="margin-top:8px;width:100%">+ STR</button></div>
         <div class="stat"><small>AGI · หลบหลีก</small><strong id="stat-agi">—</strong><button data-stat="agi" class="allocate-stat" style="margin-top:8px;width:100%">+ AGI</button></div>
@@ -48,17 +55,15 @@
         <div class="stat"><small>STAT POINTS</small><strong id="stat-points">—</strong></div>
       </div>
       <p class="hint" id="stats-hint">กำลังโหลดค่าสถานะ…</p>
-    </div>
-    <div class="panel"><h2 class="title">BATTLE FIELD</h2><div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
-    <div class="panel"><h2 class="title">🎒 ของรางวัล / กิจกรรม</h2><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div></div>
-  </section>
+    </section>
+  </div>
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
   <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production</div>
 </div>
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.2.0";
+  const APP_VERSION = "v0.2.1";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -255,6 +260,12 @@
   $('register').onclick=async()=>{setBusy(true);try{const {data,error}=await client.auth.signUp({email:$('email').value.trim(),password:$('password').value});if(error)throw error;if(data.session){currentUser=data.user;await syncPlayer();}else msg('สมัครบัญชีแล้ว หากเปิดการยืนยันอีเมลไว้ กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ');}catch(e){msg(e.message,true);}finally{setBusy(false);}};
   $('create-character').onclick=async()=>{setBusy(true);try{const {data,error}=await client.rpc('create_character',{p_nickname:$('nickname').value.trim()});if(error)throw error;const result=typeof data==='string'?JSON.parse(data):data;if(!result?.success)throw new Error(result?.message||result?.error||'สร้างตัวละครไม่สำเร็จ');await syncPlayer();msg('สร้างตัวละครสำเร็จ');}catch(e){msg(e.message,true);}finally{setBusy(false);}};
   $('signout').onclick=async()=>{await client.auth.signOut();currentUser=null;profile=null;showAuth();msg('ออกจากระบบแล้ว');};
+  const statusBackdrop=$('status-modal-backdrop');
+  function closeStatus(){statusBackdrop.classList.add('hidden');}
+  $('open-status').onclick=async()=>{statusBackdrop.classList.remove('hidden');try{await loadStats();}catch(e){msg('โหลดค่าสถานะไม่สำเร็จ: '+e.message,true);}};
+  $('close-status').onclick=closeStatus;
+  statusBackdrop.addEventListener('click',e=>{if(e.target===statusBackdrop)closeStatus();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeStatus();});
   document.querySelectorAll('.allocate-stat').forEach(btn=>{
     btn.onclick=async()=>{
       const stat=btn.dataset.stat;
@@ -278,6 +289,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.2.0"></script>
+<script src="game.js?v=0.2.1"></script>
 </body>
 </html>
