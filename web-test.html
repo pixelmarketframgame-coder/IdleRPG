@@ -784,11 +784,11 @@ $('settings-signout').onclick=signOutUser;
   }
   $('open-status').onclick=async()=>{statusBackdrop.classList.remove('hidden');try{await loadStats();}catch(e){msg('โหลดค่าสถานะไม่สำเร็จ: '+e.message,true);}};
   $('close-status').onclick=closeStatus;
-  $('open-stat-log').onclick=()=>{renderStatLog();statLogBackdrop.classList.remove('hidden');};
+  $('open-stat-log').onclick=async()=>{statLogBackdrop.classList.remove('hidden');const root=$('stat-log-content');if(root)root.textContent='กำลังโหลดอุปกรณ์และคำนวณค่าสถานะ…';try{if(window.tbhLoadStatBreakdown)await window.tbhLoadStatBreakdown();}catch(e){console.warn('Unable to refresh stat breakdown',e);}renderStatLog();};
   $('close-stat-log').onclick=closeStatLog;
   statLogBackdrop.addEventListener('click',e=>{if(e.target===statLogBackdrop)closeStatLog();});
   statusBackdrop.addEventListener('click',e=>{if(e.target===statusBackdrop)closeStatus();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeStatus();closeSettings();}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeStatLog();closeStatus();closeSettings();}});
   document.querySelectorAll('[data-stat-plus]').forEach(btn=>btn.onclick=()=>{
     if(!cachedStats||busy)return;
     const key=btn.dataset.statPlus;
@@ -1020,6 +1020,7 @@ $('settings-signout').onclick=signOutUser;
   gearSlots.forEach(s=>equipped[s.id]=p[s.id]||null);
   renderAll();
  }
+ window.tbhLoadStatBreakdown=async()=>{await loadInventory();return window.tbhStatBreakdown||null;};
  function renderGear(){
   const root=$inv('gear-slots');root.replaceChildren();
   gearSlots.forEach(slot=>{
