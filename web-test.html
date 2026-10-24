@@ -141,6 +141,53 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 .chat-compose button{padding:9px 12px}
 @media(max-width:480px){#floating-chat-button{width:52px;height:52px;right:12px;font-size:23px}#chat-popup{right:8px;bottom:8px;width:calc(100vw - 16px);height:min(68dvh,520px)}}
 
+
+/* Local-only Inventory / Gear prototype */
+.inventory-bottom-bar{position:sticky;bottom:0;z-index:30;display:flex;justify-content:center;padding:12px 10px calc(12px + env(safe-area-inset-bottom));margin:14px -2px -2px;background:linear-gradient(180deg,#0b102000,#080d1bf2 25%);backdrop-filter:blur(8px)}
+.inventory-launch{width:82px;min-height:78px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:linear-gradient(180deg,#293d69,#172644);border:2px solid #d6b66b;box-shadow:0 3px 0 #6e5525,inset 0 0 0 2px #ffffff12;border-radius:10px;padding:7px 10px;color:#fff1bd}
+.inventory-launch .bag-icon{font-size:29px;line-height:1.05;filter:drop-shadow(2px 2px 0 #111827)}
+.inventory-launch .bag-label{font-size:12px;font-weight:900;letter-spacing:1.4px}
+.inventory-launch:active{transform:translateY(2px);box-shadow:0 1px 0 #6e5525}
+.inventory-backdrop{position:fixed;inset:0;z-index:1000;background:#030713d9;display:flex;align-items:center;justify-content:center;padding:12px}
+.inventory-backdrop.hidden{display:none!important}
+.inventory-window{width:min(900px,100%);max-height:min(92dvh,850px);overflow:auto;background:linear-gradient(145deg,#1b2947,#0d1528);border:2px solid #d4b45f;border-radius:12px;box-shadow:0 18px 60px #000b,inset 0 0 0 2px #ffffff0a;padding:14px;color:#edf2ff}
+.inventory-window *{box-sizing:border-box}
+.inventory-head{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #435579;padding-bottom:10px;margin-bottom:12px}
+.inventory-head h2{margin:0;color:#ffd166;font-size:18px;letter-spacing:1px}
+.inventory-close{padding:6px 11px;min-width:38px;background:#542c42;border-color:#a35b6d}
+.inventory-layout{display:grid;grid-template-columns:minmax(220px, .85fr) minmax(0,1.4fr);gap:12px}
+.inventory-section{min-width:0;background:#0a1122;border:1px solid #2e4165;border-radius:9px;padding:10px}
+.inventory-section-title{font-size:13px;font-weight:900;color:#ffd166;margin:0 0 9px;letter-spacing:.5px}
+.gear-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gear-slot{min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;padding:7px 4px;background:#131f37;border:1px solid #405477;border-radius:7px;color:#b9c7e6;font-size:11px;cursor:pointer;overflow-wrap:anywhere}
+.gear-slot .gear-emoji{font-size:25px;line-height:1.1}
+.gear-slot .gear-item-name{font-size:10px;color:#f7e8b0;max-width:100%}
+.gear-slot.equipped{border-color:#e0bb5f;background:linear-gradient(145deg,#342e2a,#19233b);color:#fff1bd}
+.gear-slot.selected{outline:2px solid #6eb9ff;outline-offset:1px}
+.inventory-main{display:flex;flex-direction:column;gap:10px;min-width:0}
+.inventory-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.inventory-stat{background:#131f37;border:1px solid #2c4164;border-radius:7px;padding:7px;text-align:center}
+.inventory-stat small{display:block;color:#9eaccb;font-size:10px}
+.inventory-stat strong{font-size:16px;color:#f4f6ff}
+.inventory-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.inventory-filters button{font-size:11px;padding:6px 9px;border-radius:6px}
+.inventory-filters button.active{background:#806022;border-color:#f1cd70;color:#fff4c9}
+.inventory-item-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.inventory-item{position:relative;min-width:0;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px;background:#151f34;border:1px solid #344b70;border-radius:6px;color:#fff;cursor:pointer}
+.inventory-item .item-icon{font-size:25px;line-height:1.1}
+.inventory-item .item-name{font-size:9px;text-align:center;line-height:1.15;max-width:100%;overflow-wrap:anywhere}
+.inventory-item .item-qty{position:absolute;right:4px;bottom:3px;font-size:10px;color:#fff1b5;text-shadow:1px 1px #000}
+.inventory-item.selected{outline:2px solid #70c6ff;border-color:#70c6ff}
+.inventory-item.rarity-rare{border-color:#5799ff}.inventory-item.rarity-epic{border-color:#c07bff}.inventory-item.rarity-common{border-color:#52617b}
+.inventory-detail{min-height:90px;padding:9px;background:#111b30;border:1px solid #34496b;border-radius:7px}
+.inventory-detail strong{color:#ffe39a}
+.inventory-detail p{margin:5px 0;font-size:12px;color:#b8c7e5;line-height:1.45}
+.inventory-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.inventory-actions button{font-size:12px;padding:8px 10px}
+.inventory-empty{grid-column:1/-1;text-align:center;color:#7183a8;padding:22px 5px;font-size:12px}
+.inventory-note{font-size:10px;color:#8293b5;margin-top:8px}
+@media(max-width:560px){.inventory-backdrop{padding:5px}.inventory-window{padding:9px;max-height:95dvh}.inventory-layout{grid-template-columns:1fr}.gear-slots{grid-template-columns:repeat(4,minmax(0,1fr))}.gear-slot{min-height:75px}.inventory-item-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.inventory-head h2{font-size:16px}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -175,7 +222,23 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
       
       <div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
     <div class="panel"><div class="top" style="margin-bottom:10px"><h2 class="title" style="margin:0">🎒 ของรางวัล / กิจกรรม</h2><button id="copy-log" type="button">📋 Copy Log</button></div><div class="hint" style="margin-bottom:8px">คัดลอก log ล่าสุดไม่เกิน 150 รายการ พร้อมเวอร์ชันและสถานะหน้าเว็บ</div><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div><div id="copy-log-status" class="hint" role="status" style="margin-top:8px"></div></div>
+    <div class="inventory-bottom-bar"><button id="inventory-open" class="inventory-launch" type="button" aria-label="เปิดกระเป๋า Inventory"><span class="bag-icon" aria-hidden="true">🎒</span><span class="bag-label">BAG</span></button></div>
   </section>
+  <div id="inventory-backdrop" class="inventory-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-title">
+    <section class="inventory-window">
+      <header class="inventory-head"><h2 id="inventory-title">🎒 INVENTORY / GEAR</h2><button id="inventory-close" class="inventory-close" type="button" aria-label="ปิด Inventory">✕</button></header>
+      <div class="inventory-layout">
+        <section class="inventory-section"><h3 class="inventory-section-title">⚔ EQUIPPED GEAR · 7 SLOTS</h3><div id="gear-slots" class="gear-slots"></div><p class="inventory-note">เลือกช่องอุปกรณ์เพื่อดูรายละเอียดหรือถอดไอเทม</p></section>
+        <div class="inventory-main">
+          <div class="inventory-stats"><div class="inventory-stat"><small>ATK</small><strong id="inventory-atk">10</strong></div><div class="inventory-stat"><small>DEF</small><strong id="inventory-def">5</strong></div><div class="inventory-stat"><small>HP</small><strong id="inventory-hp">100</strong></div></div>
+          <section class="inventory-section"><h3 class="inventory-section-title">📦 BAG STORAGE</h3><div class="inventory-filters" id="inventory-filters"><button type="button" class="active" data-filter="all">ทั้งหมด</button><button type="button" data-filter="gear">อุปกรณ์</button><button type="button" data-filter="material">วัตถุดิบ</button><button type="button" data-filter="consumable">ของใช้</button></div><div id="inventory-items" class="inventory-item-grid"></div></section>
+          <section class="inventory-detail" id="inventory-detail" aria-live="polite"><strong>เลือกไอเทม</strong><p>แตะไอเทมในกระเป๋าเพื่อดูรายละเอียด</p></section>
+          <div class="inventory-actions"><button id="inventory-equip" class="primary" type="button" disabled>สวมใส่</button><button id="inventory-unequip" type="button" disabled>ถอดอุปกรณ์</button></div>
+        </div>
+      </div>
+      <p class="inventory-note">โหมดทดสอบเว็บ · ข้อมูลตัวอย่างชั่วคราว ไม่ได้บันทึกลง Supabase</p>
+    </section>
+  </div>
   <div id="settings-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
     <section class="status-modal" style="width:min(420px,100%)">
       <div class="modal-head"><div><h2 class="title" id="settings-modal-title" style="margin:0">⚙ SETTINGS</h2><p class="hint" style="margin:5px 0 0">การตั้งค่าหน้าเว็บทดสอบ</p></div><button id="close-settings" class="modal-close" aria-label="ปิด Settings">✕</button></div>
@@ -825,6 +888,79 @@ $('settings-signout').onclick=signOutUser;
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
+<script>
+/* Inventory / Gear UI prototype. All inventory state is local-only; no database calls. */
+(()=> {
+ const $inv=id=>document.getElementById(id);
+ const backdrop=$inv('inventory-backdrop');
+ if(!backdrop||!$inv('inventory-open'))return;
+ const gearSlots=[
+  {id:'weapon',label:'อาวุธ',icon:'⚔️'},
+  {id:'head',label:'หมวก',icon:'🪖'},
+  {id:'armor',label:'เกราะ',icon:'🛡️'},
+  {id:'legs',label:'ขา',icon:'👢'},
+  {id:'wings',label:'ปีก',icon:'🪽'},
+  {id:'left_accessory',label:'เครื่องประดับซ้าย',icon:'💍'},
+  {id:'right_accessory',label:'เครื่องประดับขวา',icon:'📿'}
+ ];
+ const items=[
+  {id:'sword_01',name:'ดาบฝึกหัด',icon:'🗡️',type:'gear',slot:'weapon',rarity:'common',atk:5,def:0,hp:0,qty:1,desc:'ดาบเริ่มต้นที่สมดุล เหมาะกับนักผจญภัยมือใหม่'},
+  {id:'helm_01',name:'หมวกนักเดินทาง',icon:'⛑️',type:'gear',slot:'head',rarity:'common',atk:0,def:2,hp:5,qty:1,desc:'หมวกน้ำหนักเบาช่วยป้องกันการโจมตี'},
+  {id:'armor_01',name:'เกราะผ้า',icon:'🥋',type:'gear',slot:'armor',rarity:'common',atk:0,def:4,hp:15,qty:1,desc:'เกราะพื้นฐานที่เพิ่มพลังป้องกันและ HP'},
+  {id:'boots_01',name:'รองเท้าหนัง',icon:'👢',type:'gear',slot:'legs',rarity:'common',atk:0,def:1,hp:3,qty:1,desc:'รองเท้าสำหรับเดินทางในดินแดนเริ่มต้น'},
+  {id:'wings_01',name:'ปีกฝึกบิน',icon:'🪽',type:'gear',slot:'wings',rarity:'rare',atk:2,def:1,hp:8,qty:1,desc:'ปีกคู่แรกที่ช่วยเสริมพลังเล็กน้อย'},
+  {id:'ring_01',name:'แหวนทองแดง',icon:'💍',type:'gear',slot:'left_accessory',rarity:'rare',atk:3,def:0,hp:0,qty:1,desc:'เครื่องประดับที่เพิ่มพลังโจมตี'},
+  {id:'amulet_01',name:'สร้อยผู้พิทักษ์',icon:'📿',type:'gear',slot:'right_accessory',rarity:'rare',atk:0,def:2,hp:10,qty:1,desc:'เครื่องรางที่เพิ่มความทนทาน'},
+  {id:'potion_01',name:'ยา HP',icon:'🧪',type:'consumable',rarity:'common',atk:0,def:0,hp:0,qty:5,desc:'ไอเทมตัวอย่างสำหรับระบบของใช้ในอนาคต'},
+  {id:'slime_gel',name:'วุ้นสไลม์',icon:'🟢',type:'material',rarity:'common',atk:0,def:0,hp:0,qty:12,desc:'วัตถุดิบที่ได้จากมอนสเตอร์สไลม์'},
+  {id:'iron_ore',name:'แร่เหล็ก',icon:'🪨',type:'material',rarity:'common',atk:0,def:0,hp:0,qty:7,desc:'วัตถุดิบตัวอย่างสำหรับการคราฟต์'}
+ ];
+ const equipped={weapon:'sword_01',head:'helm_01',armor:'armor_01',legs:null,wings:null,left_accessory:null,right_accessory:null};
+ let filter='all',selectedItem=null,selectedSlot=null;
+ const findItem=id=>items.find(x=>x.id===id);
+ function stats(){return Object.values(equipped).map(findItem).filter(Boolean).reduce((s,x)=>({atk:s.atk+x.atk,def:s.def+x.def,hp:s.hp+x.hp}),{atk:10,def:5,hp:100});}
+ function renderGear(){
+  const root=$inv('gear-slots');root.replaceChildren();
+  gearSlots.forEach(slot=>{
+   const item=findItem(equipped[slot.id]);const b=document.createElement('button');b.type='button';b.className='gear-slot'+(item?' equipped':'')+(selectedSlot===slot.id?' selected':'');
+   const icon=document.createElement('span');icon.className='gear-emoji';icon.textContent=item?item.icon:slot.icon;
+   const label=document.createElement('span');label.textContent=slot.label;
+   const name=document.createElement('span');name.className='gear-item-name';name.textContent=item?item.name:'ว่าง';
+   b.append(icon,label,name);b.addEventListener('click',()=>{selectedSlot=slot.id;selectedItem=item?.id||null;renderAll();});root.append(b);
+  });
+ }
+ function renderItems(){
+  const root=$inv('inventory-items');root.replaceChildren();
+  const shown=items.filter(x=>x.qty>0&&(filter==='all'||x.type===filter));
+  if(!shown.length){const e=document.createElement('div');e.className='inventory-empty';e.textContent='ไม่มีไอเทมในหมวดนี้';root.append(e);return;}
+  shown.forEach(item=>{
+   const b=document.createElement('button');b.type='button';b.className='inventory-item rarity-'+item.rarity+(selectedItem===item.id?' selected':'');b.setAttribute('aria-label',item.name);
+   const icon=document.createElement('span');icon.className='item-icon';icon.textContent=item.icon;
+   const name=document.createElement('span');name.className='item-name';name.textContent=item.name;
+   b.append(icon,name);if(item.qty>1){const q=document.createElement('span');q.className='item-qty';q.textContent='×'+item.qty;b.append(q);}
+   b.addEventListener('click',()=>{selectedItem=item.id;selectedSlot=null;renderAll();});root.append(b);
+  });
+ }
+ function renderDetail(){
+  const box=$inv('inventory-detail');box.replaceChildren();const item=findItem(selectedItem);
+  if(!item){const title=document.createElement('strong');title.textContent=selectedSlot?'ช่อง '+(gearSlots.find(s=>s.id===selectedSlot)?.label||'อุปกรณ์'):'เลือกไอเทม';const p=document.createElement('p');p.textContent=selectedSlot?(findItem(equipped[selectedSlot])?.name||'ช่องนี้ยังว่าง'):'แตะไอเทมในกระเป๋าเพื่อดูรายละเอียด';box.append(title,p);$inv('inventory-equip').disabled=true;$inv('inventory-unequip').disabled=!(selectedSlot&&equipped[selectedSlot]);return;}
+  const title=document.createElement('strong');title.textContent=item.icon+' '+item.name;
+  const p=document.createElement('p');p.textContent=item.desc+' · ATK +'+item.atk+' · DEF +'+item.def+' · HP +'+item.hp;
+  box.append(title,p);$inv('inventory-equip').disabled=!(item.type==='gear'&&item.slot);$inv('inventory-unequip').disabled=!(selectedSlot&&equipped[selectedSlot]);
+ }
+ function renderAll(){renderGear();renderItems();renderDetail();const s=stats();$inv('inventory-atk').textContent=s.atk;$inv('inventory-def').textContent=s.def;$inv('inventory-hp').textContent=s.hp;}
+ function open(){backdrop.classList.remove('hidden');renderAll();document.body.style.overflow='hidden';$inv('inventory-close').focus();}
+ function close(){backdrop.classList.add('hidden');document.body.style.overflow='';$inv('inventory-open').focus();}
+ $inv('inventory-open').addEventListener('click',open);$inv('inventory-close').addEventListener('click',close);
+ backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.classList.contains('hidden'))close();});
+ $inv('inventory-filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;filter=b.dataset.filter;$inv('inventory-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderItems();});
+ $inv('inventory-equip').addEventListener('click',()=>{const item=findItem(selectedItem);if(!item||item.type!=='gear'||!item.slot)return;const previous=equipped[item.slot];if(previous&&previous!==item.id){const old=findItem(previous);if(old)old.qty++;}equipped[item.slot]=item.id;item.qty=Math.max(0,item.qty-1);selectedSlot=item.slot;selectedItem=item.id;renderAll();});
+ $inv('inventory-unequip').addEventListener('click',()=>{if(!selectedSlot)return;const id=equipped[selectedSlot];const item=findItem(id);if(!item)return;item.qty++;equipped[selectedSlot]=null;selectedItem=id;renderAll();});
+ renderAll();
+})();
+</script>
+
 <script src="game.js?v=0.6.22"></script>
 </body>
 </html>
