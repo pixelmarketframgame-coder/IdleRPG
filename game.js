@@ -6,7 +6,7 @@ let gameScene = null; // เก็บ Reference ตัวเกมให้ HTML
 let bgFar, bgMid, bgFloor;
 let hero, pet, enemy, portal;
 let enemyHp = 100, maxEnemyHp = 100;
-let enemyHpBarBg, enemyHpBar, enemyHpText, enemyNameText, topBanner, topBannerText, stageProgressBar, stageProgressText;
+let enemyHpBarBg, enemyHpBar, enemyHpText, enemyNameText, topBanner, topBannerText;
 
 let currentStage = "1";
 let killsInStage = 0;
@@ -244,13 +244,7 @@ function create() {
     topBanner = this.add.rectangle(260, -30, 340, 24, 0x000000, 0.85).setStrokeStyle(1, 0x555555);
     topBannerText = this.add.text(260, -30, '', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
 
-    this.add.rectangle(450, 205, 80, 8, 0x2d3436).setDepth(40);
-    stageProgressBar = this.add.rectangle(410, 205, 0, 6, 0xe74c3c).setOrigin(0, 0.5).setDepth(41);
-    stageProgressText = this.add.text(450, 205, '0/100', {
-        fontSize: '9px', color: '#ffffff', fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: 2, align: 'center'
-    }).setOrigin(0.5).setDepth(42);
-    this.add.text(495, 205, '👹', { fontSize: '10px' }).setOrigin(0.5).setDepth(42);
+    // ตัวนับฟาร์ม 100 ตัวแสดงใน HTML เพียงจุดเดียว เพื่อไม่ให้ซ้อนกับ HUD ระยะ
 
     // ❌ ลบบรรทัด this.time.addEvent(...) ที่เป็นลูปโจมตีออกไปด้วยครับ
 }
@@ -348,14 +342,7 @@ function updateStageProgress(kills, stage) {
         Number.isFinite(parsedKills) ? parsedKills : 0));
     if (stage !== undefined && stage !== null && stage !== '') currentStage = String(stage);
     const ratio = killsInStage / maxKillsPerStage;
-    if (stageProgressBar) {
-        stageProgressBar.width = 80 * ratio;
-        stageProgressBar.fillColor = killsInStage >= maxKillsPerStage ? 0x2ecc71 : 0xe74c3c;
-    }
-    if (stageProgressText) {
-        stageProgressText.setText(killsInStage.toLocaleString() + '/' + maxKillsPerStage);
-        stageProgressText.setColor(killsInStage >= maxKillsPerStage ? '#2ecc71' : '#ffffff');
-    }
+    // ความคืบหน้า 100 ตัวแสดงโดย HTML; Phaser ไม่วาดตัวนับซ้ำ
     if (stageLabelText) stageLabelText.setText(currentStage);
 }
 window.updateStageProgress = updateStageProgress;
