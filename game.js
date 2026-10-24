@@ -637,8 +637,11 @@ window.onServerCombatUpdate = function(payload) {
             gameScene.tweens.killTweensOf(hero);
             hero.setAlpha(1);
             hero.clearTint();
-            hero.setY(165);
-            showTopNotification("เกิดใหม่แล้ว! สุ่มมอนสเตอร์ตัวใหม่ในด่านเดิม");
+            // Respawn at the designated player spawn point, not where the player died.
+            hero.setPosition(PLAYER_START_X, 165);
+            if (pet) pet.setPosition(hero.x + 30, 170);
+            showTopNotification("เกิดใหม่แล้ว! กลับจุดเกิดและสุ่มมอนสเตอร์ใหม่ในด่านเดิม");
+            updateCombatDistanceHud();
         }
     } else if (state.status === "no_target") {
         combatPaused = true;
