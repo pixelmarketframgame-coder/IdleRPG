@@ -155,7 +155,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <div class="wrap">
   <header class="top" style="justify-content:flex-end"></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.24</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION กำลังโหลด…</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -239,14 +239,31 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 </section>
 
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
-  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.24</span></div>
+  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION กำลังโหลด…</span></div>
 </div>
 <script>
 (() => {
-  // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.24";
-  const $versionLabel = "VERSION " + APP_VERSION;
-  document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
+  // version.json คือแหล่งข้อมูลเวอร์ชันหลักเพียงจุดเดียว
+  let APP_VERSION = "กำลังโหลด…";
+  function applyAppVersion(version) {
+    APP_VERSION = String(version || "ไม่ทราบ").trim();
+    const label = "VERSION " + APP_VERSION;
+    document.querySelectorAll(".version-tag").forEach(el => el.textContent = label);
+    const status = document.getElementById("settings-version-status");
+    if (status) status.textContent = "เวอร์ชันที่ใช้งาน: " + APP_VERSION + " · กดเพื่อตรวจสอบเวอร์ชันล่าสุด";
+  }
+  async function loadAppVersion() {
+    const response = await fetch("version.json?ts=" + Date.now(), { cache: "no-store" });
+    if (!response.ok) throw new Error("อ่าน version.json ไม่สำเร็จ (HTTP " + response.status + ")");
+    const data = await response.json();
+    if (!data.version) throw new Error("version.json ไม่มีฟิลด์ version");
+    applyAppVersion(data.version);
+    return APP_VERSION;
+  }
+  loadAppVersion().catch(error => {
+    applyAppVersion("ไม่ทราบ");
+    console.error("โหลดเวอร์ชันไม่สำเร็จ:", error);
+  });
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_J4MMp1j4Gj4hOF8sGIEmZA_fBaJ3j8g";
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -628,6 +645,7 @@ $('settings-signout').onclick=signOutUser;
     const button=$('settings-check-version'), status=$('settings-version-status');
     button.disabled=true; status.textContent='กำลังตรวจสอบเวอร์ชันล่าสุด...';
     try{
+      await loadAppVersion();
       const response=await fetch('version.json?check='+Date.now(),{cache:'no-store'});
       if(!response.ok) throw new Error('อ่านข้อมูลเวอร์ชันไม่ได้ (HTTP '+response.status+')');
       const latest=await response.json();
