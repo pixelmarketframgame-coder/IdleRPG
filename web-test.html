@@ -7,7 +7,6 @@
 <style>
 :root{color-scheme:dark;--bg:#0b1020;--panel:#141d32;--line:#2a3858;--gold:#ffd166;--text:#edf2ff;--muted:#9eaccb;--blue:#385bd6;--green:#1d9b72}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#18264a,#090d19 65%);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif;padding:18px}
-.wrap{max-width:980px;margin:auto;display:grid;gap:14px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.brand{font-size:20px;font-weight:800;letter-spacing:.3px}.brand span{color:var(--gold)}.panel{background:linear-gradient(145deg,#17223b,#101729);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 12px 32px #0004}.title{font-weight:800;color:var(--gold);margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{background:#0b1224;border:1px solid #253452;border-radius:10px;padding:12px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:20px;display:block;margin-top:3px;overflow-wrap:anywhere}input,button{font:inherit;border-radius:9px;padding:11px 12px}input{background:#0a1121;color:var(--text);border:1px solid #344363;width:100%;min-width:0}button{border:1px solid #526ba6;background:#253b70;color:white;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.15)}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--blue)}.green{background:#17694f;border-color:#278b6b}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{color:var(--muted);font-size:13px;line-height:1.5}.status{padding:10px 12px;border:1px solid var(--line);background:#0a1121;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere}.hidden{display:none!important}#game-container{width:100%;max-width:720px;aspect-ratio:520/220;margin:auto;border:2px solid #354568;border-radius:10px;overflow:hidden;background:#05070d}.combat-distance-panel{width:100%;max-width:720px;box-sizing:border-box;margin:6px auto 10px;padding:8px 10px;border:1px solid #354568;border-radius:8px;background:#0a1121;color:#cfe0ff;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;text-align:center;line-height:1.5}.monster-hud{width:100%;max-width:720px;margin:10px auto 8px;padding:10px 12px;background:linear-gradient(180deg,#211a26,#111522);border:1px solid #7b4650;border-radius:9px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.monster-hud-head,.farm-progress-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.monster-hud-name{font-weight:900;color:#ffd9d9}.monster-hud-hp{color:#fff;font-size:12px}.monster-hud-meter,.farm-progress-meter{height:13px;position:relative;overflow:hidden;background:#090c13;border:1px solid #05070b;border-radius:5px;margin-top:6px}.monster-hud-fill{height:100%;width:100%;background:linear-gradient(#ff7777,#c51e35);transition:width .25s}.farm-progress{width:100%;max-width:720px;margin:0 auto 10px;padding:10px 12px;background:linear-gradient(180deg,#172b26,#101a1b);border:1px solid #34715c;border-radius:9px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.farm-progress-title{font-weight:900;color:#9ff0c8}.farm-progress-count{color:#fff;font-size:13px;font-weight:800}.farm-progress-fill{height:100%;width:0;background:linear-gradient(#7af0a7,#198754);transition:width .25s}#game-container canvas{display:block!important;width:100%!important;height:100%!important}.pixel-gold-row{display:flex;align-items:center;justify-content:space-between;max-width:520px;margin:0 auto 6px;padding:5px 10px;background:#171b25;border:1px solid #66532e;border-radius:6px;color:#f5d477;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;text-shadow:1px 1px #000}.pixel-gold-row strong{color:#fff1a6}.pixel-status-bar{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;margin:0 auto 10px;padding:7px 10px;background:linear-gradient(180deg,#1d2a36,#111a23);border:2px solid #586574;border-radius:9px;box-shadow:inset 0 0 0 2px #10151c,0 3px 0 #070a0e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;image-rendering:pixelated}.pixel-avatar{flex:0 0 76px;width:76px;height:76px;display:flex;align-items:center;justify-content:center;border:3px solid #b49a61;border-radius:50%;background:radial-gradient(circle at 35% 25%,#59677b,#202a3c 65%,#101722);box-shadow:0 0 0 3px #090d14,inset 0 0 0 2px #d4bd7c;font-size:39px;text-shadow:2px 2px #000}.pixel-status-main{flex:1;min-width:0;display:grid;gap:4px}.pixel-status-name{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#fff4c4;font-size:13px;text-shadow:1px 2px #000}.pixel-status-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pixel-status-name span{white-space:nowrap}.pixel-meter{height:17px;position:relative;overflow:hidden;border:2px solid #090d12;border-radius:10px;background:#10151b;box-shadow:inset 0 1px 3px #000}.pixel-meter-fill{height:100%;width:0;transition:width .25s ease;border-radius:7px}.pixel-meter span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900;text-shadow:1px 1px #000,-1px -1px #000;line-height:1}.hp-meter .pixel-meter-fill{background:linear-gradient(#ff7979,#e32636 60%,#a90f20)}.mana-meter .pixel-meter-fill{background:linear-gradient(#8dd8ff,#2588e9 60%,#1450a3)}.exp-meter .pixel-meter-fill{background:linear-gradient(#fff09a,#e8b940 60%,#9a6a16)}.pixel-exp-caption{text-align:center;color:#f4df9b;font-size:10px;text-shadow:1px 1px #000;line-height:1.1}@media(max-width:420px){.pixel-status-bar{gap:9px;padding:6px}.pixel-avatar{flex-basis:62px;width:62px;height:62px;font-size:32px}.pixel-status-name{font-size:12px}.pixel-meter{height:16px}.pixel-meter span{font-size:10px}}.game-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.game-actions button{min-width:150px}.log{max-height:150px;overflow:auto;font-size:13px;color:#c3d0ee;line-height:1.6}.version-tag{display:inline-flex;align-items:center;border:1px solid #b38a36;background:#332711;color:#ffd166;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;letter-spacing:.4px;white-space:nowrap}.footer{color:#8290b0;text-align:center;font-size:12px}
 .modal-backdrop{position:fixed;inset:0;z-index:1000;background:#020611d9;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px)}
 .modal-backdrop.hidden{display:none!important}.status-modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #526ba6;border-radius:18px;padding:18px;box-shadow:0 24px 80px #000b}
 .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.modal-close{min-width:42px;padding:8px 12px;background:#202b43;border-color:#445477}.status-menu-button{min-width:unset;padding:9px 15px;background:#253b70;border-color:#8d9fc9}
@@ -34,17 +33,13 @@ html,body{width:100%;height:100%;min-height:0}
 body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 .wrap{width:100%;height:100%;max-width:none;min-height:0;gap:clamp(6px,1vh,12px);grid-template-rows:auto minmax(0,1fr)}
 #auth-panel,#character-panel{align-self:start;max-width:720px;width:100%;margin:0 auto}
-#game-panel{min-height:0;height:100%;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.65fr) minmax(220px,.8fr);gap:clamp(6px,1vw,12px)}
+#game-panel{min-height:0;height:100%;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) minmax(90px,.25fr);gap:clamp(6px,1vw,12px)}
 #game-panel>.top{grid-column:1/-1;min-height:0;margin:0!important;flex-wrap:nowrap}
 #game-panel>.panel{min-width:0;min-height:0;height:100%;overflow:hidden;display:flex;flex-direction:column;padding:clamp(7px,1vw,13px)}
 #game-panel>.panel:first-of-type{gap:clamp(3px,.6vh,8px)}
 #game-panel>.panel:first-of-type>.title{margin:0;flex:0 0 auto}
 #game-panel>.panel:first-of-type .pixel-status-bar{margin:0 auto;flex:0 0 auto}
 #game-panel>.panel:first-of-type .pixel-gold-row{margin:0 auto;flex:0 0 auto}
-#game-panel>.panel:first-of-type .farm-progress{margin:0 auto;padding:clamp(4px,.7vh,8px) 9px;flex:0 0 auto}
-#game-panel>.panel:first-of-type .farm-progress-meter{height:8px;margin-top:3px}
-#game-panel>.panel:first-of-type .monster-hud{margin:0 auto;padding:clamp(4px,.7vh,8px) 9px;flex:0 0 auto}
-#game-panel>.panel:first-of-type .monster-hud-meter{height:8px;margin-top:3px}
 #game-container{flex:1 1 auto;min-height:50px;max-height:none;height:auto;aspect-ratio:auto;width:100%;max-width:720px}
 #game-panel>.panel:first-of-type .combat-distance-panel{margin:0 auto;padding:4px 8px;flex:0 0 auto}
 #game-panel>.panel:first-of-type .game-actions{margin-top:0!important;flex:0 0 auto}
@@ -73,7 +68,6 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
  #game-panel>.panel:first-of-type .pixel-meter{height:12px}
  #game-panel>.panel:first-of-type .pixel-meter span{font-size:9px}
  #game-panel>.panel:first-of-type .pixel-exp-caption{font-size:9px}
- #game-panel>.panel:first-of-type .farm-progress-title,#game-panel>.panel:first-of-type .farm-progress-count{font-size:10px}
  #game-panel>.panel:first-of-type .game-actions button{padding:5px 7px;font-size:12px}
  #combat-hint{font-size:10px}
 }
@@ -87,39 +81,20 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 
 
 /* v0.6.2: Fix mobile grid rows so the battle panel and farm progress are not clipped */
-#game-panel>.panel:first-of-type .farm-progress{display:block!important;visibility:visible!important;opacity:1;flex:0 0 auto!important;min-height:44px;overflow:visible;position:relative;z-index:2}
-#game-panel>.panel:first-of-type .farm-progress-head{display:flex!important;visibility:visible!important;flex-wrap:nowrap;min-width:0}
-#game-panel>.panel:first-of-type .farm-progress-title{display:block!important;visibility:visible!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#game-panel>.panel:first-of-type .farm-progress-count{display:block!important;visibility:visible!important;flex:0 0 auto;white-space:nowrap}
-#game-panel>.panel:first-of-type .farm-progress-meter{display:block!important;visibility:visible!important;height:8px;min-height:8px;flex:0 0 8px}
-#game-panel>.panel:first-of-type .farm-progress-fill{display:block!important;visibility:visible!important;min-width:0}
 @media(max-height:700px){
- #game-panel>.panel:first-of-type .farm-progress{min-height:38px;padding:3px 7px!important}
- #game-panel>.panel:first-of-type .farm-progress-head{gap:4px}
- #game-panel>.panel:first-of-type .farm-progress-title,#game-panel>.panel:first-of-type .farm-progress-count{font-size:9px!important}
- #game-panel>.panel:first-of-type .farm-progress-hint{display:none}
 }
 
 
 /* v0.6.3: reliable farm progress layout — target actual battle panel, not first div */
-#game-panel>.panel:nth-of-type(2) .farm-progress,
-#game-panel .farm-progress{
  display:block!important;visibility:visible!important;opacity:1!important;
  position:relative!important;z-index:10!important;order:3!important;
  width:100%!important;min-height:48px!important;flex:0 0 auto!important;
  height:auto!important;max-height:none!important;overflow:visible!important;
  margin:3px auto!important;padding:6px 8px!important;
 }
-#game-panel .farm-progress-head{display:flex!important;justify-content:space-between!important;align-items:center!important;flex-wrap:nowrap!important;gap:6px!important;width:100%!important}
-#game-panel .farm-progress-title{display:block!important;visibility:visible!important;opacity:1!important;flex:1 1 auto!important;min-width:0!important;white-space:normal!important;font-size:clamp(9px,1.5vw,12px)!important;line-height:1.2!important}
-#game-panel .farm-progress-count{display:block!important;visibility:visible!important;opacity:1!important;flex:0 0 auto!important;white-space:nowrap!important;font-size:clamp(9px,1.5vw,12px)!important;color:#fff!important}
-#game-panel .farm-progress-meter{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;width:100%!important;height:9px!important;min-height:9px!important;flex:0 0 9px!important;margin-top:5px!important}
-#game-panel .farm-progress-fill{display:block!important;visibility:visible!important;opacity:1!important;height:100%!important;background:linear-gradient(#7af0a7,#198754)!important}
-#game-panel .farm-progress-hint{display:none!important}
 @media(max-width:700px){
  #game-panel{grid-template-rows:auto minmax(0,1fr) minmax(72px,.23fr)!important}
  #game-panel>.panel:nth-of-type(2){min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
- #game-panel .farm-progress{min-height:42px!important;padding:5px 7px!important}
 }
 
 </style>
@@ -130,7 +105,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <div class="wrap">
   <header class="top"><div class="brand">⚔ TBH Pixel <span>Auto Battler</span> <small style="font-size:12px;color:#9eaccb">WEB TEST</small></div><button id="signout" class="hidden">ออกจากระบบ</button></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.3.8</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.7</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -155,7 +130,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
           <div class="pixel-exp-caption" id="pixel-exp-caption">กำลังซิงก์ข้อมูลตัวละคร…</div>
         </div>
       </div>
-      <div class="pixel-gold-row"><span>🪙 GOLD</span><strong id="pixel-gold-text">0</strong></div><div class="farm-progress"><div class="farm-progress-head"><span class="farm-progress-title">⚔️ ความคืบหน้าฟาร์มด่านนี้</span><span class="farm-progress-count" id="farm-progress-count">ตีแล้ว 0 / 100 ตัว</span></div><div class="farm-progress-meter"><div class="farm-progress-fill" id="farm-progress-fill"></div></div><div class="hint" id="farm-progress-hint" class="hint farm-progress-hint" style="margin-top:6px">กำจัดมอนสเตอร์ให้ครบ 100 ตัวเพื่อปลดล็อก Challenge</div></div><div class="monster-hud" id="monster-hud"><div class="monster-hud-head"><span class="monster-hud-name" id="monster-hud-name">กำลังโหลดมอนสเตอร์…</span><span class="monster-hud-hp" id="monster-hud-hp">HP -- / --</span></div><div class="monster-hud-meter"><div class="monster-hud-fill" id="monster-hud-fill"></div></div></div><div id="game-container"></div><div class="combat-distance-panel" id="combat-distance" role="status">ระยะ -- ช่อง · กำลังคำนวณระยะโจมตี</div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
+      <div class="pixel-gold-row"><span>🪙 GOLD</span><strong id="pixel-gold-text">0</strong></div><div id="game-container"></div><div class="combat-distance-panel" id="combat-distance" role="status">ระยะ -- ช่อง · กำลังคำนวณระยะโจมตี</div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
     <div class="panel"><div class="top" style="margin-bottom:10px"><h2 class="title" style="margin:0">🎒 ของรางวัล / กิจกรรม</h2><button id="copy-log" type="button">📋 Copy Log</button></div><div class="hint" style="margin-bottom:8px">คัดลอก log ล่าสุดไม่เกิน 150 รายการ พร้อมเวอร์ชันและสถานะหน้าเว็บ</div><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div><div id="copy-log-status" class="hint" role="status" style="margin-top:8px"></div></div>
   </section>
   <div id="status-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
@@ -204,7 +179,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.6";
+  const APP_VERSION = "v0.6.7";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -215,18 +190,12 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   function updateFarmProgress(stage={}) {
     const kills = Math.max(0, Number(stage.kills_in_stage ?? stage.killsInStage ?? 0) || 0);
     const required = Math.max(1, Number(stage.kills_required ?? stage.killsRequired ?? 100) || 100);
-    if ($('farm-progress-count')) $('farm-progress-count').textContent = 'ตีแล้ว ' + kills.toLocaleString() + ' / ' + required.toLocaleString() + ' ตัว';
-    if ($('farm-progress-fill')) $('farm-progress-fill').style.width = Math.min(100, kills / required * 100) + '%';
-    if ($('farm-progress-hint')) $('farm-progress-hint').textContent = kills >= required ? 'ครบจำนวนแล้ว! กด Challenge เพื่อท้าทายมอนสเตอร์ประจำด่าน' : 'เหลืออีก ' + (required-kills).toLocaleString() + ' ตัว จึงจะกด Challenge ได้';
   }
   function updateMonsterHud(monster, stage={}) {
     updateFarmProgress(stage);
     const name = monster ? String(monster.monster_name || monster.name || monster.display_name || 'Monster') : 'ยังไม่มีมอนสเตอร์';
     const hp = monster ? Math.max(0, Number(monster.current_hp ?? monster.currentHp ?? monster.hp ?? monster.monster_hp ?? 0) || 0) : 0;
     const maxHp = monster ? Math.max(1, Number(monster.monster_max_hp ?? monster.max_hp ?? monster.maxHp ?? monster.max_hp_total ?? monster.monster_hp ?? hp ?? 1) || 1) : 1;
-    if ($('monster-hud-name')) $('monster-hud-name').textContent = name;
-    if ($('monster-hud-hp')) $('monster-hud-hp').textContent = 'HP ' + hp.toLocaleString() + ' / ' + maxHp.toLocaleString();
-    if ($('monster-hud-fill')) $('monster-hud-fill').style.width = Math.min(100, hp/maxHp*100) + '%';
   }
   let currentUser = null, profile = null, busy = false;
   const msg = (text, error=false) => { $('message').textContent = text; $('message').style.borderColor = error ? '#b84c62' : '#2a3858'; };
@@ -247,8 +216,6 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
       'Signed in: ' + Boolean(currentUser),
       'Status: ' + ($('message')?.textContent || ''),
       'Combat hint: ' + ($('combat-hint')?.textContent || ''),
-      'Monster HUD: ' + ($('monster-hud-name')?.textContent || ''),
-      'Monster HP: ' + ($('monster-hud-hp')?.textContent || ''),
       '--- Recent log entries ---',
       ...(lines.length ? lines : ['(no log entries)'])
     ].join('\\n');
@@ -406,11 +373,8 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
       // even if get_current_combat_target returns no row.
       if (combat.status === 'fighting' || combat.status === 'monster_defeated') {
         const activeName = combat.monster_name || combat.target_name || combat.monster_id || combat.target_id || 'กำลังต่อสู้';
-        if ($('monster-hud-name')) $('monster-hud-name').textContent = String(activeName);
         const mhp = Math.max(0, Number(combat.monster_hp ?? 0) || 0);
         const mhmax = Math.max(1, Number(combat.monster_max_hp ?? mhp ?? 1) || 1);
-        if ($('monster-hud-hp')) $('monster-hud-hp').textContent = 'HP ' + mhp.toLocaleString() + ' / ' + mhmax.toLocaleString();
-        if ($('monster-hud-fill')) $('monster-hud-fill').style.width = Math.min(100, mhp / mhmax * 100) + '%';
         if ($('combat-hint')) $('combat-hint').textContent = 'HP ผู้เล่น ' + Number(combat.player_hp ?? 0).toLocaleString() + '/' + Number(combat.player_max_hp ?? 0).toLocaleString() + ' · HP มอนสเตอร์ ' + mhp.toLocaleString() + '/' + mhmax.toLocaleString() + ' · ผลคำนวณจาก Supabase';
       }
       if(typeof window.onServerCombatUpdate==='function') window.onServerCombatUpdate(combat);
@@ -609,6 +573,6 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.6.6"></script>
+<script src="game.js?v=0.6.7"></script>
 </body>
 </html>
