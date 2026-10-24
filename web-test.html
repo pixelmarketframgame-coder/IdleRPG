@@ -889,78 +889,119 @@ $('settings-signout').onclick=signOutUser;
 })();
 </script>
 <script>
-/* Inventory / Gear UI prototype. All inventory state is local-only; no database calls. */
+/* Inventory UI backed by the signed-in character's Supabase rows (read-only until secure equip RPC is available). */
 (()=> {
  const $inv=id=>document.getElementById(id);
  const backdrop=$inv('inventory-backdrop');
  if(!backdrop||!$inv('inventory-open'))return;
+ const client=window.tbhSupabase;
  const gearSlots=[
-  {id:'weapon',label:'อาวุธ',icon:'⚔️'},
-  {id:'head',label:'หมวก',icon:'🪖'},
-  {id:'armor',label:'เกราะ',icon:'🛡️'},
-  {id:'legs',label:'ขา',icon:'👢'},
-  {id:'wings',label:'ปีก',icon:'🪽'},
-  {id:'left_accessory',label:'เครื่องประดับซ้าย',icon:'💍'},
-  {id:'right_accessory',label:'เครื่องประดับขวา',icon:'📿'}
+  {id:'eq_weapon',label:'อาวุธ',icon:'⚔️'},
+  {id:'eq_head',label:'หมวก',icon:'🪖'},
+  {id:'eq_armor',label:'เกราะ',icon:'🛡️'},
+  {id:'eq_legs',label:'ขา',icon:'👢'},
+  {id:'eq_wings',label:'ปีก',icon:'🪽'},
+  {id:'eq_left_accessory',label:'เครื่องประดับซ้าย',icon:'💍'},
+  {id:'eq_right_accessory',label:'เครื่องประดับขวา',icon:'📿'}
  ];
- const items=[
-  {id:'sword_01',name:'ดาบฝึกหัด',icon:'🗡️',type:'gear',slot:'weapon',rarity:'common',atk:20,def:0,hp:0,qty:1,desc:'ดาบฝึกหัด เพิ่ม ATK +20 ให้กับค่าสถานะพื้นฐาน'},
-  {id:'helm_01',name:'หมวกนักเดินทาง',icon:'⛑️',type:'gear',slot:'head',rarity:'common',atk:0,def:2,hp:5,qty:1,desc:'หมวกน้ำหนักเบาช่วยป้องกันการโจมตี'},
-  {id:'armor_01',name:'เกราะผ้า',icon:'🥋',type:'gear',slot:'armor',rarity:'common',atk:0,def:4,hp:15,qty:1,desc:'เกราะพื้นฐานที่เพิ่มพลังป้องกันและ HP'},
-  {id:'boots_01',name:'รองเท้าหนัง',icon:'👢',type:'gear',slot:'legs',rarity:'common',atk:0,def:1,hp:3,qty:1,desc:'รองเท้าสำหรับเดินทางในดินแดนเริ่มต้น'},
-  {id:'wings_01',name:'ปีกฝึกบิน',icon:'🪽',type:'gear',slot:'wings',rarity:'rare',atk:2,def:1,hp:8,qty:1,desc:'ปีกคู่แรกที่ช่วยเสริมพลังเล็กน้อย'},
-  {id:'ring_01',name:'แหวนทองแดง',icon:'💍',type:'gear',slot:'left_accessory',rarity:'rare',atk:3,def:0,hp:0,qty:1,desc:'เครื่องประดับที่เพิ่มพลังโจมตี'},
-  {id:'amulet_01',name:'สร้อยผู้พิทักษ์',icon:'📿',type:'gear',slot:'right_accessory',rarity:'rare',atk:0,def:2,hp:10,qty:1,desc:'เครื่องรางที่เพิ่มความทนทาน'},
-  {id:'potion_01',name:'ยา HP',icon:'🧪',type:'consumable',rarity:'common',atk:0,def:0,hp:0,qty:5,desc:'ไอเทมตัวอย่างสำหรับระบบของใช้ในอนาคต'},
-  {id:'slime_gel',name:'วุ้นสไลม์',icon:'🟢',type:'material',rarity:'common',atk:0,def:0,hp:0,qty:12,desc:'วัตถุดิบที่ได้จากมอนสเตอร์สไลม์'},
-  {id:'iron_ore',name:'แร่เหล็ก',icon:'🪨',type:'material',rarity:'common',atk:0,def:0,hp:0,qty:7,desc:'วัตถุดิบตัวอย่างสำหรับการคราฟต์'}
- ];
- const equipped={weapon:'sword_01',head:'helm_01',armor:'armor_01',legs:null,wings:null,left_accessory:null,right_accessory:null};
- let filter='all',selectedItem=null,selectedSlot=null;
- const findItem=id=>items.find(x=>x.id===id);
- function stats(){return Object.values(equipped).map(findItem).filter(Boolean).reduce((s,x)=>({atk:s.atk+x.atk,def:s.def+x.def,hp:s.hp+x.hp}),{atk:210,def:50,hp:1000});}
+ const slotForTemplate = t => {
+  const key=String(t?.mastery_type_id||'').toLowerCase();
+  const id=String(t?.id||'').toLowerCase();
+  if(key.includes('weapon')||id.startsWith('wpn_'))return 'eq_weapon';
+  if(key.includes('head')||id.includes('helm'))return 'eq_head';
+  if(key.includes('armor')||id.includes('armor'))return 'eq_armor';
+  if(key.includes('leg')||id.includes('boot')||id.includes('shoe'))return 'eq_legs';
+  if(key.includes('wing')||id.includes('wing'))return 'eq_wings';
+  if(key.includes('accessory')||id.includes('ring')||id.includes('amulet'))return 'eq_left_accessory';
+  return null;
+ };
+ let filter='all',selectedItem=null,selectedSlot=null,profileData=null,playerStats=null,items=[],loading=false;
+ const equipped={eq_weapon:null,eq_head:null,eq_armor:null,eq_legs:null,eq_wings:null,eq_left_accessory:null,eq_right_accessory:null};
+ const num=v=>Number.isFinite(Number(v))?Number(v):0;
+ const itemBonuses=item=>{
+  const t=item?.template||{};
+  const b=item?.bonus_options;
+  let extra={};
+  if(Array.isArray(b)) b.forEach(x=>{if(x&&typeof x==='object'){const k=String(x.stat||x.key||x.type||'').toLowerCase();const v=num(x.value??x.amount);if(k.includes('atk'))extra.atk=(extra.atk||0)+v;else if(k.includes('def'))extra.def=(extra.def||0)+v;else if(k.includes('hp'))extra.hp=(extra.hp||0)+v;}});
+  else if(b&&typeof b==='object') extra={atk:num(b.atk??b.base_atk),def:num(b.def??b.base_def),hp:num(b.hp??b.base_hp)};
+  return {atk:num(t.base_atk)+num(extra.atk),def:num(t.base_def)+num(extra.def),hp:num(t.base_hp)+num(extra.hp)};
+ };
+ const itemName=item=>item?.template?.name||item?.item_template_id||'ไอเทมไม่ทราบชื่อ';
+ const itemIcon=item=>{const s=String(item?.template?.mastery_type_id||'').toLowerCase();return s.includes('helm')?'🪖':s.includes('armor')?'🛡️':s.includes('wing')?'🪽':s.includes('accessory')?'💍':(item?.item_template_id||'').startsWith('wpn_')?'⚔️':'📦';};
+ const itemSlot=item=>slotForTemplate(item?.template)||gearSlots.find(s=>equipped[s.id]===item?.id)?.id||null;
+ function stats(){
+  const level=Math.max(1,num(profileData?.level)||1),ps=playerStats||{};
+  const atk=Math.max(1,Math.round(10*Math.pow(level,1.20))+(Math.max(1,num(ps.atk_level)||1)-1)*5+num(ps.str)*2);
+  const hp=Math.max(1,100+(Math.max(1,num(ps.hp_level)||1)-1)*20+(level-1)*10+num(ps.vit)*10);
+  const total=Object.values(equipped).map(id=>items.find(x=>x.id===id)).filter(Boolean).reduce((a,x)=>{const b=itemBonuses(x);a.atk+=b.atk;a.def+=b.def;a.hp+=b.hp;return a;},{atk,def:0,hp});
+  return total;
+ }
+ function setText(id,value){const el=$inv(id);if(el)el.textContent=value;}
+ async function loadInventory(){
+  if(!client)throw new Error('ไม่พบการเชื่อมต่อ Supabase');
+  const {data:userResult,error:userError}=await client.auth.getUser();if(userError)throw userError;
+  const user=userResult?.user;if(!user)throw new Error('กรุณาเข้าสู่ระบบก่อนดู Inventory');
+  const fields='id,nickname,level,exp,gold,character_created,eq_weapon,eq_head,eq_armor,eq_legs,eq_wings,eq_left_accessory,eq_right_accessory';
+  const {data:p,error:pe}=await client.from('profiles').select(fields).eq('id',user.id).maybeSingle();
+  if(pe)throw pe;if(!p)throw new Error('ไม่พบข้อมูลตัวละครของบัญชีนี้');
+  profileData=p;
+  const {data:ps,error:pse}=await client.from('player_stats').select('atk_level,hp_level,str,agi,dex,luk,int_stat,vit,stat_points').eq('player_id',user.id).maybeSingle();
+  if(pse)throw pse;playerStats=ps||{};
+  const {data:rows,error:ie}=await client.from('player_inventory').select('id,player_id,item_template_id,bonus_options,acquired_at').eq('player_id',user.id).order('acquired_at',{ascending:true});
+  if(ie)throw ie;
+  const raw=rows||[],templateIds=[...new Set(raw.map(x=>x.item_template_id).filter(Boolean))];
+  let templates=[];
+  if(templateIds.length){
+   const {data:ts,error:te}=await client.from('item_templates').select('id,name,mastery_type_id,tier,element,base_atk,base_def,base_hp,sprite_key').in('id',templateIds);
+   if(te)throw te;templates=ts||[];
+  }
+  const byId=new Map(templates.map(t=>[t.id,t]));
+  items=raw.map(x=>({...x,template:byId.get(x.item_template_id)||null,type:(byId.get(x.item_template_id)?.base_atk||byId.get(x.item_template_id)?.base_def||byId.get(x.item_template_id)?.base_hp||slotForTemplate(byId.get(x.item_template_id)))?'gear':'material'}));
+  gearSlots.forEach(s=>equipped[s.id]=p[s.id]||null);
+  renderAll();
+ }
  function renderGear(){
   const root=$inv('gear-slots');root.replaceChildren();
   gearSlots.forEach(slot=>{
-   const item=findItem(equipped[slot.id]);const b=document.createElement('button');b.type='button';b.className='gear-slot'+(item?' equipped':'')+(selectedSlot===slot.id?' selected':'');
-   const icon=document.createElement('span');icon.className='gear-emoji';icon.textContent=item?item.icon:slot.icon;
+   const item=items.find(x=>x.id===equipped[slot.id]);const b=document.createElement('button');b.type='button';b.className='gear-slot'+(item?' equipped':'')+(selectedSlot===slot.id?' selected':'');
+   const icon=document.createElement('span');icon.className='gear-emoji';icon.textContent=item?itemIcon(item):slot.icon;
    const label=document.createElement('span');label.textContent=slot.label;
-   const name=document.createElement('span');name.className='gear-item-name';name.textContent=item?item.name:'ว่าง';
+   const name=document.createElement('span');name.className='gear-item-name';name.textContent=item?itemName(item):'ว่าง';
    b.append(icon,label,name);b.addEventListener('click',()=>{selectedSlot=slot.id;selectedItem=item?.id||null;renderAll();});root.append(b);
   });
  }
  function renderItems(){
   const root=$inv('inventory-items');root.replaceChildren();
-  const shown=items.filter(x=>x.qty>0&&(filter==='all'||x.type===filter));
-  if(!shown.length){const e=document.createElement('div');e.className='inventory-empty';e.textContent='ไม่มีไอเทมในหมวดนี้';root.append(e);return;}
+  const shown=items.filter(x=>filter==='all'||(filter==='gear'?x.type==='gear':filter==='material'?x.type!=='gear':x.type==='consumable'));
+  if(!shown.length){const e=document.createElement('div');e.className='inventory-empty';e.textContent=loading?'กำลังโหลดข้อมูล...':'ไม่มีไอเทมในกระเป๋าตามข้อมูล Supabase';root.append(e);return;}
   shown.forEach(item=>{
-   const b=document.createElement('button');b.type='button';b.className='inventory-item rarity-'+item.rarity+(selectedItem===item.id?' selected':'');b.setAttribute('aria-label',item.name);
-   const icon=document.createElement('span');icon.className='item-icon';icon.textContent=item.icon;
-   const name=document.createElement('span');name.className='item-name';name.textContent=item.name;
-   b.append(icon,name);if(item.qty>1){const q=document.createElement('span');q.className='item-qty';q.textContent='×'+item.qty;b.append(q);}
-   b.addEventListener('click',()=>{selectedItem=item.id;selectedSlot=null;renderAll();});root.append(b);
+   const b=document.createElement('button');b.type='button';b.className='inventory-item rarity-'+(item.template?.tier||'common')+(selectedItem===item.id?' selected':'');b.setAttribute('aria-label',itemName(item));
+   const icon=document.createElement('span');icon.className='item-icon';icon.textContent=itemIcon(item);
+   const name=document.createElement('span');name.className='item-name';name.textContent=itemName(item);
+   b.append(icon,name);b.addEventListener('click',()=>{selectedItem=item.id;selectedSlot=null;renderAll();});root.append(b);
   });
  }
  function renderDetail(){
-  const box=$inv('inventory-detail');box.replaceChildren();const item=findItem(selectedItem);
-  if(!item){const title=document.createElement('strong');title.textContent=selectedSlot?'ช่อง '+(gearSlots.find(s=>s.id===selectedSlot)?.label||'อุปกรณ์'):'เลือกไอเทม';const p=document.createElement('p');p.textContent=selectedSlot?(findItem(equipped[selectedSlot])?.name||'ช่องนี้ยังว่าง'):'แตะไอเทมในกระเป๋าเพื่อดูรายละเอียด';box.append(title,p);$inv('inventory-equip').disabled=true;$inv('inventory-unequip').disabled=!(selectedSlot&&equipped[selectedSlot]);return;}
-  const title=document.createElement('strong');title.textContent=item.icon+' '+item.name;
-  const p=document.createElement('p');p.textContent=item.desc+' · ATK +'+item.atk+' · DEF +'+item.def+' · HP +'+item.hp;
-  box.append(title,p);$inv('inventory-equip').disabled=!(item.type==='gear'&&item.slot);$inv('inventory-unequip').disabled=!(selectedSlot&&equipped[selectedSlot]);
+  const box=$inv('inventory-detail');box.replaceChildren();const item=items.find(x=>x.id===selectedItem);
+  if(!item){const title=document.createElement('strong');title.textContent=selectedSlot?'ช่อง '+(gearSlots.find(s=>s.id===selectedSlot)?.label||'อุปกรณ์'):'เลือกไอเทม';const p=document.createElement('p');p.textContent=selectedSlot?(items.find(x=>x.id===equipped[selectedSlot])?itemName(items.find(x=>x.id===equipped[selectedSlot])):'ช่องนี้ว่างตามข้อมูลฐานข้อมูล'):'แตะไอเทมในกระเป๋าเพื่อดูรายละเอียด';box.append(title,p);$inv('inventory-equip').disabled=true;$inv('inventory-unequip').disabled=true;return;}
+  const title=document.createElement('strong');title.textContent=itemIcon(item)+' '+itemName(item);
+  const b=itemBonuses(item),p=document.createElement('p');p.textContent='ATK +'+b.atk+' · DEF +'+b.def+' · HP +'+b.hp+' · ID: '+item.item_template_id;
+  box.append(title,p);$inv('inventory-equip').disabled=true;$inv('inventory-unequip').disabled=true;
  }
- function renderAll(){renderGear();renderItems();renderDetail();const s=stats();$inv('inventory-atk').textContent=s.atk;$inv('inventory-def').textContent=s.def;$inv('inventory-hp').textContent=s.hp;}
- function open(){backdrop.classList.remove('hidden');renderAll();document.body.style.overflow='hidden';$inv('inventory-close').focus();}
+ function renderAll(){
+  renderGear();renderItems();renderDetail();const s=stats();setText('inventory-atk',s.atk.toLocaleString());setText('inventory-def',s.def.toLocaleString());setText('inventory-hp',s.hp.toLocaleString());
+ }
+ async function open(){backdrop.classList.remove('hidden');document.body.style.overflow='hidden';loading=true;renderAll();try{await loadInventory();}catch(e){items=[];gearSlots.forEach(s=>equipped[s.id]=null);renderAll();const root=$inv('inventory-items');root.replaceChildren();const msg=document.createElement('div');msg.className='inventory-empty';msg.textContent='โหลด Inventory ไม่สำเร็จ: '+(e.message||e);root.append(msg);}finally{loading=false;$inv('inventory-close').focus();}}
  function close(){backdrop.classList.add('hidden');document.body.style.overflow='';$inv('inventory-open').focus();}
  $inv('inventory-open').addEventListener('click',open);$inv('inventory-close').addEventListener('click',close);
  backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.classList.contains('hidden'))close();});
  $inv('inventory-filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;filter=b.dataset.filter;$inv('inventory-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderItems();});
- $inv('inventory-equip').addEventListener('click',()=>{const item=findItem(selectedItem);if(!item||item.type!=='gear'||!item.slot)return;const previous=equipped[item.slot];if(previous&&previous!==item.id){const old=findItem(previous);if(old)old.qty++;}equipped[item.slot]=item.id;item.qty=Math.max(0,item.qty-1);selectedSlot=item.slot;selectedItem=item.id;renderAll();});
- $inv('inventory-unequip').addEventListener('click',()=>{if(!selectedSlot)return;const id=equipped[selectedSlot];const item=findItem(id);if(!item)return;item.qty++;equipped[selectedSlot]=null;selectedItem=id;renderAll();});
+ $inv('inventory-equip').disabled=true;$inv('inventory-unequip').disabled=true;
  renderAll();
-})();
+})(); 
 </script>
 
-<script src="game.js?v=0.6.32"></script>
+<script src="game.js?v=0.6.33"></script>
 </body>
 </html>
