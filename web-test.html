@@ -7,6 +7,7 @@
 <style>
 :root{color-scheme:dark;--bg:#0b1020;--panel:#141d32;--line:#2a3858;--gold:#ffd166;--text:#edf2ff;--muted:#9eaccb;--blue:#385bd6;--green:#1d9b72}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#18264a,#090d19 65%);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif;padding:18px}
+.wrap{max-width:980px;margin:auto;display:grid;gap:14px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.brand{font-size:20px;font-weight:800;letter-spacing:.3px}.brand span{color:var(--gold)}.panel{background:linear-gradient(145deg,#17223b,#101729);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 12px 32px #0004}.title{font-weight:800;color:var(--gold);margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{background:#0b1224;border:1px solid #253452;border-radius:10px;padding:12px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:20px;display:block;margin-top:3px;overflow-wrap:anywhere}input,button{font:inherit;border-radius:9px;padding:11px 12px}input{background:#0a1121;color:var(--text);border:1px solid #344363;width:100%;min-width:0}button{border:1px solid #526ba6;background:#253b70;color:white;font-weight:700;cursor:pointer}button:hover{filter:brightness(1.15)}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--blue)}.green{background:#17694f;border-color:#278b6b}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.authgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{color:var(--muted);font-size:13px;line-height:1.5}.status{padding:10px 12px;border:1px solid var(--line);background:#0a1121;border-radius:9px;white-space:pre-wrap;overflow-wrap:anywhere}.hidden{display:none!important}#game-container{width:100%;max-width:720px;aspect-ratio:520/220;margin:auto;border:2px solid #354568;border-radius:10px;overflow:hidden;background:#05070d}.combat-distance-panel{width:100%;max-width:720px;box-sizing:border-box;margin:6px auto 10px;padding:8px 10px;border:1px solid #354568;border-radius:8px;background:#0a1121;color:#cfe0ff;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;text-align:center;line-height:1.5}#game-container canvas{display:block!important;width:100%!important;height:100%!important}.pixel-gold-row{display:flex;align-items:center;justify-content:space-between;max-width:520px;margin:0 auto 6px;padding:5px 10px;background:#171b25;border:1px solid #66532e;border-radius:6px;color:#f5d477;font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;text-shadow:1px 1px #000}.pixel-gold-row strong{color:#fff1a6}.pixel-status-bar{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;margin:0 auto 10px;padding:7px 10px;background:linear-gradient(180deg,#1d2a36,#111a23);border:2px solid #586574;border-radius:9px;box-shadow:inset 0 0 0 2px #10151c,0 3px 0 #070a0e;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;image-rendering:pixelated}.pixel-avatar{flex:0 0 76px;width:76px;height:76px;display:flex;align-items:center;justify-content:center;border:3px solid #b49a61;border-radius:50%;background:radial-gradient(circle at 35% 25%,#59677b,#202a3c 65%,#101722);box-shadow:0 0 0 3px #090d14,inset 0 0 0 2px #d4bd7c;font-size:39px;text-shadow:2px 2px #000}.pixel-status-main{flex:1;min-width:0;display:grid;gap:4px}.pixel-status-name{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#fff4c4;font-size:13px;text-shadow:1px 2px #000}.pixel-status-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pixel-status-name span{white-space:nowrap}.pixel-meter{height:17px;position:relative;overflow:hidden;border:2px solid #090d12;border-radius:10px;background:#10151b;box-shadow:inset 0 1px 3px #000}.pixel-meter-fill{height:100%;width:0;transition:width .25s ease;border-radius:7px}.pixel-meter span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900;text-shadow:1px 1px #000,-1px -1px #000;line-height:1}.hp-meter .pixel-meter-fill{background:linear-gradient(#ff7979,#e32636 60%,#a90f20)}.mana-meter .pixel-meter-fill{background:linear-gradient(#8dd8ff,#2588e9 60%,#1450a3)}.exp-meter .pixel-meter-fill{background:linear-gradient(#fff09a,#e8b940 60%,#9a6a16)}.pixel-exp-caption{text-align:center;color:#f4df9b;font-size:10px;text-shadow:1px 1px #000;line-height:1.1}@media(max-width:420px){.pixel-status-bar{gap:9px;padding:6px}.pixel-avatar{flex-basis:62px;width:62px;height:62px;font-size:32px}.pixel-status-name{font-size:12px}.pixel-meter{height:16px}.pixel-meter span{font-size:10px}}.game-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.game-actions button{min-width:150px}.log{max-height:150px;overflow:auto;font-size:13px;color:#c3d0ee;line-height:1.6}.version-tag{display:inline-flex;align-items:center;border:1px solid #b38a36;background:#332711;color:#ffd166;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;letter-spacing:.4px;white-space:nowrap}.footer{color:#8290b0;text-align:center;font-size:12px}
 .modal-backdrop{position:fixed;inset:0;z-index:1000;background:#020611d9;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px)}
 .modal-backdrop.hidden{display:none!important}.status-modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #526ba6;border-radius:18px;padding:18px;box-shadow:0 24px 80px #000b}
 .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.modal-close{min-width:42px;padding:8px 12px;background:#202b43;border-color:#445477}.status-menu-button{min-width:unset;padding:9px 15px;background:#253b70;border-color:#8d9fc9}
@@ -40,6 +41,8 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 #game-panel>.panel:first-of-type>.title{margin:0;flex:0 0 auto}
 #game-panel>.panel:first-of-type .pixel-status-bar{margin:0 auto;flex:0 0 auto}
 #game-panel>.panel:first-of-type .pixel-gold-row{margin:0 auto;flex:0 0 auto}
+#game-panel>.panel:first-of-type 
+#game-panel>.panel:first-of-type 
 #game-container{flex:1 1 auto;min-height:50px;max-height:none;height:auto;aspect-ratio:auto;width:100%;max-width:720px}
 #game-panel>.panel:first-of-type .combat-distance-panel{margin:0 auto;padding:4px 8px;flex:0 0 auto}
 #game-panel>.panel:first-of-type .game-actions{margin-top:0!important;flex:0 0 auto}
@@ -80,21 +83,23 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 }
 
 
-/* v0.6.2: Fix mobile grid rows so the battle panel and farm progress are not clipped */
+#game-panel>.panel:first-of-type 
+#game-panel>.panel:first-of-type 
+#game-panel>.panel:first-of-type 
+#game-panel>.panel:first-of-type 
 @media(max-height:700px){
+ #game-panel>.panel:first-of-type 
 }
 
 
-/* v0.6.3: reliable farm progress layout — target actual battle panel, not first div */
- display:block!important;visibility:visible!important;opacity:1!important;
- position:relative!important;z-index:10!important;order:3!important;
- width:100%!important;min-height:48px!important;flex:0 0 auto!important;
- height:auto!important;max-height:none!important;overflow:visible!important;
- margin:3px auto!important;padding:6px 8px!important;
-}
+#game-panel 
+#game-panel 
+#game-panel 
+#game-panel 
 @media(max-width:700px){
  #game-panel{grid-template-rows:auto minmax(0,1fr) minmax(72px,.23fr)!important}
  #game-panel>.panel:nth-of-type(2){min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
+ #game-panel 
 }
 
 </style>
@@ -190,12 +195,18 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   function updateFarmProgress(stage={}) {
     const kills = Math.max(0, Number(stage.kills_in_stage ?? stage.killsInStage ?? 0) || 0);
     const required = Math.max(1, Number(stage.kills_required ?? stage.killsRequired ?? 100) || 100);
+    if ($('farm-progress-count')) $('farm-progress-count').textContent = 'ตีแล้ว ' + kills.toLocaleString() + ' / ' + required.toLocaleString() + ' ตัว';
+    if ($('farm-progress-fill')) $('farm-progress-fill').style.width = Math.min(100, kills / required * 100) + '%';
+    if ($('farm-progress-hint')) $('farm-progress-hint').textContent = kills >= required ? 'ครบจำนวนแล้ว! กด Challenge เพื่อท้าทายมอนสเตอร์ประจำด่าน' : 'เหลืออีก ' + (required-kills).toLocaleString() + ' ตัว จึงจะกด Challenge ได้';
   }
   function updateMonsterHud(monster, stage={}) {
     updateFarmProgress(stage);
     const name = monster ? String(monster.monster_name || monster.name || monster.display_name || 'Monster') : 'ยังไม่มีมอนสเตอร์';
     const hp = monster ? Math.max(0, Number(monster.current_hp ?? monster.currentHp ?? monster.hp ?? monster.monster_hp ?? 0) || 0) : 0;
     const maxHp = monster ? Math.max(1, Number(monster.monster_max_hp ?? monster.max_hp ?? monster.maxHp ?? monster.max_hp_total ?? monster.monster_hp ?? hp ?? 1) || 1) : 1;
+    if ($('monster-hud-name')) $('monster-hud-name').textContent = name;
+    if ($('monster-hud-hp')) $('monster-hud-hp').textContent = 'HP ' + hp.toLocaleString() + ' / ' + maxHp.toLocaleString();
+    if ($('monster-hud-fill')) $('monster-hud-fill').style.width = Math.min(100, hp/maxHp*100) + '%';
   }
   let currentUser = null, profile = null, busy = false;
   const msg = (text, error=false) => { $('message').textContent = text; $('message').style.borderColor = error ? '#b84c62' : '#2a3858'; };
@@ -216,6 +227,8 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
       'Signed in: ' + Boolean(currentUser),
       'Status: ' + ($('message')?.textContent || ''),
       'Combat hint: ' + ($('combat-hint')?.textContent || ''),
+      'Monster HUD: ' + ($('monster-hud-name')?.textContent || ''),
+      'Monster HP: ' + ($('monster-hud-hp')?.textContent || ''),
       '--- Recent log entries ---',
       ...(lines.length ? lines : ['(no log entries)'])
     ].join('\\n');
@@ -373,8 +386,11 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
       // even if get_current_combat_target returns no row.
       if (combat.status === 'fighting' || combat.status === 'monster_defeated') {
         const activeName = combat.monster_name || combat.target_name || combat.monster_id || combat.target_id || 'กำลังต่อสู้';
+        if ($('monster-hud-name')) $('monster-hud-name').textContent = String(activeName);
         const mhp = Math.max(0, Number(combat.monster_hp ?? 0) || 0);
         const mhmax = Math.max(1, Number(combat.monster_max_hp ?? mhp ?? 1) || 1);
+        if ($('monster-hud-hp')) $('monster-hud-hp').textContent = 'HP ' + mhp.toLocaleString() + ' / ' + mhmax.toLocaleString();
+        if ($('monster-hud-fill')) $('monster-hud-fill').style.width = Math.min(100, mhp / mhmax * 100) + '%';
         if ($('combat-hint')) $('combat-hint').textContent = 'HP ผู้เล่น ' + Number(combat.player_hp ?? 0).toLocaleString() + '/' + Number(combat.player_max_hp ?? 0).toLocaleString() + ' · HP มอนสเตอร์ ' + mhp.toLocaleString() + '/' + mhmax.toLocaleString() + ' · ผลคำนวณจาก Supabase';
       }
       if(typeof window.onServerCombatUpdate==='function') window.onServerCombatUpdate(combat);
