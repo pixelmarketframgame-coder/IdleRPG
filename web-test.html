@@ -143,6 +143,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 
 
 /* Local-only Inventory / Gear prototype */
+.inventory-overview{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin:14px 0 0;padding:10px 12px;border:1px solid #3a4d72;border-radius:10px;background:linear-gradient(110deg,#172541,#0e172a);color:#dce7ff;font-size:13px}.inventory-overview strong{color:#ffd978}.inventory-overview b{color:#fff;font-variant-numeric:tabular-nums}
 .inventory-bottom-bar{position:sticky;bottom:0;z-index:30;display:flex;justify-content:center;padding:12px 10px calc(12px + env(safe-area-inset-bottom));margin:14px -2px -2px;background:linear-gradient(180deg,#0b102000,#080d1bf2 25%);backdrop-filter:blur(8px)}
 .inventory-launch{width:82px;min-height:78px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:linear-gradient(180deg,#293d69,#172644);border:2px solid #d6b66b;box-shadow:0 3px 0 #6e5525,inset 0 0 0 2px #ffffff12;border-radius:10px;padding:7px 10px;color:#fff1bd}
 .inventory-launch .bag-icon{font-size:29px;line-height:1.05;filter:drop-shadow(2px 2px 0 #111827)}
@@ -222,6 +223,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
       
       <div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
     <div class="panel"><div class="top" style="margin-bottom:10px"><h2 class="title" style="margin:0">🎒 ของรางวัล / กิจกรรม</h2><button id="copy-log" type="button">📋 Copy Log</button></div><div class="hint" style="margin-bottom:8px">คัดลอก log ล่าสุดไม่เกิน 150 รายการ พร้อมเวอร์ชันและสถานะหน้าเว็บ</div><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div><div id="copy-log-status" class="hint" role="status" style="margin-top:8px"></div></div>
+    <div class="inventory-overview" aria-live="polite"><strong>ค่าสถานะตัวละคร</strong><span>⚔️ ATK <b id="overall-atk">—</b></span><span>🛡️ DEF <b id="overall-def">—</b></span><span>❤️ HP <b id="overall-hp">—</b></span></div>
     <div class="inventory-bottom-bar"><button id="inventory-open" class="inventory-launch" type="button" aria-label="เปิดกระเป๋า Inventory"><span class="bag-icon" aria-hidden="true">🎒</span><span class="bag-label">BAG</span></button></div>
   </section>
   <div id="inventory-backdrop" class="inventory-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-title">
@@ -993,7 +995,7 @@ $('settings-signout').onclick=signOutUser;
   $inv('inventory-unequip').disabled=!alreadyEquipped;
  }
  function renderAll(){
-  renderGear();renderItems();renderDetail();const s=stats();setText('inventory-atk',s.atk.toLocaleString());setText('inventory-def',s.def.toLocaleString());setText('inventory-hp',s.hp.toLocaleString());
+  renderGear();renderItems();renderDetail();const s=stats();setText('inventory-atk',s.atk.toLocaleString());setText('inventory-def',s.def.toLocaleString());setText('inventory-hp',s.hp.toLocaleString());setText('overall-atk',s.atk.toLocaleString());setText('overall-def',s.def.toLocaleString());setText('overall-hp',s.hp.toLocaleString());
  }
  async function open(){backdrop.classList.remove('hidden');document.body.style.overflow='hidden';loading=true;renderAll();try{await loadInventory();}catch(e){items=[];gearSlots.forEach(s=>equipped[s.id]=null);renderAll();const root=$inv('inventory-items');root.replaceChildren();const msg=document.createElement('div');msg.className='inventory-empty';msg.textContent='โหลด Inventory ไม่สำเร็จ: '+(e.message||e);root.append(msg);}finally{loading=false;$inv('inventory-close').focus();}}
  function close(){backdrop.classList.add('hidden');document.body.style.overflow='';$inv('inventory-open').focus();}
@@ -1028,7 +1030,7 @@ $('settings-signout').onclick=signOutUser;
  });
  $inv('inventory-unequip').addEventListener('click',async()=>{
   const item=items.find(x=>x.id===selectedItem);
-  const slot=item?gearSlots.find(s=>equipped[s.id]===item.id)?.id:selectedSlot;
+  const slot=(selectedSlot&&equipped[selectedSlot])?selectedSlot:(item?gearSlots.find(s=>equipped[s.id]===item.id)?.id:null);
   if(!slot||!equipped[slot])return;
   await persistEquipment(slot,null);
  });
@@ -1036,6 +1038,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.34"></script>
+<script src="game.js?v=0.6.35"></script>
 </body>
 </html>
