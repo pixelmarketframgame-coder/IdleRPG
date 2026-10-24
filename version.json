@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.29",
+  "version": "v0.6.30",
   "updated_at": "2026-10-24",
-  "notes": "Fix chat message wrapping alignment beside sender"
+  "notes": "Chat wrapped lines align to the start of sender name"
 }
