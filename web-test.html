@@ -122,7 +122,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
  #game-container{max-height:20vh!important}
 }
 
-/* v0.6.23 floating draggable global chat */
+/* v0.6.24 floating draggable global chat */
 #floating-chat-button{position:fixed;z-index:10050;right:18px;top:42%;width:58px;height:58px;border-radius:50%;padding:0;display:none;align-items:center;justify-content:center;background:linear-gradient(145deg,#6d5dfc,#344fc8);border:2px solid #c8d0ff;box-shadow:0 8px 28px #0009;font-size:25px;touch-action:none;user-select:none;cursor:grab}
 #floating-chat-button:active{cursor:grabbing}
 #floating-chat-button .chat-unread{position:absolute;right:-2px;top:-3px;min-width:19px;height:19px;padding:1px 5px;border-radius:20px;background:#ef4444;color:white;font-size:11px;line-height:17px;display:none}
@@ -155,7 +155,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <div class="wrap">
   <header class="top" style="justify-content:flex-end"></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.23</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.24</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -186,7 +186,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     <section class="status-modal" style="width:min(420px,100%)">
       <div class="modal-head"><div><h2 class="title" id="settings-modal-title" style="margin:0">⚙ SETTINGS</h2><p class="hint" style="margin:5px 0 0">การตั้งค่าหน้าเว็บทดสอบ</p></div><button id="close-settings" class="modal-close" aria-label="ปิด Settings">✕</button></div>
       <div class="row"><button id="settings-check-version" class="primary" type="button">🔄 ตรวจสอบเวอร์ชัน / อัปเดต</button></div>
-      <p id="settings-version-status" class="hint" role="status" style="margin:8px 0 12px">เวอร์ชันที่ใช้งาน: v0.6.23 · กดเพื่อตรวจสอบเวอร์ชันล่าสุด</p>
+      <p id="settings-version-status" class="hint" role="status" style="margin:8px 0 12px">เวอร์ชันที่ใช้งาน: v0.6.24 · กดเพื่อตรวจสอบเวอร์ชันล่าสุด</p>
       <div class="row"><button id="settings-refresh" type="button">↻ รีเฟรช / โหลดสถานะ</button><button id="settings-signout" class="green" type="button">ออกจากระบบ</button></div>
     </section>
   </div>
@@ -239,12 +239,12 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 </section>
 
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
-  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.23</span></div>
+  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.24</span></div>
 </div>
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.23";
+  const APP_VERSION = "v0.6.24";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
