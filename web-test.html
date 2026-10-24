@@ -642,7 +642,9 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     const critBase=Math.round(Math.min(0.50,0.05+cachedStats.luk*0.01)*100);
     const critNext=Math.round(Math.min(0.50,0.05+projected.luk*0.01)*100);
     const suffix=(delta,unit='')=>delta>0?' <span class="derived-delta" style="color:#55e889!important;-webkit-text-fill-color:#55e889!important;font-weight:700">(+'+delta.toLocaleString()+unit+')</span>':'';
-    $('detail-atk').innerHTML=attackBase.toLocaleString()+suffix(attackNext-attackBase);
+    // STATUS ATK must include equipped gear from Inventory, while previewing staged STR points.
+    const gearTotalAtk=Number(($('overall-atk')?.textContent||'').replace(/,/g,''))||attackBase;
+    $('detail-atk').innerHTML=gearTotalAtk.toLocaleString()+suffix(attackNext-attackBase);
     $('detail-def').textContent='ยังไม่เปิดใช้';
     $('detail-hp').innerHTML=(cachedCombatHp===null?maxHpBase:cachedCombatHp).toLocaleString()+' / '+maxHpBase.toLocaleString()+suffix(maxHpNext-maxHpBase);
     $('detail-aspd').textContent='1 ครั้ง/วินาที (รอบต่อสู้ปัจจุบัน)';
