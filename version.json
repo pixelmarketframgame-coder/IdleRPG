@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.22",
+  "version": "v0.6.23",
   "updated_at": "2026-10-24",
-  "notes": "Draggable floating global chat popup with Supabase message storage"
+  "notes": "Chat messages shown as single-side combat-log lines"
 }
