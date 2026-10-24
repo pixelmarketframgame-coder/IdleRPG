@@ -11,7 +11,9 @@
 .modal-backdrop{position:fixed;inset:0;z-index:1000;background:#020611d9;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px)}
 .modal-backdrop.hidden{display:none!important}.status-modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #526ba6;border-radius:18px;padding:18px;box-shadow:0 24px 80px #000b}
 .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.modal-close{min-width:42px;padding:8px 12px;background:#202b43;border-color:#445477}.status-menu-button{min-width:unset;padding:9px 15px;background:#253b70;border-color:#8d9fc9}
-@media(max-width:620px){.status-modal{padding:13px;max-height:94vh}.modal-backdrop{padding:8px}}@media(max-width:620px){body{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.authgrid{grid-template-columns:1fr}.panel{padding:12px}.brand{font-size:17px}}
+@media(max-width:620px){.status-modal{padding:13px;max-height:94vh}.modal-backdrop{padding:8px}}
+.stat-preview{width:min(520px,100%);background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #c59b45;border-radius:16px;padding:18px;box-shadow:0 24px 80px #000b}.preview-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #2a3858}.preview-line:last-child{border-bottom:0}.preview-plus{color:#73e6ad;font-weight:900}.preview-select{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.preview-select button{padding:9px 4px}@media(max-width:420px){.stat-preview{padding:13px}.preview-select{gap:5px}.preview-select button{font-size:13px}}
+@media(max-width:620px){body{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.authgrid{grid-template-columns:1fr}.panel{padding:12px}.brand{font-size:17px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -63,13 +65,25 @@
       <p class="hint" id="stats-hint">กำลังโหลดค่าสถานะ…</p>
     </section>
   </div>
+  <div id="stat-confirm-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="stat-confirm-title">
+    <section class="stat-preview">
+      <div class="modal-head"><div><h2 class="title" id="stat-confirm-title" style="margin:0">ยืนยันอัปเกรดสเตตัส</h2><p class="hint" style="margin:5px 0 0">ตรวจผลที่จะเปลี่ยนก่อนใช้แต้มจริง</p></div><button id="cancel-stat-preview" class="modal-close" aria-label="ยกเลิก">✕</button></div>
+      <div class="hint">เลือกจำนวนแต้ม</div>
+      <div class="preview-select">
+        <button type="button" data-points="1">+1</button><button type="button" data-points="5">+5</button><button type="button" data-points="10" class="primary">+10</button><button type="button" data-points="25">+25</button>
+      </div>
+      <div class="status" id="stat-preview-content">กำลังคำนวณ Preview…</div>
+      <p class="hint" id="stat-preview-note">ตัวเลขค่าสู้จะเปลี่ยนตามสูตรที่ระบบเกมกำหนด ข้อมูลนี้ยังไม่ถูกบันทึกจนกว่าจะยืนยัน</p>
+      <div class="row" style="margin-top:12px"><button id="cancel-stat-upgrade" type="button">ยกเลิก</button><button id="confirm-stat-upgrade" class="green" type="button">✓ Confirm Upgrade</button></div>
+    </section>
+  </div>
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
   <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production</div>
 </div>
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.4.0";
+  const APP_VERSION = "v0.4.1";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -323,11 +337,16 @@
     $('player-name').textContent=data.nickname||'Hero';updatePixelStatus({nickname:data.nickname,level:data.level,exp:data.exp,gold:data.gold});$('level').textContent=data.level??1;$('exp').textContent=data.exp??0;$('gold').textContent=Number(data.gold??0).toLocaleString();
     await loadStats();
   }
+  let cachedStats = null;
+  const statNames = {str:"STR · พลังโจมตี",agi:"AGI · หลบหลีก",dex:"DEX · ความแม่นยำ",luk:"LUK · คริติคอล",int:"INT · พลังสกิล",vit:"VIT · Max HP"};
+  const statEffects = {str:"ผลที่เกี่ยวข้อง: พลังโจมตี (ATK)",agi:"ผลที่เกี่ยวข้อง: การหลบหลีก",dex:"ผลที่เกี่ยวข้อง: ความแม่นยำ",luk:"ผลที่เกี่ยวข้อง: อัตราคริติคอล",int:"ผลต่อพลังสกิลยังต้องยืนยันสูตรฝั่งเซิร์ฟเวอร์",vit:"ผลที่เกี่ยวข้อง: Max HP"};
+  let pendingStat = null, pendingPoints = 10;
   async function loadStats(){
     if(!currentUser) return;
     const {data,error}=await client.from('player_stats').select('str,agi,dex,luk,int_stat,vit,stat_points').eq('player_id',currentUser.id).maybeSingle();
     if(error) throw error;
     if(!data) throw new Error('ไม่พบข้อมูลค่าสถานะของตัวละคร');
+    cachedStats={str:Number(data.str??0),agi:Number(data.agi??0),dex:Number(data.dex??0),luk:Number(data.luk??0),int:Number(data.int_stat??0),vit:Number(data.vit??0),stat_points:Number(data.stat_points??0)};
     const values={str:data.str??0,agi:data.agi??0,dex:data.dex??0,luk:data.luk??0,int:data.int_stat??0,vit:data.vit??0};
     Object.entries(values).forEach(([key,value])=>{if($('stat-'+key)) $('stat-'+key).textContent=String(value);});
     $('stat-points').textContent=String(data.stat_points??0);
@@ -362,29 +381,80 @@
   $('close-status').onclick=closeStatus;
   statusBackdrop.addEventListener('click',e=>{if(e.target===statusBackdrop)closeStatus();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeStatus();});
+  const statConfirmBackdrop=$('stat-confirm-backdrop');
+  function closeStatPreview(){statConfirmBackdrop.classList.add('hidden');pendingStat=null;}
+  function renderStatPreview(){
+    if(!pendingStat || !cachedStats) return;
+    const current=Number(cachedStats[pendingStat]||0);
+    const next=current+pendingPoints;
+    const available=Number(cachedStats.stat_points||0);
+    $('stat-preview-content').innerHTML='';
+    const rows=[
+      ['สเตตัสที่เลือก',statNames[pendingStat]||pendingStat.toUpperCase()],
+      ['ค่าปัจจุบัน',current.toLocaleString()],
+      ['หลังอัปเกรด',next.toLocaleString()+' <span class="preview-plus">(+'+pendingPoints+')</span>'],
+      ['แต้มที่ใช้',pendingPoints.toLocaleString()],
+      ['แต้มคงเหลือหลังยืนยัน',Math.max(0,available-pendingPoints).toLocaleString()],
+      ['ผลที่เกี่ยวข้อง',statEffects[pendingStat]||'ตรวจสอบสูตรเกม']
+    ];
+    rows.forEach(([label,value])=>{
+      const row=document.createElement('div');row.className='preview-line';
+      const left=document.createElement('span');left.textContent=label;
+      const right=document.createElement('strong');right.innerHTML=value;
+      row.append(left,right);$('stat-preview-content').appendChild(row);
+    });
+    $('stat-preview-note').textContent = pendingStat==='int'
+      ? 'INT จะเพิ่มตามแต้มที่เลือก แต่ยังไม่แสดงตัวเลขผลต่อพลังสกิลจนกว่าจะยืนยันสูตรจริงในเซิร์ฟเวอร์'
+      : 'Preview เท่านั้น: ค่าตัวละครยังไม่ถูกเปลี่ยนจนกว่าจะกด Confirm Upgrade';
+    $('confirm-stat-upgrade').disabled=busy || pendingPoints>available;
+    document.querySelectorAll('[data-points]').forEach(b=>b.classList.toggle('primary',Number(b.dataset.points)===pendingPoints));
+  }
   document.querySelectorAll('.allocate-stat').forEach(btn=>{
     btn.onclick=async()=>{
-      const stat=btn.dataset.stat;
       if(!currentUser || busy) return;
-      setBusy(true);
       try{
-        const {data,error}=await client.rpc('allocate_stat_point',{p_stat:stat,p_points:1});
-        if(error) throw error;
-        const result=typeof data==='string'?JSON.parse(data):data;
-        if(!result?.success) throw new Error(result?.message||result?.error||'จัดสรรค่าสถานะไม่สำเร็จ');
         await loadStats();
-        log('📈 เพิ่ม '+stat.toUpperCase()+' +1 · เหลือ '+result.stat_points+' แต้ม');
-        msg('จัดสรรค่าสถานะสำเร็จ');
-      }catch(e){msg('จัดสรรค่าสถานะไม่สำเร็จ: '+e.message,true);log('RPC allocate_stat_point: '+e.message);}
-      finally{setBusy(false);await loadStats().catch(()=>{});}
+        pendingStat=btn.dataset.stat;
+        pendingPoints=Math.min(10,Number(cachedStats?.stat_points||0)) || 1;
+        if(Number(cachedStats?.stat_points||0)<1){msg('ไม่มี Stat Points เหลือให้อัปเกรด',true);return;}
+        pendingPoints=Math.min(10,Number(cachedStats.stat_points));
+        statConfirmBackdrop.classList.remove('hidden');
+        renderStatPreview();
+      }catch(e){msg('โหลดค่าสถานะไม่สำเร็จ: '+e.message,true);}
     };
   });
+  document.querySelectorAll('[data-points]').forEach(btn=>btn.addEventListener('click',()=>{
+    const amount=Number(btn.dataset.points);
+    if(!cachedStats || !pendingStat) return;
+    pendingPoints=Math.min(amount,Number(cachedStats.stat_points||0));
+    renderStatPreview();
+  }));
+  $('cancel-stat-preview').onclick=closeStatPreview;
+  $('cancel-stat-upgrade').onclick=closeStatPreview;
+  statConfirmBackdrop.addEventListener('click',e=>{if(e.target===statConfirmBackdrop)closeStatPreview();});
+  $('confirm-stat-upgrade').onclick=async()=>{
+    if(!currentUser || busy || !pendingStat || !cachedStats) return;
+    if(pendingPoints<1 || pendingPoints>Number(cachedStats.stat_points||0)){msg('แต้มไม่เพียงพอ กรุณาโหลดข้อมูลใหม่',true);return;}
+    const stat=pendingStat, points=pendingPoints;
+    setBusy(true);renderStatPreview();
+    try{
+      const {data,error}=await client.rpc('allocate_stat_point',{p_stat:stat,p_points:points});
+      if(error) throw error;
+      const result=typeof data==='string'?JSON.parse(data):data;
+      if(!result?.success) throw new Error(result?.message||result?.error||'จัดสรรค่าสถานะไม่สำเร็จ');
+      await loadStats();
+      log('📈 เพิ่ม '+stat.toUpperCase()+' +'+points+' · เหลือ '+result.stat_points+' แต้ม');
+      msg('อัปเกรดสเตตัสสำเร็จ');
+      closeStatPreview();
+    }catch(e){msg('อัปเกรดสเตตัสไม่สำเร็จ: '+e.message,true);log('RPC allocate_stat_point: '+e.message);}
+    finally{setBusy(false);await loadStats().catch(()=>{});}
+  };
   $('ultimate').onclick=()=>{if(typeof window.triggerHeroSkill==='function')window.triggerHeroSkill('ultimate');};
   $('challenge').onclick=()=>{if(typeof window.challengeCurrentStage==='function')window.challengeCurrentStage();};
   $('refresh').onclick=async()=>{setBusy(true);try{await syncPlayer();}catch(e){msg('โหลดข้อมูลไม่สำเร็จ: '+e.message,true);}finally{setBusy(false);}};
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.4.0"></script>
+<script src="game.js?v=0.4.1"></script>
 </body>
 </html>
