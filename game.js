@@ -200,6 +200,12 @@ function create() {
     pet = this.add.sprite(430, 170, 'pet_slime');
     pet.setVisible(false); // ซ่อนสัตว์เลี้ยงตอนเริ่มเกม
 
+    // Create monster name and HP HUD directly in Phaser.
+    enemyHpBarBg = this.add.rectangle(0, 0, 52, 7, 0x111111).setOrigin(0, 0.5).setDepth(30);
+    enemyHpBar = this.add.rectangle(0, 0, 52, 4, 0x2ecc71).setOrigin(0, 0.5).setDepth(31);
+    enemyHpText = this.add.text(0, 0, 'HP -- / --', { fontSize: '9px', color: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 3, align: 'center', backgroundColor: '#000000aa', padding: { x: 3, y: 2 } }).setOrigin(0.5).setDepth(32);
+    enemyNameText = this.add.text(0, 0, 'Monster', { fontSize: '10px', color: '#ffffff', fontStyle: 'bold', stroke: '#000000', strokeThickness: 3, align: 'center', backgroundColor: '#000000aa', padding: { x: 3, y: 2 } }).setOrigin(0.5).setDepth(33);
+    enemyHpBarBg.setVisible(false); enemyHpBar.setVisible(false); enemyHpText.setVisible(false); enemyNameText.setVisible(false);
     // ❌ ลบบรรทัด spawnEnemy(); ออกไปเลยครับ
 
     topBanner = this.add.rectangle(260, -30, 340, 24, 0x000000, 0.85).setStrokeStyle(1, 0x555555);
@@ -263,29 +269,27 @@ function spawnEnemy() {
 }
 
 function updateEnemyHpBar() {
-    if (!enemy || !enemyHpBar || !enemyHpBarBg) return;
+    if (!gameScene || !enemy || !enemyHpBar || !enemyHpBarBg) return;
     const maxHp = Math.max(1, Number(maxEnemyHp) || 1);
     const hp = Math.max(0, Math.min(maxHp, Number(enemyHp) || 0));
     const pct = hp / maxHp;
-    const barX = enemy.x - 20;
-    const barY = enemy.y - (isBossFight ? 38 : 29);
-    enemyHpBarBg.setPosition(barX, barY);
-    enemyHpBar.setPosition(barX, barY);
-    enemyHpBar.width = 40 * pct;
+    const barWidth = isBossFight ? 66 : 52;
+    const barX = enemy.x - barWidth / 2;
+    const barY = enemy.y - (isBossFight ? 43 : 35);
+    enemyHpBarBg.setPosition(barX, barY).setSize(barWidth, 7).setDepth(30).setVisible(true).setAlpha(1);
+    enemyHpBar.setPosition(barX, barY).setSize(Math.max(0.5, barWidth * pct), 4).setDepth(31).setVisible(true).setAlpha(1);
     enemyHpBar.fillColor = pct <= 0.25 ? 0xe74c3c : pct <= 0.5 ? 0xf1c40f : 0x2ecc71;
     if (enemyHpText) {
-        enemyHpText.setVisible(!!enemy.visible).setAlpha(1).setDepth(20);
-        enemyHpText.setPosition(enemy.x, barY - 9);
-        enemyHpText.setText(hp.toLocaleString() + '/' + maxHp.toLocaleString());
-        enemyHpText.setVisible(enemy.visible);
+        enemyHpText.setPosition(enemy.x, barY - 10);
+        enemyHpText.setText('HP ' + hp.toLocaleString() + ' / ' + maxHp.toLocaleString());
+        enemyHpText.setFontSize(isBossFight ? '10px' : '9px');
+        enemyHpText.setOrigin(0.5, 0.5).setDepth(32).setVisible(true).setAlpha(1);
     }
     if (enemyNameText) {
-        enemyNameText.setVisible(!!enemy.visible).setAlpha(1).setDepth(20);
-        enemyNameText.setPosition(enemy.x, barY - 20);
-        enemyNameText.setVisible(enemy.visible);
+        enemyNameText.setPosition(enemy.x, barY - 23);
+        enemyNameText.setFontSize(isBossFight ? '12px' : '10px');
+        enemyNameText.setOrigin(0.5, 0.5).setDepth(33).setVisible(true).setAlpha(1);
     }
-    enemyHpBarBg.setVisible(!!enemy.visible).setAlpha(1).setDepth(18);
-    enemyHpBar.setVisible(!!enemy.visible).setAlpha(1).setDepth(19);
 }
 
 function performRangedAttack() {
@@ -640,23 +644,12 @@ window.initGameState = function(jsonPayload) {
     maxEnemyHp = Math.max(1, Number(monster.monster_max_hp ?? monster.max_hp ?? monster.maxHp ?? monster.max_hp_total ?? monster.monster_hp ?? 100) || 100);
     enemyHp = Math.max(0, Math.min(maxEnemyHp, Number(monster.current_hp ?? monster.currentHp ?? monster.hp ?? monster.monster_hp ?? maxEnemyHp)));
 
-    if (!enemy) {
-        enemy = gameScene.add.sprite(180, 165, isBossFight ? 'enemy_boss' : 'enemy_normal');
-        enemyHpBarBg = gameScene.add.rectangle(160, 138, 40, 6, 0x111111).setOrigin(0, 0.5).setDepth(10);
-        enemyHpBar = gameScene.add.rectangle(160, 138, 40, 4, 0xe74c3c).setOrigin(0, 0.5).setDepth(11);
-        enemyHpText = gameScene.add.text(180, 119, '', {
-            fontSize: '9px', color: '#ffffff', fontStyle: 'bold',
-            stroke: '#000000', strokeThickness: 3, align: 'center'
-        }).setOrigin(0.5).setDepth(12);
-        enemyNameText = gameScene.add.text(180, 127, '', {
-            fontSize: '10px', color: '#fff', stroke: '#000000', strokeThickness: 3
-        }).setOrigin(0.5).setDepth(12);
-    }
+    if (!enemy) enemy = gameScene.add.sprite(180, 165, isBossFight ? 'enemy_boss' : 'enemy_normal');
     enemy.setTexture(isBossFight ? 'enemy_boss' : 'enemy_normal');
     enemy.setPosition(230, isBossFight ? 155 : 165);
     enemy.setScale(isBossFight ? 1 : 1);
-    enemy.setAlpha(0);
-    enemyNameText.setPosition(230, isBossFight ? 111 : 121);
+    enemy.setAlpha(1);
+    enemyNameText.setPosition(230, isBossFight ? 112 : 130);
     enemyNameText.setText(String(monster.monster_name || monster.name || monster.display_name || "Monster"));
     enemyNameText.setColor(isBossFight ? "#f1c40f" : "#ffffff");
     enemyNameText.setVisible(true).setAlpha(1).setDepth(20);
@@ -673,7 +666,7 @@ window.initGameState = function(jsonPayload) {
         gameScene.tweens.add({ targets: hero, x: 390, duration: 260, ease: "Sine.easeOut" });
     }
     gameScene.tweens.add({
-        targets: enemy, x: 180, alpha: 1, duration: 260, ease: "Sine.easeOut",
+        targets: enemy, x: 180, duration: 260, ease: "Sine.easeOut",
         onUpdate: () => {
             updateEnemyHpBar();
         }
