@@ -69,7 +69,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.3.3";
+  const APP_VERSION = "v0.3.4";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -379,6 +379,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.3.1"></script>
+<script src="game.js?v=0.3.4"></script>
 </body>
 </html>
