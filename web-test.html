@@ -889,7 +889,7 @@ $('settings-signout').onclick=signOutUser;
 })();
 </script>
 <script>
-/* Inventory UI backed by the signed-in character's Supabase rows (read-only until secure equip RPC is available). */
+/* Inventory UI backed by Supabase; equip/unequip uses ownership-checked RPC. */
 (()=> {
  const $inv=id=>document.getElementById(id);
  const backdrop=$inv('inventory-backdrop');
@@ -986,7 +986,11 @@ $('settings-signout').onclick=signOutUser;
   if(!item){const title=document.createElement('strong');title.textContent=selectedSlot?'ช่อง '+(gearSlots.find(s=>s.id===selectedSlot)?.label||'อุปกรณ์'):'เลือกไอเทม';const p=document.createElement('p');p.textContent=selectedSlot?(items.find(x=>x.id===equipped[selectedSlot])?itemName(items.find(x=>x.id===equipped[selectedSlot])):'ช่องนี้ว่างตามข้อมูลฐานข้อมูล'):'แตะไอเทมในกระเป๋าเพื่อดูรายละเอียด';box.append(title,p);$inv('inventory-equip').disabled=true;$inv('inventory-unequip').disabled=true;return;}
   const title=document.createElement('strong');title.textContent=itemIcon(item)+' '+itemName(item);
   const b=itemBonuses(item),p=document.createElement('p');p.textContent='ATK +'+b.atk+' · DEF +'+b.def+' · HP +'+b.hp+' · ID: '+item.item_template_id;
-  box.append(title,p);$inv('inventory-equip').disabled=true;$inv('inventory-unequip').disabled=true;
+  const targetSlot=itemSlot(item);
+  const alreadyEquipped=gearSlots.some(s=>equipped[s.id]===item.id);
+  box.append(title,p);
+  $inv('inventory-equip').disabled=!(item.type==='gear'&&targetSlot&&!alreadyEquipped);
+  $inv('inventory-unequip').disabled=!alreadyEquipped;
  }
  function renderAll(){
   renderGear();renderItems();renderDetail();const s=stats();setText('inventory-atk',s.atk.toLocaleString());setText('inventory-def',s.def.toLocaleString());setText('inventory-hp',s.hp.toLocaleString());
@@ -997,7 +1001,37 @@ $('settings-signout').onclick=signOutUser;
  backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.classList.contains('hidden'))close();});
  $inv('inventory-filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;filter=b.dataset.filter;$inv('inventory-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderItems();});
- $inv('inventory-equip').disabled=true;$inv('inventory-unequip').disabled=true;
+ async function persistEquipment(slot,inventoryId){
+  const equipButton=$inv('inventory-equip'),unequipButton=$inv('inventory-unequip');
+  equipButton.disabled=true;unequipButton.disabled=true;
+  try{
+   const {data,error}=await client.rpc('set_equipped_item',{p_slot:slot,p_inventory_id:inventoryId||null});
+   if(error)throw error;
+   await loadInventory();
+   const item=items.find(x=>x.id===inventoryId);
+   const action=inventoryId?'สวมใส่':'ถอดอุปกรณ์';
+   const notice=$inv('inventory-detail');notice.dataset.notice=action+'สำเร็จ';
+   if(inventoryId){selectedItem=inventoryId;selectedSlot=slot;}else{selectedItem=null;selectedSlot=slot;}
+   renderAll();
+   const msg=document.createElement('p');msg.className='inventory-hint';msg.textContent=action+'สำเร็จ'+(item?' · '+itemName(item):'');
+   $inv('inventory-detail').append(msg);
+  }catch(e){
+   renderAll();
+   const msg=document.createElement('p');msg.className='inventory-hint';msg.textContent='บันทึกอุปกรณ์ไม่สำเร็จ: '+(e.message||e);
+   $inv('inventory-detail').append(msg);
+  }
+ }
+ $inv('inventory-equip').addEventListener('click',async()=>{
+  const item=items.find(x=>x.id===selectedItem);const slot=itemSlot(item);
+  if(!item||!slot||item.type!=='gear')return;
+  await persistEquipment(slot,item.id);
+ });
+ $inv('inventory-unequip').addEventListener('click',async()=>{
+  const item=items.find(x=>x.id===selectedItem);
+  const slot=item?gearSlots.find(s=>equipped[s.id]===item.id)?.id:selectedSlot;
+  if(!slot||!equipped[slot])return;
+  await persistEquipment(slot,null);
+ });
  renderAll();
 })(); 
 </script>
