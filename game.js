@@ -7,6 +7,7 @@ let bgFar, bgMid, bgFloor;
 let hero, pet, enemy, portal;
 let enemyHp = 100, maxEnemyHp = 100;
 let enemyHpBarBg, enemyHpBar, enemyHpText, enemyNameText, topBanner, topBannerText;
+let farmProgressBg = null, farmProgressBarBg = null, farmProgressBar = null, farmProgressText = null;
 
 let currentStage = "1";
 let killsInStage = 0;
@@ -244,7 +245,18 @@ function create() {
     topBanner = this.add.rectangle(260, -30, 340, 24, 0x000000, 0.85).setStrokeStyle(1, 0x555555);
     topBannerText = this.add.text(260, -30, '', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
 
-    // ตัวนับฟาร์ม 100 ตัวแสดงใน HTML เพียงจุดเดียว เพื่อไม่ให้ซ้อนกับ HUD ระยะ
+    // Farm progress HUD is rendered inside Phaser canvas (not HTML).
+    farmProgressBg = this.add.rectangle(260, 32, 300, 26, 0x0b1713, 0.92)
+        .setStrokeStyle(1, 0x34715c).setDepth(60);
+    farmProgressText = this.add.text(260, 25, '⚔ ฟาร์มด่านนี้ 0 / 100 ตัว', {
+        fontSize: '11px', color: '#9ff0c8', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 2, align: 'center'
+    }).setOrigin(0.5).setDepth(61);
+    farmProgressBarBg = this.add.rectangle(118, 40, 284, 5, 0x050b09)
+        .setOrigin(0, 0.5).setDepth(61);
+    farmProgressBar = this.add.rectangle(118, 40, 0, 3, 0x35d07f)
+        .setOrigin(0, 0.5).setDepth(62);
+    updateFarmProgressHud();
 
     // ❌ ลบบรรทัด this.time.addEvent(...) ที่เป็นลูปโจมตีออกไปด้วยครับ
 }
@@ -358,9 +370,21 @@ function updateStageProgress(kills, stage) {
         Number.isFinite(parsedKills) ? parsedKills : 0));
     if (stage !== undefined && stage !== null && stage !== '') currentStage = String(stage);
     const ratio = killsInStage / maxKillsPerStage;
-    // ความคืบหน้า 100 ตัวแสดงโดย HTML; Phaser ไม่วาดตัวนับซ้ำ
+    // Keep the server-synced counter visible inside Phaser.
+    updateFarmProgressHud();
     if (stageLabelText) stageLabelText.setText(currentStage);
 }
+function updateFarmProgressHud() {
+    if (!gameScene || !farmProgressBg || !farmProgressText || !farmProgressBarBg || !farmProgressBar) return;
+    const kills = Math.max(0, Math.min(maxKillsPerStage, Number(killsInStage) || 0));
+    const ratio = kills / maxKillsPerStage;
+    farmProgressBg.setVisible(true);
+    farmProgressText.setVisible(true).setText('⚔ ฟาร์มด่านนี้  ' + kills.toLocaleString() + ' / ' + maxKillsPerStage.toLocaleString() + ' ตัว');
+    farmProgressBarBg.setVisible(true);
+    farmProgressBar.setVisible(true).setSize(284 * ratio, 3);
+    farmProgressBar.fillColor = ratio >= 1 ? 0x7af0a7 : 0x35d07f;
+}
+window.updateFarmProgressHud = updateFarmProgressHud;
 window.updateStageProgress = updateStageProgress;
 
 function spawnEnemy() {
