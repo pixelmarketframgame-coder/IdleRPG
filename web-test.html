@@ -52,17 +52,28 @@
   </section>
   <div id="status-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
     <section class="status-modal">
-      <div class="modal-head"><div><h2 class="title" id="status-modal-title" style="margin:0">📊 STATUS</h2><p class="hint" style="margin:5px 0 0">ได้รับ 3 Stat Points ต่อเลเวลที่เพิ่มขึ้น</p></div><button id="close-status" class="modal-close" aria-label="ปิดเมนู Status">✕</button></div>
+      <div class="modal-head"><div><h2 class="title" id="status-modal-title" style="margin:0">📊 STATUS</h2><p class="hint" style="margin:5px 0 0">รายละเอียดค่าสถานะและจัดสรรคะแนน</p></div><button id="close-status" class="modal-close" aria-label="ปิดเมนู Status">✕</button></div>
+      <h3 class="title">รายละเอียดค่าสถานะ</h3>
+      <div class="grid" id="stat-details-grid">
+        <div class="stat"><small>STR · Strength</small><strong>กายภาพระยะประชิด</strong><small>เพิ่มความจุน้ำหนัก</small></div>
+        <div class="stat"><small>AGI · Agility</small><strong>ความเร็วโจมตี</strong><small>หลบหลีก · ความเร็วเคลื่อนที่</small></div>
+        <div class="stat"><small>DEX · Dexterity</small><strong>ความแม่นยำ</strong><small>โจมตีระยะไกล · ลดเวลาร่าย</small></div>
+        <div class="stat"><small>INT · Intelligence</small><strong>พลังเวทมนตร์</strong><small>Max MP · ฟื้นฟู MP · MDEF</small></div>
+        <div class="stat"><small>VIT · Vitality</small><strong>Max HP · ฟื้นฟู HP</strong><small>ป้องกันกายภาพ · ต้านสถานะ</small></div>
+        <div class="stat"><small>LUK · Luck</small><strong>โอกาสคริติคอล</strong><small>ไอเทมดรอป · Perfect Dodge · สถานะผิดปกติ</small></div>
+      </div>
+      <div class="top" style="margin:18px 0 10px"><h3 class="title" style="margin:0">จัดสรรค่า Stat</h3><span class="version-tag" id="stat-points-label">แต้มคงเหลือ: —</span></div>
+      <div class="hint" style="margin-bottom:8px">กด + หรือ − เพื่อเลือกจำนวนแต้มก่อน แล้วกด Confirm เพื่อบันทึก</div>
       <div class="grid" id="stats-grid">
-        <div class="stat"><small>STR · พลังโจมตี</small><strong id="stat-str">—</strong><button data-stat="str" class="allocate-stat" style="margin-top:8px;width:100%">+ STR</button></div>
-        <div class="stat"><small>AGI · หลบหลีก</small><strong id="stat-agi">—</strong><button data-stat="agi" class="allocate-stat" style="margin-top:8px;width:100%">+ AGI</button></div>
-        <div class="stat"><small>DEX · แม่นยำ</small><strong id="stat-dex">—</strong><button data-stat="dex" class="allocate-stat" style="margin-top:8px;width:100%">+ DEX</button></div>
-        <div class="stat"><small>LUK · คริติคอล</small><strong id="stat-luk">—</strong><button data-stat="luk" class="allocate-stat" style="margin-top:8px;width:100%">+ LUK</button></div>
-        <div class="stat"><small>INT · พลังสกิล</small><strong id="stat-int">—</strong><button data-stat="int" class="allocate-stat" style="margin-top:8px;width:100%">+ INT</button></div>
-        <div class="stat"><small>VIT · Max HP</small><strong id="stat-vit">—</strong><button data-stat="vit" class="allocate-stat" style="margin-top:8px;width:100%">+ VIT</button></div>
-        <div class="stat"><small>STAT POINTS</small><strong id="stat-points">—</strong></div>
+        <div class="stat"><small>STR · Strength</small><strong id="stat-str">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="str" type="button">−</button><button data-stat-plus="str" type="button">+</button></div><small id="pending-str">เลือกเพิ่ม: 0</small></div>
+        <div class="stat"><small>AGI · Agility</small><strong id="stat-agi">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="agi" type="button">−</button><button data-stat-plus="agi" type="button">+</button></div><small id="pending-agi">เลือกเพิ่ม: 0</small></div>
+        <div class="stat"><small>DEX · Dexterity</small><strong id="stat-dex">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="dex" type="button">−</button><button data-stat-plus="dex" type="button">+</button></div><small id="pending-dex">เลือกเพิ่ม: 0</small></div>
+        <div class="stat"><small>LUK · Luck</small><strong id="stat-luk">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="luk" type="button">−</button><button data-stat-plus="luk" type="button">+</button></div><small id="pending-luk">เลือกเพิ่ม: 0</small></div>
+        <div class="stat"><small>INT · Intelligence</small><strong id="stat-int">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="int" type="button">−</button><button data-stat-plus="int" type="button">+</button></div><small id="pending-int">เลือกเพิ่ม: 0</small></div>
+        <div class="stat"><small>VIT · Vitality</small><strong id="stat-vit">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="vit" type="button">−</button><button data-stat-plus="vit" type="button">+</button></div><small id="pending-vit">เลือกเพิ่ม: 0</small></div>
       </div>
       <p class="hint" id="stats-hint">กำลังโหลดค่าสถานะ…</p>
+      <div class="row" style="margin-top:12px"><button id="cancel-stat-changes" type="button">ยกเลิก</button><button id="confirm-stat-changes" class="green" type="button">✓ Confirm</button></div>
     </section>
   </div>
   <div id="stat-confirm-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="stat-confirm-title">
@@ -83,7 +94,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.4.1";
+  const APP_VERSION = "v0.4.2";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -338,9 +349,32 @@
     await loadStats();
   }
   let cachedStats = null;
-  const statNames = {str:"STR · พลังโจมตี",agi:"AGI · หลบหลีก",dex:"DEX · ความแม่นยำ",luk:"LUK · คริติคอล",int:"INT · พลังสกิล",vit:"VIT · Max HP"};
-  const statEffects = {str:"ผลที่เกี่ยวข้อง: พลังโจมตี (ATK)",agi:"ผลที่เกี่ยวข้อง: การหลบหลีก",dex:"ผลที่เกี่ยวข้อง: ความแม่นยำ",luk:"ผลที่เกี่ยวข้อง: อัตราคริติคอล",int:"ผลต่อพลังสกิลยังต้องยืนยันสูตรฝั่งเซิร์ฟเวอร์",vit:"ผลที่เกี่ยวข้อง: Max HP"};
-  let pendingStat = null, pendingPoints = 10;
+  const statNames = {str:"STR · Strength",agi:"AGI · Agility",dex:"DEX · Dexterity",luk:"LUK · Luck",int:"INT · Intelligence",vit:"VIT · Vitality"};
+  const statEffects = {
+    str:"พลังโจมตีระยะประชิด · ความจุน้ำหนัก",
+    agi:"ความเร็วโจมตี · หลบหลีก · ความเร็วเคลื่อนที่",
+    dex:"ความแม่นยำ · พลังโจมตีระยะไกล · ลดเวลาร่าย",
+    int:"พลังโจมตีเวท · Max MP · ฟื้นฟู MP · ป้องกันเวท",
+    vit:"Max HP · ฟื้นฟู HP · ป้องกันกายภาพ · ต้านทานสถานะ",
+    luk:"คริติคอล · อัตราดรอป · Perfect Dodge · โอกาสใช้สถานะผิดปกติ"
+  };
+  const statKeys = ["str","agi","dex","luk","int","vit"];
+  let stagedStats = {str:0,agi:0,dex:0,luk:0,int:0,vit:0};
+  function stagedTotal(){return statKeys.reduce((sum,key)=>sum+Number(stagedStats[key]||0),0);}
+  function renderStagedStats(){
+    if(!cachedStats) return;
+    statKeys.forEach(key=>{
+      const chosen=Number(stagedStats[key]||0);
+      const value=$("pending-"+key);
+      if(value)value.textContent="เลือกเพิ่ม: "+chosen;
+      const minus=document.querySelector('[data-stat-minus="'+key+'"]');
+      const plus=document.querySelector('[data-stat-plus="'+key+'"]');
+      if(minus)minus.disabled=busy||chosen<1;
+      if(plus)plus.disabled=busy||stagedTotal()>=Number(cachedStats.stat_points||0);
+    });
+    $("stat-points-label").textContent="แต้มคงเหลือ: "+Math.max(0,Number(cachedStats.stat_points||0)-stagedTotal());
+    $("confirm-stat-changes").disabled=busy||stagedTotal()<1||stagedTotal()>Number(cachedStats.stat_points||0);
+  }
   async function loadStats(){
     if(!currentUser) return;
     const {data,error}=await client.from('player_stats').select('str,agi,dex,luk,int_stat,vit,stat_points').eq('player_id',currentUser.id).maybeSingle();
@@ -349,9 +383,8 @@
     cachedStats={str:Number(data.str??0),agi:Number(data.agi??0),dex:Number(data.dex??0),luk:Number(data.luk??0),int:Number(data.int_stat??0),vit:Number(data.vit??0),stat_points:Number(data.stat_points??0)};
     const values={str:data.str??0,agi:data.agi??0,dex:data.dex??0,luk:data.luk??0,int:data.int_stat??0,vit:data.vit??0};
     Object.entries(values).forEach(([key,value])=>{if($('stat-'+key)) $('stat-'+key).textContent=String(value);});
-    $('stat-points').textContent=String(data.stat_points??0);
-    $('stats-hint').textContent='แต้มคงเหลือ '+(data.stat_points??0)+' · STR เพิ่ม ATK, DEX เพิ่มความแม่นยำ, AGI เพิ่มหลบหลีก, LUK เพิ่มคริติคอล, VIT เพิ่ม Max HP; INT ยังรอเชื่อมกับสกิลฝั่งเซิร์ฟเวอร์';
-    document.querySelectorAll('.allocate-stat').forEach(btn=>btn.disabled=(data.stat_points??0)<1 || busy);
+    $('stats-hint').textContent='แต้มที่เลือก '+stagedTotal()+' / '+cachedStats.stat_points+' · ผลของแต่ละค่าแสดงไว้ด้านบน';
+    renderStagedStats();
   }
   async function makeState(){
     const {data:sd,error:se}=await client.rpc('get_stage_status');
@@ -381,73 +414,45 @@
   $('close-status').onclick=closeStatus;
   statusBackdrop.addEventListener('click',e=>{if(e.target===statusBackdrop)closeStatus();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeStatus();});
-  const statConfirmBackdrop=$('stat-confirm-backdrop');
-  function closeStatPreview(){statConfirmBackdrop.classList.add('hidden');pendingStat=null;}
-  function renderStatPreview(){
-    if(!pendingStat || !cachedStats) return;
-    const current=Number(cachedStats[pendingStat]||0);
-    const next=current+pendingPoints;
-    const available=Number(cachedStats.stat_points||0);
-    $('stat-preview-content').innerHTML='';
-    const rows=[
-      ['สเตตัสที่เลือก',statNames[pendingStat]||pendingStat.toUpperCase()],
-      ['ค่าปัจจุบัน',current.toLocaleString()],
-      ['หลังอัปเกรด',next.toLocaleString()+' <span class="preview-plus">(+'+pendingPoints+')</span>'],
-      ['แต้มที่ใช้',pendingPoints.toLocaleString()],
-      ['แต้มคงเหลือหลังยืนยัน',Math.max(0,available-pendingPoints).toLocaleString()],
-      ['ผลที่เกี่ยวข้อง',statEffects[pendingStat]||'ตรวจสอบสูตรเกม']
-    ];
-    rows.forEach(([label,value])=>{
-      const row=document.createElement('div');row.className='preview-line';
-      const left=document.createElement('span');left.textContent=label;
-      const right=document.createElement('strong');right.innerHTML=value;
-      row.append(left,right);$('stat-preview-content').appendChild(row);
-    });
-    $('stat-preview-note').textContent = pendingStat==='int'
-      ? 'INT จะเพิ่มตามแต้มที่เลือก แต่ยังไม่แสดงตัวเลขผลต่อพลังสกิลจนกว่าจะยืนยันสูตรจริงในเซิร์ฟเวอร์'
-      : 'Preview เท่านั้น: ค่าตัวละครยังไม่ถูกเปลี่ยนจนกว่าจะกด Confirm Upgrade';
-    $('confirm-stat-upgrade').disabled=busy || pendingPoints>available;
-    document.querySelectorAll('[data-points]').forEach(b=>b.classList.toggle('primary',Number(b.dataset.points)===pendingPoints));
-  }
-  document.querySelectorAll('.allocate-stat').forEach(btn=>{
-    btn.onclick=async()=>{
-      if(!currentUser || busy) return;
-      try{
-        await loadStats();
-        pendingStat=btn.dataset.stat;
-        pendingPoints=Math.min(10,Number(cachedStats?.stat_points||0)) || 1;
-        if(Number(cachedStats?.stat_points||0)<1){msg('ไม่มี Stat Points เหลือให้อัปเกรด',true);return;}
-        pendingPoints=Math.min(10,Number(cachedStats.stat_points));
-        statConfirmBackdrop.classList.remove('hidden');
-        renderStatPreview();
-      }catch(e){msg('โหลดค่าสถานะไม่สำเร็จ: '+e.message,true);}
-    };
+  document.querySelectorAll('[data-stat-plus]').forEach(btn=>btn.onclick=()=>{
+    if(!cachedStats||busy)return;
+    const key=btn.dataset.statPlus;
+    if(stagedTotal()<Number(cachedStats.stat_points||0))stagedStats[key]=Number(stagedStats[key]||0)+1;
+    renderStagedStats();
   });
-  document.querySelectorAll('[data-points]').forEach(btn=>btn.addEventListener('click',()=>{
-    const amount=Number(btn.dataset.points);
-    if(!cachedStats || !pendingStat) return;
-    pendingPoints=Math.min(amount,Number(cachedStats.stat_points||0));
-    renderStatPreview();
-  }));
-  $('cancel-stat-preview').onclick=closeStatPreview;
-  $('cancel-stat-upgrade').onclick=closeStatPreview;
-  statConfirmBackdrop.addEventListener('click',e=>{if(e.target===statConfirmBackdrop)closeStatPreview();});
-  $('confirm-stat-upgrade').onclick=async()=>{
-    if(!currentUser || busy || !pendingStat || !cachedStats) return;
-    if(pendingPoints<1 || pendingPoints>Number(cachedStats.stat_points||0)){msg('แต้มไม่เพียงพอ กรุณาโหลดข้อมูลใหม่',true);return;}
-    const stat=pendingStat, points=pendingPoints;
-    setBusy(true);renderStatPreview();
+  document.querySelectorAll('[data-stat-minus]').forEach(btn=>btn.onclick=()=>{
+    if(!cachedStats||busy)return;
+    const key=btn.dataset.statMinus;
+    stagedStats[key]=Math.max(0,Number(stagedStats[key]||0)-1);
+    renderStagedStats();
+  });
+  $('cancel-stat-changes').onclick=()=>{
+    stagedStats={str:0,agi:0,dex:0,luk:0,int:0,vit:0};
+    renderStagedStats();
+    loadStats().catch(e=>msg('โหลดค่าสถานะไม่สำเร็จ: '+e.message,true));
+  };
+  $('confirm-stat-changes').onclick=async()=>{
+    if(!currentUser||busy||!cachedStats)return;
+    const allocations=statKeys.map(key=>({stat:key,points:Number(stagedStats[key]||0)})).filter(x=>x.points>0);
+    const total=allocations.reduce((sum,x)=>sum+x.points,0);
+    if(total<1||total>Number(cachedStats.stat_points||0)){msg('แต้มไม่เพียงพอ กรุณาโหลดข้อมูลใหม่',true);return;}
+    setBusy(true);
     try{
-      const {data,error}=await client.rpc('allocate_stat_point',{p_stat:stat,p_points:points});
-      if(error) throw error;
-      const result=typeof data==='string'?JSON.parse(data):data;
-      if(!result?.success) throw new Error(result?.message||result?.error||'จัดสรรค่าสถานะไม่สำเร็จ');
+      for(const item of allocations){
+        const {data,error}=await client.rpc('allocate_stat_point',{p_stat:item.stat,p_points:item.points});
+        if(error)throw error;
+        const result=typeof data==='string'?JSON.parse(data):data;
+        if(!result?.success)throw new Error(result?.message||result?.error||('จัดสรรค่า '+item.stat.toUpperCase()+' ไม่สำเร็จ'));
+        log('📈 เพิ่ม '+item.stat.toUpperCase()+' +'+item.points);
+      }
+      stagedStats={str:0,agi:0,dex:0,luk:0,int:0,vit:0};
       await loadStats();
-      log('📈 เพิ่ม '+stat.toUpperCase()+' +'+points+' · เหลือ '+result.stat_points+' แต้ม');
-      msg('อัปเกรดสเตตัสสำเร็จ');
-      closeStatPreview();
-    }catch(e){msg('อัปเกรดสเตตัสไม่สำเร็จ: '+e.message,true);log('RPC allocate_stat_point: '+e.message);}
-    finally{setBusy(false);await loadStats().catch(()=>{});}
+      msg('บันทึกค่าสถานะสำเร็จ');
+    }catch(e){
+      msg('บันทึกค่าสถานะไม่ครบ: '+e.message+' · ระบบอาจบันทึกบางค่าก่อนเกิดข้อผิดพลาด กรุณาตรวจสอบ Status อีกครั้ง',true);
+      log('RPC allocate_stat_point: '+e.message);
+      await loadStats().catch(()=>{});
+    }finally{setBusy(false);await loadStats().catch(()=>{});}
   };
   $('ultimate').onclick=()=>{if(typeof window.triggerHeroSkill==='function')window.triggerHeroSkill('ultimate');};
   $('challenge').onclick=()=>{if(typeof window.challengeCurrentStage==='function')window.challengeCurrentStage();};
@@ -455,6 +460,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.4.1"></script>
+<script src="game.js?v=0.4.2"></script>
 </body>
 </html>
