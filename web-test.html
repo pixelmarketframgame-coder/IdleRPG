@@ -20,7 +20,7 @@
 <div class="wrap">
   <header class="top"><div class="brand">⚔ TBH Pixel <span>Auto Battler</span> <small style="font-size:12px;color:#9eaccb">WEB TEST</small></div><button id="signout" class="hidden">ออกจากระบบ</button></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.3.5</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.3.6</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -33,7 +33,7 @@
     <div class="row"><input id="nickname" maxlength="16" placeholder="เช่น Pixel Hero"><button id="create-character" class="primary">สร้างตัวละคร</button></div>
   </section>
   <section id="game-panel" class="hidden">
-    <div class="top" style="justify-content:flex-end;gap:8px;margin-bottom:10px"><button id="open-status" class="status-menu-button">📊 Status</button><span class="version-tag" id="game-version">VERSION v0.3.5</span><span id="player-name" class="hint"></span><span id="level" class="hidden">—</span><span id="exp" class="hidden">—</span><span id="gold" class="hidden">—</span><span id="stage" class="hidden">—</span></div>
+    <div class="top" style="justify-content:flex-end;gap:8px;margin-bottom:10px"><button id="open-status" class="status-menu-button">📊 Status</button><span class="version-tag" id="game-version">VERSION v0.3.6</span><span id="player-name" class="hint"></span><span id="level" class="hidden">—</span><span id="exp" class="hidden">—</span><span id="gold" class="hidden">—</span><span id="stage" class="hidden">—</span></div>
     <div class="panel"><h2 class="title">BATTLE FIELD</h2>
       <div id="pixel-status-bar" class="pixel-status-bar" aria-label="สถานะตัวละคร">
         <div class="pixel-avatar" id="pixel-avatar">🧑🏻</div>
@@ -379,6 +379,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.3.5"></script>
+<script src="game.js?v=0.3.6"></script>
 </body>
 </html>
