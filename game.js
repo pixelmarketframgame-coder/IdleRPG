@@ -213,9 +213,9 @@ function create() {
 
     this.add.rectangle(450, 205, 80, 8, 0x2d3436).setDepth(40);
     stageProgressBar = this.add.rectangle(410, 205, 0, 6, 0xe74c3c).setOrigin(0, 0.5).setDepth(41);
-    stageProgressText = this.add.text(450, 190, '0/100', {
-        fontSize: '10px', color: '#ffffff', fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: 3, align: 'center'
+    stageProgressText = this.add.text(450, 205, '0/100', {
+        fontSize: '9px', color: '#ffffff', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 2, align: 'center'
     }).setOrigin(0.5).setDepth(42);
     this.add.text(495, 205, '👹', { fontSize: '10px' }).setOrigin(0.5).setDepth(42);
 
