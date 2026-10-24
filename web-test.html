@@ -69,7 +69,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.3.0";
+  const APP_VERSION = "v0.3.1";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -234,6 +234,7 @@
     updateMonsterHud(target, stage);
     const theme=(stage.current_farm_stage??1)>=21?'lava':(stage.current_farm_stage??1)>=11?'dungeon':'forest';
     const state={player:{level:profile?.level??1,pet:profile?.active_pet_skin||'none'},map:{stageId:String(stage.current_farm_stage??1),theme},monster:target?{id:target.monster_id,monster_name:target.monster_name,monster_type:target.monster_type,is_boss:target.is_boss,monster_hp:target.monster_hp,monster_max_hp:target.monster_max_hp,current_hp:target.current_hp,max_hp:target.max_hp,monster_level:target.monster_level}:null,stageStatus:stage};
+    if(typeof window.updateStageProgress==='function') window.updateStageProgress(stage.kills_in_stage??0, stage.current_farm_stage??1);
     if(typeof window.initGameState==='function') window.initGameState(JSON.stringify(state));
     $('combat-hint').textContent=target?('เป้าหมาย: '+target.monster_name+' · Lv.'+target.monster_level+' · HP '+Number(target.monster_hp).toLocaleString()):'ไม่มีเป้าหมายต่อสู้ในขณะนี้';
     log(target ? '📡 ซิงก์สถานะจาก Supabase สำเร็จ · '+target.monster_name+' Lv.'+target.monster_level : '📡 ซิงก์ Supabase สำเร็จ · ยังไม่มีเป้าหมาย');
@@ -340,6 +341,7 @@
     $('stage').textContent=(stage.current_farm_stage??1)+' / '+(stage.kills_in_stage??0);
     updateMonsterHud(target, stage);
     $('challenge').classList.toggle('hidden',!stage.challenge_ready);
+    if(typeof window.updateStageProgress==='function') window.updateStageProgress(stage.kills_in_stage??0, stage.current_farm_stage??1);
     return {player:{level:profile?.level??1,pet:profile?.active_pet_skin||'none'},map:{stageId:String(stage.current_farm_stage??1),theme:(stage.current_farm_stage??1)>=21?'lava':(stage.current_farm_stage??1)>=11?'dungeon':'forest'},monster:target?{id:target.monster_id,monster_name:target.monster_name,monster_type:target.monster_type,is_boss:target.is_boss,monster_hp:target.monster_hp,monster_max_hp:target.monster_max_hp,current_hp:target.current_hp,max_hp:target.max_hp,monster_level:target.monster_level}:null,stageStatus:stage};
   }
   // Adapter ที่ใช้ได้ทั้งหน้าเว็บนี้และ WebView ของ FlutterFlow
@@ -377,6 +379,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.3.0"></script>
+<script src="game.js?v=0.3.1"></script>
 </body>
 </html>
