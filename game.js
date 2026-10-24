@@ -605,29 +605,35 @@ window.initGameState = function(jsonPayload) {
         console.error("Invalid game state JSON", err);
         return;
     }
-    if (!gameScene || !state || !state.player || !state.map) {
-        console.error("Game scene or required state is missing");
+    if (!gameScene || !state || typeof state !== "object") {
+        console.error("Game scene or valid server state is missing", state);
         return;
     }
 
     console.log("🎮 Server state received:", state);
-    if (state.map.theme) changeMapTheme(state.map.theme);
+    const playerData = state.player || state.profile || {};
+    const mapData = state.map || {};
+    if (mapData.theme) changeMapTheme(mapData.theme);
 
-    const status = state.stageStatus || state.stage_status || {};
-    const stageNum = status.current_farm_stage ?? status.currentFarmStage ?? state.map.stageId ?? currentStage;
+    const status = state.stageStatus || state.stage_status || state.stage_status_data || {};
+    const stageNum = status.current_farm_stage ?? status.currentFarmStage ?? mapData.stageId ?? state.stage ?? currentStage;
     currentStage = String(stageNum);
     if (stageLabelText) stageLabelText.setText(currentStage);
-    changePetSkin(state.player.pet || state.player.active_pet_skin || "none");
+    changePetSkin(playerData.pet || playerData.active_pet_skin || "none");
 
     killsInStage = Number(status.kills_in_stage ?? status.killsInStage ?? state.killsInStage ?? killsInStage) || 0;
     if (stageProgressBar) stageProgressBar.width = 80 * Math.min(1, killsInStage / maxKillsPerStage);
 
-    const monster = state.monster || state.target || null;
+    const monster = state.monster || state.target || state.current_target || state.currentTarget || state.combat?.monster || null;
     awaitingServerResponse = false;
-    if (!monster || !(monster.id || monster.monster_id || monster.monsterId)) {
+    if (!monster) {
         currentMonsterId = null;
         combatPaused = true;
         if (enemy) enemy.setVisible(false);
+        if (enemyNameText) enemyNameText.setVisible(false);
+        if (enemyHpText) enemyHpText.setVisible(false);
+        if (enemyHpBarBg) enemyHpBarBg.setVisible(false);
+        if (enemyHpBar) enemyHpBar.setVisible(false);
         if (status.challenge_ready || status.challengeReady || killsInStage >= maxKillsPerStage) {
             showTopNotification("ครบ 100 ตัวแล้ว! กด Challenge เพื่อท้าทายด่านถัดไป");
         } else if (state.error) {
@@ -636,7 +642,9 @@ window.initGameState = function(jsonPayload) {
         return;
     }
 
-    currentMonsterId = String(monster.id || monster.monster_id || monster.monsterId);
+    // Show the server-provided monster even if its identifier is absent; attacks remain disabled until an ID arrives.
+    const monsterId = monster.id ?? monster.monster_id ?? monster.monsterId ?? monster.target_id ?? monster.targetId ?? null;
+    currentMonsterId = monsterId == null ? null : String(monsterId);
     currentMonsterType = String(monster.monster_type || monster.type || (monster.is_boss ? "boss" : "normal")).toLowerCase();
     isBossFight = Boolean(monster.is_boss ?? monster.isBoss ?? (currentMonsterType === "boss"));
     isChallengeTarget = Boolean(monster.is_challenge ?? monster.isChallenge ?? false);
@@ -648,15 +656,13 @@ window.initGameState = function(jsonPayload) {
     enemy.setTexture(isBossFight ? 'enemy_boss' : 'enemy_normal');
     enemy.setPosition(230, isBossFight ? 155 : 165);
     enemy.setScale(isBossFight ? 1 : 1);
-    enemy.setAlpha(1);
-    enemyNameText.setPosition(230, isBossFight ? 112 : 130);
-    enemyNameText.setText(String(monster.monster_name || monster.name || monster.display_name || "Monster"));
+    enemy.setDepth(15).setVisible(true).setAlpha(1);
+    enemyNameText.setText(String(monster.monster_name || monster.monsterName || monster.name || monster.display_name || monster.displayName || "Monster"));
     enemyNameText.setColor(isBossFight ? "#f1c40f" : "#ffffff");
-    enemyNameText.setVisible(true).setAlpha(1).setDepth(20);
-    enemyHpText.setVisible(true).setAlpha(1).setDepth(20);
-    enemyHpBarBg.setVisible(true).setAlpha(1).setDepth(18);
-    enemyHpBar.setVisible(true).setAlpha(1).setDepth(19);
-    enemy.setVisible(true).setAlpha(1);
+    enemyNameText.setVisible(true).setAlpha(1).setDepth(33);
+    enemyHpText.setVisible(true).setAlpha(1).setDepth(32);
+    enemyHpBarBg.setVisible(true).setAlpha(1).setDepth(30);
+    enemyHpBar.setVisible(true).setAlpha(1).setDepth(31);
     lastDisplayedMonsterHp = null;
     lastDisplayedMonsterId = currentMonsterId;
     updateEnemyHpBar();
@@ -671,9 +677,10 @@ window.initGameState = function(jsonPayload) {
             updateEnemyHpBar();
         }
     });
-    combatPaused = false;
+    combatPaused = !currentMonsterId;
+    if (!currentMonsterId) showTopNotification("ได้รับข้อมูลมอนสเตอร์แล้ว แต่ยังไม่มี ID สำหรับต่อสู้");
 
-    if (!isGameRunning) {
+    if (!isGameRunning && currentMonsterId) {
         combatTimer = gameScene.time.addEvent({ delay: 1100, callback: performRangedAttack, callbackScope: gameScene, loop: true });
         isGameRunning = true;
     }
