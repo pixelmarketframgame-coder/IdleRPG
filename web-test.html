@@ -157,6 +157,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 .inventory-head h2{margin:0;color:#ffd166;font-size:18px;letter-spacing:1px}
 .inventory-close{padding:6px 11px;min-width:38px;background:#542c42;border-color:#a35b6d}
 .inventory-head-actions{display:flex;align-items:center;gap:7px}.inventory-copy-log{padding:6px 9px;min-height:34px;font-size:12px;background:#1c4260;border-color:#4e91b5;white-space:nowrap}.inventory-copy-log:disabled{opacity:.55}
+.inventory-log-preview{margin:8px 0;padding:7px 9px;border:1px solid #344565;border-radius:7px;background:#080f20;color:#aebedc;font:11px/1.4 ui-monospace,SFMono-Regular,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:70px;overflow:auto}
 
 .inventory-layout{display:grid;grid-template-columns:minmax(220px, .85fr) minmax(0,1.4fr);gap:12px}
 .inventory-section{min-width:0;background:#0a1122;border:1px solid #2e4165;border-radius:9px;padding:10px}
@@ -231,6 +232,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   <div id="inventory-backdrop" class="inventory-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-title">
     <section class="inventory-window">
       <header class="inventory-head"><h2 id="inventory-title">🎒 INVENTORY / GEAR</h2><div class="inventory-head-actions"><button id="inventory-copy-log" class="inventory-copy-log" type="button">📋 Copy Log</button><button id="inventory-close" class="inventory-close" type="button" aria-label="ปิด Inventory">✕</button></div></header>
+      <div id="inventory-log-preview" class="inventory-log-preview" role="status" aria-live="polite">Inventory log จะแสดงที่นี่</div>
       <div class="inventory-layout">
         <section class="inventory-section"><h3 class="inventory-section-title">⚔ EQUIPPED GEAR · 7 SLOTS</h3><div id="gear-slots" class="gear-slots"></div><p class="inventory-note">เลือกช่องอุปกรณ์เพื่อดูรายละเอียดหรือถอดไอเทม</p></section>
         <div class="inventory-main">
@@ -920,6 +922,8 @@ $('settings-signout').onclick=signOutUser;
   return null;
  };
  let filter='all',selectedItem=null,selectedSlot=null,profileData=null,playerStats=null,items=[],loading=false;
+ const inventoryLog=[];
+ const addInventoryLog=(message)=>{const line='['+new Date().toISOString()+'] '+String(message);inventoryLog.push(line);if(inventoryLog.length>80)inventoryLog.shift();const box=$inv('inventory-log-preview');if(box)box.textContent=inventoryLog.slice(-8).join('\n');};
  const equipped={eq_weapon:null,eq_head:null,eq_armor:null,eq_legs:null,eq_wings:null,eq_left_accessory:null,eq_right_accessory:null};
  const num=v=>Number.isFinite(Number(v))?Number(v):0;
  const itemBonuses=item=>{
@@ -1010,13 +1014,14 @@ $('settings-signout').onclick=signOutUser;
  function close(){backdrop.classList.add('hidden');document.body.style.overflow='';$inv('inventory-open').focus();}
  $inv('inventory-open').addEventListener('click',open);$inv('inventory-close').addEventListener('click',close);
  $inv('inventory-copy-log').addEventListener('click',async()=>{
-  const button=$inv('inventory-copy-log');const logText=[$inv('log')?.innerText||'', $inv('last-reward')?.innerText||'', $inv('copy-log-status')?.innerText||''].filter(Boolean).join('\n\n');
+  const button=$inv('inventory-copy-log');const logText=['=== INVENTORY LOG ===',inventoryLog.join('\n')||'ยังไม่มีเหตุการณ์ Inventory', '=== COMBAT LOG ===',$inv('log')?.innerText||'', '=== LAST REWARD ===',$inv('last-reward')?.innerText||'', '=== COPY STATUS ===',$inv('copy-log-status')?.innerText||''].join('\n\n');
   try{if(!logText.trim())throw new Error('ยังไม่มี log ให้คัดลอก');if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(logText);else{const ta=document.createElement('textarea');ta.value=logText;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก');}button.textContent='✓ Copied';setTimeout(()=>button.textContent='📋 Copy Log',1600);}catch(e){button.textContent='คัดลอกไม่สำเร็จ';setTimeout(()=>button.textContent='📋 Copy Log',2200);}
  });
  backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.classList.contains('hidden'))close();});
  $inv('inventory-filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;filter=b.dataset.filter;$inv('inventory-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderItems();});
  async function persistEquipment(slot,inventoryId){
+  addInventoryLog((inventoryId?'ขอสวมใส่':'ขอถอดอุปกรณ์')+' · slot='+slot+' · inventory_id='+(inventoryId||'null'));
   const equipButton=$inv('inventory-equip'),unequipButton=$inv('inventory-unequip');
   equipButton.disabled=true;unequipButton.disabled=true;
   try{
@@ -1031,8 +1036,9 @@ $('settings-signout').onclick=signOutUser;
    const msg=document.createElement('p');msg.className='inventory-hint';msg.textContent=action+'สำเร็จ'+(item?' · '+itemName(item):'');
    $inv('inventory-detail').append(msg);
   }catch(e){
+   const detail=String(e?.message||e);addInventoryLog('บันทึกอุปกรณ์ไม่สำเร็จ: '+detail+' · slot='+slot+' · inventory_id='+(inventoryId||'null'));
    renderAll();
-   const msg=document.createElement('p');msg.className='inventory-hint';msg.textContent='บันทึกอุปกรณ์ไม่สำเร็จ: '+(e.message||e);
+   const msg=document.createElement('p');msg.className='inventory-hint';msg.textContent='บันทึกอุปกรณ์ไม่สำเร็จ: '+detail+' (กด Copy Log เพื่อคัดลอกรายละเอียด)';
    $inv('inventory-detail').append(msg);
   }
  }
@@ -1051,6 +1057,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.36"></script>
+<script src="game.js?v=0.6.37"></script>
 </body>
 </html>
