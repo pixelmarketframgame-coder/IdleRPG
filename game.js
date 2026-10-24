@@ -436,6 +436,21 @@ window.onServerCombatUpdate = function(payload) {
         if (state.monster_hp != null) enemyHp = Math.max(0, Number(state.monster_hp) || 0);
         if (state.monster_max_hp != null) maxEnemyHp = Math.max(1, Number(state.monster_max_hp) || 1);
         updateEnemyHpBar();
+
+        // A target can arrive from advance_combat after the initial load had no target.
+        // Start ranged attacks here too, not only in initGameState().
+        if (currentMonsterId) {
+            combatPaused = false;
+            if (!isGameRunning) {
+                combatTimer = gameScene.time.addEvent({
+                    delay: 1100,
+                    callback: performRangedAttack,
+                    callbackScope: gameScene,
+                    loop: true
+                });
+                isGameRunning = true;
+            }
+        }
     }
 
     const previousStatus = lastServerCombatStatus;
