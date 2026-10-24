@@ -274,16 +274,18 @@ function updateEnemyHpBar() {
     enemyHpBar.width = 40 * pct;
     enemyHpBar.fillColor = pct <= 0.25 ? 0xe74c3c : pct <= 0.5 ? 0xf1c40f : 0x2ecc71;
     if (enemyHpText) {
+        enemyHpText.setVisible(!!enemy.visible).setAlpha(1).setDepth(20);
         enemyHpText.setPosition(enemy.x, barY - 10);
         enemyHpText.setText(hp.toLocaleString() + '/' + maxHp.toLocaleString());
         enemyHpText.setVisible(enemy.visible);
     }
     if (enemyNameText) {
+        enemyNameText.setVisible(!!enemy.visible).setAlpha(1).setDepth(20);
         enemyNameText.setPosition(enemy.x, barY - 21);
         enemyNameText.setVisible(enemy.visible);
     }
-    enemyHpBarBg.setVisible(enemy.visible);
-    enemyHpBar.setVisible(enemy.visible);
+    enemyHpBarBg.setVisible(!!enemy.visible).setAlpha(1).setDepth(18);
+    enemyHpBar.setVisible(!!enemy.visible).setAlpha(1).setDepth(19);
 }
 
 function performRangedAttack() {
@@ -634,8 +636,9 @@ window.initGameState = function(jsonPayload) {
     currentMonsterType = String(monster.monster_type || monster.type || (monster.is_boss ? "boss" : "normal")).toLowerCase();
     isBossFight = Boolean(monster.is_boss ?? monster.isBoss ?? (currentMonsterType === "boss"));
     isChallengeTarget = Boolean(monster.is_challenge ?? monster.isChallenge ?? false);
-    maxEnemyHp = Number(monster.monster_hp ?? monster.maxHp ?? monster.max_hp ?? 100) || 100;
-    enemyHp = Number(monster.current_hp ?? monster.currentHp ?? maxEnemyHp) || maxEnemyHp;
+    // Keep current HP separate from max HP; Supabase payloads may provide either naming style.
+    maxEnemyHp = Math.max(1, Number(monster.monster_max_hp ?? monster.max_hp ?? monster.maxHp ?? monster.max_hp_total ?? monster.monster_hp ?? 100) || 100);
+    enemyHp = Math.max(0, Math.min(maxEnemyHp, Number(monster.current_hp ?? monster.currentHp ?? monster.hp ?? monster.monster_hp ?? maxEnemyHp)));
 
     if (!enemy) {
         enemy = gameScene.add.sprite(180, 165, isBossFight ? 'enemy_boss' : 'enemy_normal');
@@ -654,9 +657,13 @@ window.initGameState = function(jsonPayload) {
     enemy.setScale(isBossFight ? 1 : 1);
     enemy.setAlpha(0);
     enemyNameText.setPosition(230, 126);
-    enemyNameText.setText(monster.monster_name || monster.name || "Monster");
+    enemyNameText.setText(String(monster.monster_name || monster.name || monster.display_name || "Monster"));
     enemyNameText.setColor(isBossFight ? "#f1c40f" : "#ffffff");
-    enemy.setVisible(true);
+    enemyNameText.setVisible(true).setAlpha(1).setDepth(20);
+    enemyHpText.setVisible(true).setAlpha(1).setDepth(20);
+    enemyHpBarBg.setVisible(true).setAlpha(1).setDepth(18);
+    enemyHpBar.setVisible(true).setAlpha(1).setDepth(19);
+    enemy.setVisible(true).setAlpha(1);
     lastDisplayedMonsterHp = null;
     lastDisplayedMonsterId = currentMonsterId;
     updateEnemyHpBar();
