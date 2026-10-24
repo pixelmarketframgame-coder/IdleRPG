@@ -275,13 +275,13 @@ function updateEnemyHpBar() {
     enemyHpBar.fillColor = pct <= 0.25 ? 0xe74c3c : pct <= 0.5 ? 0xf1c40f : 0x2ecc71;
     if (enemyHpText) {
         enemyHpText.setVisible(!!enemy.visible).setAlpha(1).setDepth(20);
-        enemyHpText.setPosition(enemy.x, barY - 10);
+        enemyHpText.setPosition(enemy.x, barY - 9);
         enemyHpText.setText(hp.toLocaleString() + '/' + maxHp.toLocaleString());
         enemyHpText.setVisible(enemy.visible);
     }
     if (enemyNameText) {
         enemyNameText.setVisible(!!enemy.visible).setAlpha(1).setDepth(20);
-        enemyNameText.setPosition(enemy.x, barY - 21);
+        enemyNameText.setPosition(enemy.x, barY - 20);
         enemyNameText.setVisible(enemy.visible);
     }
     enemyHpBarBg.setVisible(!!enemy.visible).setAlpha(1).setDepth(18);
@@ -656,7 +656,7 @@ window.initGameState = function(jsonPayload) {
     enemy.setPosition(230, isBossFight ? 155 : 165);
     enemy.setScale(isBossFight ? 1 : 1);
     enemy.setAlpha(0);
-    enemyNameText.setPosition(230, 126);
+    enemyNameText.setPosition(230, isBossFight ? 111 : 121);
     enemyNameText.setText(String(monster.monster_name || monster.name || monster.display_name || "Monster"));
     enemyNameText.setColor(isBossFight ? "#f1c40f" : "#ffffff");
     enemyNameText.setVisible(true).setAlpha(1).setDepth(20);
