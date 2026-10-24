@@ -255,7 +255,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   </div>
   <div id="status-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
     <section class="status-modal">
-      <div class="modal-head"><div><h2 class="title" id="status-modal-title" style="margin:0">📊 STATUS</h2><p class="hint" style="margin:5px 0 0">รายละเอียดค่าสถานะและจัดสรรคะแนน</p></div><button id="close-status" class="modal-close" aria-label="ปิดเมนู Status">✕</button></div>
+      <div class="modal-head"><div><h2 class="title" id="status-modal-title" style="margin:0">📊 STATUS</h2><p class="hint" style="margin:5px 0 0">รายละเอียดค่าสถานะและจัดสรรคะแนน</p></div><div style="display:flex;align-items:center;gap:6px;flex:0 0 auto"><button id="open-stat-log" type="button" style="min-width:0;padding:6px 9px;font-size:12px;background:#263c66;border-color:#d4b45f" aria-label="ดูที่มาของค่าสถานะ">📋 Log</button><button id="close-status" class="modal-close" aria-label="ปิดเมนู Status">✕</button></div></div>
       <h3 class="title">รายละเอียดตัวละคร</h3>
       <div id="stat-details-list" class="status status-log-list" aria-label="รายการค่าสถานะตัวละคร เลื่อนได้">
         <div class="status-log-line"><span>พลังโจมตี (ATK)</span><strong id="detail-atk">กำลังโหลด…</strong></div>
@@ -267,13 +267,6 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
         <div class="status-log-line"><span>โอกาสคริติคอล (CRIT)</span><strong id="detail-crit">กำลังโหลด…</strong></div>
       </div>
       <p class="hint" id="derived-stats-note" style="margin:8px 0 16px">ค่าที่คำนวณได้จากสูตรต่อสู้ปัจจุบันของเซิร์ฟเวอร์</p>
-      <section class="inventory-section" style="margin:10px 0">
-        <div class="top" style="margin-bottom:8px"><h3 class="title" style="margin:0">🗃️ บันทึก Log และข้อมูล Status</h3><button id="status-save-snapshot" type="button">บันทึกสถานะ</button></div>
-        <p class="hint">เก็บ Log การต่อสู้และภาพรวม Status ไว้ในอุปกรณ์นี้ เพื่อเปิดดูหรือคัดลอกส่งตรวจสอบภายหลัง</p>
-        <div class="row" style="flex-wrap:wrap;margin:8px 0"><button id="status-view-archive" type="button">📂 ดู Log ที่เก็บไว้</button><button id="status-copy-archive" type="button">📋 คัดลอก Log + Status</button></div>
-        <p id="status-archive-state" class="hint" role="status">ยังไม่มีการบันทึกสถานะ</p>
-        <pre id="status-archive-preview" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;background:#080f20;border:1px solid #344565;border-radius:8px;padding:9px;color:#cbd8f4;font-size:11px">ยังไม่มีข้อมูลที่บันทึกไว้</pre>
-      </section>
       <div class="top" style="margin:18px 0 10px"><h3 class="title" style="margin:0">จัดสรรค่า Stat</h3><span class="version-tag" id="stat-points-label">แต้มคงเหลือ: —</span></div>
       <div class="hint" style="margin-bottom:8px">กด + หรือ − เพื่อเลือกจำนวนแต้มก่อน แล้วกด Confirm เพื่อบันทึก</div>
       <div id="stats-grid" class="stats-list-panel">
@@ -286,6 +279,13 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
       </div>
       <p class="hint" id="stats-hint">กำลังโหลดค่าสถานะ…</p>
       <div class="row" style="margin-top:12px"><button id="cancel-stat-changes" type="button">ยกเลิก</button><button id="confirm-stat-changes" class="green" type="button">✓ Confirm</button></div>
+    </section>
+  </div>
+  <div id="stat-log-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="stat-log-title">
+    <section class="stat-preview" style="width:min(560px,100%);max-height:90vh;overflow:auto">
+      <div class="modal-head"><div><h2 class="title" id="stat-log-title" style="margin:0">📋 ที่มาของค่าสถานะ</h2><p class="hint" style="margin:5px 0 0">แยกค่าพื้นฐาน โบนัสอุปกรณ์ และสูตรที่ใช้คำนวณ</p></div><button id="close-stat-log" class="modal-close" aria-label="ปิด Log">✕</button></div>
+      <div id="stat-log-content" class="status" style="white-space:normal;max-height:65vh;overflow:auto">กำลังคำนวณรายละเอียดค่าสถานะ…</div>
+      <p class="hint" style="margin:10px 0 0">ค่าที่แสดงมาจากสูตรและข้อมูลอุปกรณ์ที่หน้าเว็บโหลดได้ในขณะนี้</p>
     </section>
   </div>
   <div id="stat-confirm-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="stat-confirm-title">
@@ -746,9 +746,47 @@ $('settings-signout').onclick=signOutUser;
   $('close-settings').onclick=closeSettings;
   settingsBackdrop.addEventListener('click',e=>{if(e.target===settingsBackdrop)closeSettings();});
   const statusBackdrop=$('status-modal-backdrop');
+  const statLogBackdrop=$('stat-log-backdrop');
   function closeStatus(){statusBackdrop.classList.add('hidden');}
+  function closeStatLog(){statLogBackdrop.classList.add('hidden');}
+  function renderStatLog(){
+    const root=$('stat-log-content');if(!root)return;
+    const b=window.tbhStatBreakdown||{},fmt=v=>Number(v||0).toLocaleString();
+    const line=(label,value,detail)=>'<div class="preview-line"><span>'+label+'<small style="display:block;color:#9eaccb;font-size:11px;margin-top:3px">'+detail+'</small></span><strong>'+value+'</strong></div>';
+    const level=Math.max(1,Number(cachedLevel)||1),str=Number(cachedStats?.str)||0,dex=Number(cachedStats?.dex)||0,agi=Number(cachedStats?.agi)||0,luk=Number(cachedStats?.luk)||0,atkLevel=Math.max(1,Number(cachedStats?.atk_level)||1),hpLevel=Math.max(1,Number(cachedStats?.hp_level)||1),vit=Number(cachedStats?.vit)||0;
+    const baseAtk=Math.max(1,Math.round(10*Math.pow(level,1.20))+((atkLevel-1)*5)+(str*2));
+    const gearAtk=Number(b.atk?.gear)||Math.max(0,(Number(($('overall-atk')?.textContent||'0').replace(/,/g,''))||baseAtk)-baseAtk);
+    const totalAtk=Number(b.atk?.total)||Number(($('overall-atk')?.textContent||'0').replace(/,/g,''))||baseAtk+gearAtk;
+    const baseHp=Math.max(1,100+((hpLevel-1)*20)+((level-1)*10)+(vit*10));
+    const gearHp=Number(b.hp?.gear)||Math.max(0,(Number(($('overall-hp')?.textContent||'0').replace(/,/g,''))||baseHp)-baseHp);
+    const totalHp=Number(b.hp?.total)||Number(($('overall-hp')?.textContent||'0').replace(/,/g,''))||baseHp+gearHp;
+    const gearDef=Number(b.def?.gear)||Number(($('overall-def')?.textContent||'0').replace(/,/g,''))||0;
+    const gearList=Array.isArray(b.equipment)?b.equipment:[];
+    const gearRows=gearList.length?gearList.map(g=>line(g.name,'ATK +'+fmt(g.atk)+' · DEF +'+fmt(g.def)+' · HP +'+fmt(g.hp),g.slot)).join(''):'';
+    const hit=Math.round(Math.min(0.99,0.90+dex*0.01)*100),flee=Math.round(Math.min(0.50,agi*0.01)*100),crit=Math.round(Math.min(0.50,0.05+luk*0.01)*100);
+    root.innerHTML='<h3 class="title" style="margin:0 0 6px">พลังโจมตี (ATK): '+fmt(totalAtk)+'</h3>'+
+      line('ค่าพื้นฐานตามเลเวล',fmt(Math.round(10*Math.pow(level,1.20))),'round(10 × Level^1.20) · Level '+level)+
+      line('ระดับอัปเกรด ATK','+'+fmt((atkLevel-1)*5),'(ATK Level − 1) × 5 · ATK Level '+atkLevel)+
+      line('แต้ม STR','+'+fmt(str*2),'STR '+str+' × 2 ATK')+
+      line('โบนัสอุปกรณ์ ATK','+'+fmt(gearAtk),'รวมจากอุปกรณ์ที่สวมใส่')+
+      line('รวม ATK',fmt(totalAtk),'ผลรวมก่อนแสดงใน Status')+
+      '<h3 class="title" style="margin:14px 0 6px">DEF / HP</h3>'+
+      line('โบนัสอุปกรณ์ DEF','+'+fmt(gearDef),'ค่าป้องกันจากอุปกรณ์ที่สวมใส่')+
+      line('HP พื้นฐาน',fmt(baseHp),'100 + (HP Level − 1) × 20 + (Level − 1) × 10 + VIT × 10')+
+      line('โบนัสอุปกรณ์ HP','+'+fmt(gearHp),'รวมจากอุปกรณ์ที่สวมใส่')+
+      line('รวม HP สูงสุด',fmt(totalHp),'ค่าพื้นฐาน + โบนัสอุปกรณ์')+
+      '<h3 class="title" style="margin:14px 0 6px">ค่าสถานะจากสเตตัส</h3>'+
+      line('ASPD','1 ครั้ง/วินาที','ค่าคงที่ของรอบต่อสู้ปัจจุบัน')+
+      line('HIT',hit+'%','min(99%, 90% + DEX × 1%) · DEX '+dex)+
+      line('FLEE',flee+'%','min(50%, AGI × 1%) · AGI '+agi)+
+      line('CRIT',crit+'%','min(50%, 5% + LUK × 1%) · LUK '+luk)+
+      (gearRows?'<h3 class="title" style="margin:14px 0 6px">อุปกรณ์ที่มีโบนัส</h3>'+gearRows:'<p class="hint" style="margin-top:12px">ยังไม่มีข้อมูลรายการโบนัสแยกตามชิ้นอุปกรณ์ที่สวมใส่</p>');
+  }
   $('open-status').onclick=async()=>{statusBackdrop.classList.remove('hidden');try{await loadStats();}catch(e){msg('โหลดค่าสถานะไม่สำเร็จ: '+e.message,true);}};
   $('close-status').onclick=closeStatus;
+  $('open-stat-log').onclick=()=>{renderStatLog();statLogBackdrop.classList.remove('hidden');};
+  $('close-stat-log').onclick=closeStatLog;
+  statLogBackdrop.addEventListener('click',e=>{if(e.target===statLogBackdrop)closeStatLog();});
   statusBackdrop.addEventListener('click',e=>{if(e.target===statusBackdrop)closeStatus();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeStatus();closeSettings();}});
   document.querySelectorAll('[data-stat-plus]').forEach(btn=>btn.onclick=()=>{
@@ -898,38 +936,6 @@ $('settings-signout').onclick=signOutUser;
     else setChatState('เปิดแชตเพื่อเริ่มดูข้อความใหม่');
   });
 
-  function buildStatusArchive(){
-    const logs=(()=>{try{return JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]')}catch(e){return []}})();
-    const status={
-      saved_at:new Date().toISOString(),
-      version:APP_VERSION,
-      player:currentUser?{id:currentUser.id,nickname:profile?.nickname||$('pixel-name')?.textContent||null,level:profile?.level??$('pixel-level')?.textContent??null,exp:profile?.exp??null,gold:profile?.gold??null}:null,
-      combat:lastCombatSnapshot?{...lastCombatSnapshot}:null,
-      status_values:{atk:$('detail-atk')?.innerText||null,def:$('detail-def')?.innerText||null,hp:$('detail-hp')?.innerText||null,aspd:$('detail-aspd')?.innerText||null,hit:$('detail-hit')?.innerText||null,flee:$('detail-flee')?.innerText||null,crit:$('detail-crit')?.innerText||null},
-      equipment_overview:{atk:$('overall-atk')?.innerText||null,def:$('overall-def')?.innerText||null,hp:$('overall-hp')?.innerText||null},
-      combat_log:Array.from($('log')?.children||[]).map(x=>x.innerText),
-      inventory_log:(()=>{try{return JSON.parse(localStorage.getItem('tbh_inventory_log_archive')||'[]')}catch(e){return []}})(),
-      archived_log_count:logs.length
-    };
-    return {status,logs};
-  }
-  function renderStatusArchive(){
-    const {status,logs}=buildStatusArchive();
-    const text=JSON.stringify({status,logs:logs.slice(-150)},null,2);
-    const preview=$('status-archive-preview');if(preview)preview.textContent=text;
-    const state=$('status-archive-state');if(state)state.textContent='บันทึก Log '+logs.length+' รายการ · เวอร์ชัน '+APP_VERSION+' · ข้อมูลเก็บในอุปกรณ์นี้';
-    return text;
-  }
-  $('status-save-snapshot')?.addEventListener('click',()=>{
-    try{const {status,logs}=buildStatusArchive();const snapshots=JSON.parse(localStorage.getItem('tbh_status_snapshots')||'[]');snapshots.push(status);localStorage.setItem('tbh_status_snapshots',JSON.stringify(snapshots.slice(-50)));$('status-archive-state').textContent='บันทึก Status สำเร็จ · '+new Date().toLocaleString('th-TH');renderStatusArchive();}
-    catch(e){$('status-archive-state').textContent='บันทึกไม่สำเร็จ: '+e.message;}
-  });
-  $('status-view-archive')?.addEventListener('click',()=>renderStatusArchive());
-  $('status-copy-archive')?.addEventListener('click',async()=>{
-    const text=renderStatusArchive();
-    try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);else{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();if(!document.execCommand('copy'))throw new Error('คัดลอกไม่ได้');ta.remove();} $('status-archive-state').textContent='คัดลอก Log + Status แล้ว';}
-    catch(e){$('status-archive-state').textContent='คัดลอกไม่สำเร็จ: '+e.message;}
-  });
   $('ultimate').onclick=()=>{if(typeof window.triggerHeroSkill==='function')window.triggerHeroSkill('ultimate');};
   $('challenge').onclick=()=>{if(typeof window.challengeCurrentStage==='function')window.challengeCurrentStage();};
   $('refresh').onclick=async()=>{setBusy(true);try{await syncPlayer();}catch(e){msg('โหลดข้อมูลไม่สำเร็จ: '+e.message,true);}finally{setBusy(false);}};
@@ -981,9 +987,13 @@ $('settings-signout').onclick=signOutUser;
  const itemSlot=item=>slotForTemplate(item?.template)||gearSlots.find(s=>equipped[s.id]===item?.id)?.id||null;
  function stats(){
   const level=Math.max(1,num(profileData?.level)||1),ps=playerStats||{};
-  const atk=Math.max(1,Math.round(10*Math.pow(level,1.20))+(Math.max(1,num(ps.atk_level)||1)-1)*5+num(ps.str)*2);
-  const hp=Math.max(1,100+(Math.max(1,num(ps.hp_level)||1)-1)*20+(level-1)*10+num(ps.vit)*10);
+  const atkLevel=Math.max(1,num(ps.atk_level)||1),hpLevel=Math.max(1,num(ps.hp_level)||1);
+  const str=num(ps.str),vit=num(ps.vit);
+  const atk=Math.max(1,Math.round(10*Math.pow(level,1.20))+(atkLevel-1)*5+str*2);
+  const hp=Math.max(1,100+(hpLevel-1)*20+(level-1)*10+vit*10);
   const total=Object.values(equipped).map(id=>items.find(x=>x.id===id)).filter(Boolean).reduce((a,x)=>{const b=itemBonuses(x);a.atk+=b.atk;a.def+=b.def;a.hp+=b.hp;return a;},{atk,def:0,hp});
+  const equipment=gearSlots.map(slot=>{const item=items.find(x=>x.id===equipped[slot.id]);if(!item)return null;const bonus=itemBonuses(item);return {slot:slot.label,name:itemName(item),atk:bonus.atk,def:bonus.def,hp:bonus.hp};}).filter(Boolean);
+  window.tbhStatBreakdown={level,atk:{base:atk,gear:total.atk-atk,total:total.atk,atkLevel,str},def:{base:0,gear:total.def,total:total.def},hp:{base:hp,gear:total.hp-hp,total:total.hp,hpLevel,vit},equipment};
   return total;
  }
  function setText(id,value){const el=$inv(id);if(el)el.textContent=value;}
