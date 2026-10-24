@@ -129,7 +129,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 #floating-chat-button .chat-unread.show{display:block}
 #chat-popup{position:fixed;z-index:10040;right:16px;bottom:16px;width:min(360px,calc(100vw - 24px));height:min(520px,calc(100dvh - 110px));min-height:300px;background:#101729;border:1px solid #50618b;border-radius:16px;box-shadow:0 18px 55px #000b;display:flex;flex-direction:column;overflow:hidden}
 #chat-popup.hidden{display:none}
-.chat-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(120deg,#263d75,#182647);border-bottom:1px solid #34466c}
+.chat-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:linear-gradient(120deg,#263d75,#182647);border-bottom:1px solid #34466c}.chat-head-actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}#chat-copy{padding:4px 8px;min-width:38px;font-size:13px}#chat-copy-status{font-size:10px;color:#b8c8ef}
 .chat-head h3{margin:0;color:#fff;font-size:16px}
 #chat-close{padding:4px 9px;min-width:32px}
 #chat-state{font-size:11px;color:#b8c8ef;margin-top:3px}
@@ -233,7 +233,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   
 <button id="floating-chat-button" type="button" aria-label="เปิด Chat" title="ลากปุ่มไปวางตำแหน่งที่ต้องการ">💬<span id="chat-unread" class="chat-unread">!</span></button>
 <section id="chat-popup" class="hidden" role="dialog" aria-modal="false" aria-labelledby="chat-title">
-  <header class="chat-head"><div><h3 id="chat-title">💬 Global Chat</h3><div id="chat-state">เข้าสู่ระบบเพื่อแชต</div></div><button id="chat-close" type="button" aria-label="ปิด Chat">✕</button></header>
+  <header class="chat-head"><div><h3 id="chat-title">💬 Global Chat</h3><div id="chat-state">เข้าสู่ระบบเพื่อแชต</div></div><div class="chat-head-actions"><button id="chat-copy" type="button" title="คัดลอก Chat Log" aria-label="คัดลอก Chat Log">⧉ Copy</button><button id="chat-close" type="button" aria-label="ปิด Chat">✕</button></div></header>
   <div id="chat-messages" aria-live="polite"><div class="chat-empty">ข้อความแชตจะแสดงที่นี่</div></div>
   <form id="chat-compose" class="chat-compose"><input id="chat-input" maxlength="500" autocomplete="off" placeholder="พิมพ์ข้อความ..." aria-label="ข้อความแชต"><button id="chat-send" class="primary" type="submit">ส่ง</button></form>
 </section>
@@ -723,10 +723,11 @@ $('settings-signout').onclick=signOutUser;
   // Floating global chat. Messages are stored in Supabase and refreshed while the popup is open.
   const chatButton=$('floating-chat-button'), chatPopup=$('chat-popup'), chatMessages=$('chat-messages');
   const chatInput=$('chat-input'), chatState=$('chat-state'), chatUnread=$('chat-unread');
-  let chatPollTimer=null, chatLastSeen=0, chatLoading=false, chatUnreadCount=0;
+  let chatPollTimer=null, chatLastSeen=0, chatLoading=false, chatUnreadCount=0, chatJoinedAt=null;
   function setChatState(text){ if(chatState) chatState.textContent=text; }
   function openChat(){
     if(!currentUser){msg('กรุณาเข้าสู่ระบบก่อนใช้ Chat',true);return;}
+    if(!chatJoinedAt)chatJoinedAt=new Date().toISOString();
     chatPopup.classList.remove('hidden'); chatUnreadCount=0;chatUnread.classList.remove('show');
     chatInput.focus(); loadChatMessages();
     if(chatPollTimer) clearInterval(chatPollTimer);
@@ -735,6 +736,23 @@ $('settings-signout').onclick=signOutUser;
   function closeChat(){chatPopup.classList.add('hidden');if(chatPollTimer){clearInterval(chatPollTimer);chatPollTimer=null;}}
   chatButton.addEventListener('click',openChat);
   $('chat-close').addEventListener('click',closeChat);
+  $('chat-copy').addEventListener('click',async()=>{
+    const lines=[...chatMessages.querySelectorAll('.chat-line')].map(line=>{
+      const name=line.querySelector('.chat-meta span')?.textContent||'Player';
+      const time=line.querySelector('.chat-meta time')?.textContent||'';
+      const message=line.querySelector('.chat-body')?.textContent||'';
+      return '['+time+'] '+name+': '+message;
+    });
+    if(!lines.length){setChatState('ยังไม่มีข้อความให้คัดลอก');return;}
+    try{
+      await navigator.clipboard.writeText(lines.join('\\n'));
+      setChatState('คัดลอก Chat Log '+lines.length+' ข้อความแล้ว');
+    }catch(e){
+      const area=document.createElement('textarea');area.value=lines.join('\\n');area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();
+      const ok=document.execCommand('copy');area.remove();
+      setChatState(ok?'คัดลอก Chat Log '+lines.length+' ข้อความแล้ว':'คัดลอกไม่สำเร็จ กรุณาลองอีกครั้ง');
+    }
+  });
   // Pointer-based drag works with mouse and touch. A click without movement opens chat.
   let chatDrag=null;
   chatButton.addEventListener('pointerdown',e=>{
@@ -756,7 +774,9 @@ $('settings-signout').onclick=signOutUser;
     if(!currentUser||chatLoading)return;
     chatLoading=true;
     try{
-      const {data,error}=await client.from('chat_messages').select('id,sender_id,sender_name,message,created_at').order('created_at',{ascending:false}).limit(50);
+      let query=client.from('chat_messages').select('id,sender_id,sender_name,message,created_at');
+      if(chatJoinedAt)query=query.gte('created_at',chatJoinedAt);
+      const {data,error}=await query.order('created_at',{ascending:false}).limit(50);
       if(error)throw error;
       const rows=(data||[]).reverse();
       const nearBottom=chatMessages.scrollHeight-chatMessages.scrollTop-chatMessages.clientHeight<70;
@@ -776,7 +796,7 @@ $('settings-signout').onclick=signOutUser;
         if(oldNewest&&Number(rows[rows.length-1].id)>oldNewest&&chatPopup.classList.contains('hidden')){chatUnreadCount++;chatUnread.textContent=chatUnreadCount;chatUnread.classList.add('show');}
       }
       if(nearBottom||chatMessages.children.length<=1)chatMessages.scrollTop=chatMessages.scrollHeight;
-      setChatState('ออนไลน์ · แสดง '+rows.length+' ข้อความล่าสุด');
+      setChatState('ออนไลน์ · แสดง '+rows.length+' ข้อความตั้งแต่เข้ามาแชต');
     }catch(e){setChatState('โหลดแชตไม่สำเร็จ');log('Chat load: '+e.message);}
     finally{chatLoading=false;}
   }
@@ -797,10 +817,12 @@ $('settings-signout').onclick=signOutUser;
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeChat();});
   const chatAuthObserver=client.auth.onAuthStateChange((_event,session)=>{
-    currentUser=session?.user||null;
+    const nextUser=session?.user||null;
+    if(!currentUser||!nextUser||currentUser.id!==nextUser.id)chatJoinedAt=null;
+    currentUser=nextUser;
     chatButton.style.display=currentUser?'flex':'none';
     if(!currentUser)closeChat();
-    else setChatState('พร้อมแชต');
+    else setChatState('เปิดแชตเพื่อเริ่มดูข้อความใหม่');
   });
 
   $('ultimate').onclick=()=>{if(typeof window.triggerHeroSkill==='function')window.triggerHeroSkill('ultimate');};
