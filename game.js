@@ -70,7 +70,13 @@ window.changePetSkin = function(skinType) {
 };
 
 window.triggerHeroSkill = function(skillName) {
-    if (!gameScene || !enemy || combatPaused || awaitingServerResponse || !currentMonsterId) return;
+    if (!gameScene || !hero || !enemy || combatPaused || awaitingServerResponse || !currentMonsterId || !enemy.visible) return;
+    // Never show an attack before the player has reached the weapon's range.
+    const distanceTiles = Math.abs(hero.x - enemy.x) / TILE_SIZE_PX;
+    if (distanceTiles > combatProfile.attackRangeTiles) {
+        showTopNotification("กำลังเดินเข้าระยะโจมตี...");
+        return;
+    }
     gameScene.cameras.main.shake(250, 0.012);
     const beam = gameScene.add.rectangle(enemy.x, 110, 50, 220, 0xf1c40f, 0.8);
     gameScene.tweens.add({
@@ -459,8 +465,14 @@ function performRangedAttack() {
 }
 
 function applyDamage() {
-    // Client แสดงเอฟเฟกต์เท่านั้น; HP/ความเสียหายจริงมาจาก Supabase advance_combat
-    if (combatPaused || !currentMonsterId || !enemy || !enemy.visible) return;
+    // Client แสดงเอฟเฟกต์เท่านั้น; HP/ความเสียหายจริงมาจาก Supabase advance_combat.
+    // Recheck range at impact time in case either actor moved during the animation.
+    if (combatPaused || awaitingServerResponse || !currentMonsterId || !hero || !enemy || !enemy.visible) return;
+    const distanceTiles = Math.abs(hero.x - enemy.x) / TILE_SIZE_PX;
+    if (distanceTiles > combatProfile.attackRangeTiles) {
+        showTopNotification("ยังไม่ถึงระยะโจมตี");
+        return;
+    }
     createImpactSparks(enemy.x, enemy.y);
 }
 
