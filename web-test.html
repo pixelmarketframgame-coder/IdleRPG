@@ -110,7 +110,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <div class="wrap">
   <header class="top" style="justify-content:flex-end"></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.9</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.10</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -132,9 +132,9 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
           <div class="pixel-exp-caption" id="pixel-exp-caption">กำลังซิงก์ข้อมูลตัวละคร…</div>
         </div>
       </div></div><div class="game-top-controls"><button id="open-status" class="status-menu-button">📊 Status</button><button id="open-settings" class="gear-menu-button" aria-label="เปิด Settings" title="Settings">⚙</button></div><span id="player-name" class="hidden"></span><span id="level" class="hidden">—</span><span id="exp" class="hidden">—</span><span id="gold" class="hidden">—</span><span id="stage" class="hidden">—</span></div>
-    <div class="panel"><h2 class="title">BATTLE FIELD</h2>
+    <div class="panel">
       
-      <div id="game-container"></div><div class="combat-distance-panel" id="combat-distance" role="status">ระยะ -- ช่อง · กำลังคำนวณระยะโจมตี</div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
+      <div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
     <div class="panel"><div class="top" style="margin-bottom:10px"><h2 class="title" style="margin:0">🎒 ของรางวัล / กิจกรรม</h2><button id="copy-log" type="button">📋 Copy Log</button></div><div class="hint" style="margin-bottom:8px">คัดลอก log ล่าสุดไม่เกิน 150 รายการ พร้อมเวอร์ชันและสถานะหน้าเว็บ</div><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div><div id="copy-log-status" class="hint" role="status" style="margin-top:8px"></div></div>
   </section>
   <div id="settings-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
@@ -184,12 +184,12 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     </section>
   </div>
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
-  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.9</span></div>
+  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.10</span></div>
 </div>
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.9";
+  const APP_VERSION = "v0.6.10";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -541,8 +541,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   $('register').onclick=async()=>{setBusy(true);try{const {data,error}=await client.auth.signUp({email:$('email').value.trim(),password:$('password').value});if(error)throw error;if(data.session){currentUser=data.user;await syncPlayer();}else msg('สมัครบัญชีแล้ว หากเปิดการยืนยันอีเมลไว้ กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ');}catch(e){msg(e.message,true);}finally{setBusy(false);}};
   $('create-character').onclick=async()=>{setBusy(true);try{const {data,error}=await client.rpc('create_character',{p_nickname:$('nickname').value.trim()});if(error)throw error;const result=typeof data==='string'?JSON.parse(data):data;if(!result?.success)throw new Error(result?.message||result?.error||'สร้างตัวละครไม่สำเร็จ');await syncPlayer();msg('สร้างตัวละครสำเร็จ');}catch(e){msg(e.message,true);}finally{setBusy(false);}};
   async function signOutUser(){closeSettings();await client.auth.signOut();currentUser=null;profile=null;showAuth();msg('ออกจากระบบแล้ว');}
-  $('signout').onclick=signOutUser;
-  $('settings-signout').onclick=signOutUser;
+$('settings-signout').onclick=signOutUser;
   const settingsBackdrop=$('settings-modal-backdrop');
   function closeSettings(){settingsBackdrop.classList.add('hidden');}
   $('open-settings').onclick=()=>settingsBackdrop.classList.remove('hidden');
