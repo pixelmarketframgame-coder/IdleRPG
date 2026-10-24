@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.39",
+  "version": "v0.6.40",
   "updated_at": "2026-10-25",
-  "notes": "Status ATK now uses total Inventory ATK including equipped weapon bonuses, while retaining staged STR preview."
+  "notes": "Moved Status log archive out of the Status panel and added a compact Log popup showing stat formulas and equipped gear bonuses."
 }
