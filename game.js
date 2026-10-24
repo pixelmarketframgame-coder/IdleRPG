@@ -245,16 +245,16 @@ function create() {
     topBanner = this.add.rectangle(260, -30, 340, 24, 0x000000, 0.85).setStrokeStyle(1, 0x555555);
     topBannerText = this.add.text(260, -30, '', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
 
-    // Farm progress HUD is rendered inside Phaser canvas (not HTML).
-    farmProgressBg = this.add.rectangle(260, 32, 300, 26, 0x0b1713, 0.92)
-        .setStrokeStyle(1, 0x34715c).setDepth(60);
-    farmProgressText = this.add.text(260, 25, '⚔ ฟาร์มด่านนี้ 0 / 100 ตัว', {
-        fontSize: '11px', color: '#9ff0c8', fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: 2, align: 'center'
-    }).setOrigin(0.5).setDepth(61);
-    farmProgressBarBg = this.add.rectangle(118, 40, 284, 5, 0x050b09)
+    // Farm progress HUD: compact horizontal bar at the bottom-left of the Phaser canvas.
+    farmProgressBg = this.add.rectangle(96, 190, 184, 28, 0x0b1713, 0.88)
+        .setStrokeStyle(1, 0x34715c).setOrigin(0, 0.5).setDepth(60);
+    farmProgressText = this.add.text(104, 181, 'ฟาร์ม 0 / 100 ตัว', {
+        fontSize: '10px', color: '#9ff0c8', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 2, align: 'left'
+    }).setOrigin(0, 0.5).setDepth(61);
+    farmProgressBarBg = this.add.rectangle(104, 199, 168, 5, 0x050b09)
         .setOrigin(0, 0.5).setDepth(61);
-    farmProgressBar = this.add.rectangle(118, 40, 0, 3, 0x35d07f)
+    farmProgressBar = this.add.rectangle(104, 199, 0, 3, 0x35d07f)
         .setOrigin(0, 0.5).setDepth(62);
     updateFarmProgressHud();
 
