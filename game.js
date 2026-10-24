@@ -169,7 +169,11 @@ function preload() {
     g.fillStyle(0xe67e22); g.fillRect(2, 0, 12, 16); g.fillRect(0, 4, 16, 6); g.generateTexture('pet_phoenix', 16, 16); g.clear();
     g.fillStyle(0xdcdde1); g.fillRect(2, 2, 20, 22); g.generateTexture('enemy_normal', 24, 24); g.clear();
     g.fillStyle(0x8e44ad); g.fillRect(0, 0, 40, 44); g.fillStyle(0xe74c3c); g.fillRect(8, 8, 8, 8); g.fillRect(24, 8, 8, 8); g.generateTexture('enemy_boss', 40, 44); g.clear();
-    g.fillStyle(0xf39c12); g.fillRect(0, 2, 12, 2); g.generateTexture('arrow_sprite', 14, 6); g.clear();
+    // Visible pixel arrow with a bright shaft and arrowhead (larger than the old 14x6 sprite).
+    g.fillStyle(0xffd166); g.fillRect(0, 4, 18, 4);
+    g.fillStyle(0xff8c00); g.fillTriangle(15, 0, 24, 6, 15, 12);
+    g.fillStyle(0xffffff); g.fillRect(3, 4, 7, 2);
+    g.generateTexture('arrow_sprite', 25, 12); g.clear();
     g.fillStyle(0x9b59b6); g.fillRect(0, 0, 18, 16); g.generateTexture('chest_sprite', 18, 16); g.clear();
     g.fillStyle(0xf1c40f); g.fillCircle(4, 4, 4); g.generateTexture('coin_sprite', 8, 8); g.clear();
     g.fillStyle(0xffffff); g.fillRect(0, 0, 3, 3); g.generateTexture('spark_particle', 3, 3); g.clear();
@@ -317,10 +321,27 @@ function updateEnemyHpBar() {
 function performRangedAttack() {
     if (combatPaused || awaitingServerResponse || !currentMonsterId || !enemy || enemyHp <= 0 || !enemy.visible) return;
 
-    const arrow = gameScene.add.sprite(hero.x - 10, hero.y - 5, 'arrow_sprite');
+    // Keep the projectile clearly visible above the battlefield and move it from the hero to the monster.
+    const startX = hero.x - 8;
+    const startY = hero.y - 8;
+    const endX = enemy.x + 8;
+    const endY = enemy.y - 2;
+    const arrow = gameScene.add.image(startX, startY, 'arrow_sprite')
+        .setDepth(25)
+        .setScale(1.15)
+        .setRotation(Math.atan2(endY - startY, endX - startX));
+    const trail = gameScene.add.rectangle(startX, startY, 22, 2, 0xffd166, 0.85)
+        .setDepth(24)
+        .setOrigin(0, 0.5)
+        .setRotation(arrow.rotation);
     gameScene.tweens.add({
-        targets: arrow, x: enemy.x + 10, y: enemy.y, duration: 160,
-        onComplete: () => { arrow.destroy(); applyDamage(); }
+        targets: [arrow, trail],
+        x: endX, y: endY, duration: 260, ease: "Linear",
+        onComplete: () => {
+            arrow.destroy();
+            trail.destroy();
+            createImpactSparks(enemy.x, enemy.y);
+        }
     });
 }
 
