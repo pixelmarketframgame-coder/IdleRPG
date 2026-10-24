@@ -85,6 +85,21 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
  #game-panel>.top .hint{font-size:10px}
 }
 
+
+/* Keep farm progress and its counter visible in compact viewport layouts */
+#game-panel>.panel:first-of-type .farm-progress{display:block!important;visibility:visible!important;opacity:1;flex:0 0 auto!important;min-height:44px;overflow:visible;position:relative;z-index:2}
+#game-panel>.panel:first-of-type .farm-progress-head{display:flex!important;visibility:visible!important;flex-wrap:nowrap;min-width:0}
+#game-panel>.panel:first-of-type .farm-progress-title{display:block!important;visibility:visible!important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#game-panel>.panel:first-of-type .farm-progress-count{display:block!important;visibility:visible!important;flex:0 0 auto;white-space:nowrap}
+#game-panel>.panel:first-of-type .farm-progress-meter{display:block!important;visibility:visible!important;height:8px;min-height:8px;flex:0 0 8px}
+#game-panel>.panel:first-of-type .farm-progress-fill{display:block!important;visibility:visible!important;min-width:0}
+@media(max-height:700px){
+ #game-panel>.panel:first-of-type .farm-progress{min-height:38px;padding:3px 7px!important}
+ #game-panel>.panel:first-of-type .farm-progress-head{gap:4px}
+ #game-panel>.panel:first-of-type .farm-progress-title,#game-panel>.panel:first-of-type .farm-progress-count{font-size:9px!important}
+ #game-panel>.panel:first-of-type .farm-progress-hint{display:none}
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -118,7 +133,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
           <div class="pixel-exp-caption" id="pixel-exp-caption">กำลังซิงก์ข้อมูลตัวละคร…</div>
         </div>
       </div>
-      <div class="pixel-gold-row"><span>🪙 GOLD</span><strong id="pixel-gold-text">0</strong></div><div class="farm-progress"><div class="farm-progress-head"><span class="farm-progress-title">⚔️ ความคืบหน้าฟาร์มด่านนี้</span><span class="farm-progress-count" id="farm-progress-count">ตีแล้ว 0 / 100 ตัว</span></div><div class="farm-progress-meter"><div class="farm-progress-fill" id="farm-progress-fill"></div></div><div class="hint" id="farm-progress-hint" style="margin-top:6px">กำจัดมอนสเตอร์ให้ครบ 100 ตัวเพื่อปลดล็อก Challenge</div></div><div class="monster-hud" id="monster-hud"><div class="monster-hud-head"><span class="monster-hud-name" id="monster-hud-name">กำลังโหลดมอนสเตอร์…</span><span class="monster-hud-hp" id="monster-hud-hp">HP -- / --</span></div><div class="monster-hud-meter"><div class="monster-hud-fill" id="monster-hud-fill"></div></div></div><div id="game-container"></div><div class="combat-distance-panel" id="combat-distance" role="status">ระยะ -- ช่อง · กำลังคำนวณระยะโจมตี</div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
+      <div class="pixel-gold-row"><span>🪙 GOLD</span><strong id="pixel-gold-text">0</strong></div><div class="farm-progress"><div class="farm-progress-head"><span class="farm-progress-title">⚔️ ความคืบหน้าฟาร์มด่านนี้</span><span class="farm-progress-count" id="farm-progress-count">ตีแล้ว 0 / 100 ตัว</span></div><div class="farm-progress-meter"><div class="farm-progress-fill" id="farm-progress-fill"></div></div><div class="hint" id="farm-progress-hint" class="farm-progress-hint" style="margin-top:6px">กำจัดมอนสเตอร์ให้ครบ 100 ตัวเพื่อปลดล็อก Challenge</div></div><div class="monster-hud" id="monster-hud"><div class="monster-hud-head"><span class="monster-hud-name" id="monster-hud-name">กำลังโหลดมอนสเตอร์…</span><span class="monster-hud-hp" id="monster-hud-hp">HP -- / --</span></div><div class="monster-hud-meter"><div class="monster-hud-fill" id="monster-hud-fill"></div></div></div><div id="game-container"></div><div class="combat-distance-panel" id="combat-distance" role="status">ระยะ -- ช่อง · กำลังคำนวณระยะโจมตี</div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
     <div class="panel"><div class="top" style="margin-bottom:10px"><h2 class="title" style="margin:0">🎒 ของรางวัล / กิจกรรม</h2><button id="copy-log" type="button">📋 Copy Log</button></div><div class="hint" style="margin-bottom:8px">คัดลอก log ล่าสุดไม่เกิน 150 รายการ พร้อมเวอร์ชันและสถานะหน้าเว็บ</div><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div><div id="copy-log-status" class="hint" role="status" style="margin-top:8px"></div></div>
   </section>
   <div id="status-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
@@ -167,7 +182,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.0";
+  const APP_VERSION = "v0.6.1";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -572,6 +587,6 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.6.0"></script>
+<script src="game.js?v=0.6.1"></script>
 </body>
 </html>
