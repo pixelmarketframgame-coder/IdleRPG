@@ -14,7 +14,7 @@
 @media(max-width:620px){.status-modal{padding:13px;max-height:94vh}.modal-backdrop{padding:8px}}
 .stat-preview{width:min(520px,100%);background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #c59b45;border-radius:16px;padding:18px;box-shadow:0 24px 80px #000b}.preview-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #2a3858}.preview-line:last-child{border-bottom:0}
 .status-log-list{max-height:190px;overflow-y:auto;overscroll-behavior:contain;padding:0 12px!important;border:0;border-radius:0;background:transparent;scrollbar-width:thin;scrollbar-color:#526ba6 transparent}
-.status-log-line{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:3px 2px;border:0;font-size:14px;line-height:1.45}
+.status-log-line{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:0 2px!important;margin:0!important;border:0!important;font-size:14px;line-height:1.15!important;min-height:0!important}
 .status-log-line span{color:#aebfe2}
 .status-log-line strong{color:#eaf1ff;text-align:right;max-width:55%;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 .status-log-list::-webkit-scrollbar{width:6px}
@@ -102,7 +102,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.4.5";
+  const APP_VERSION = "v0.4.6";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -485,6 +485,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.4.5"></script>
+<script src="game.js?v=0.4.6"></script>
 </body>
 </html>
