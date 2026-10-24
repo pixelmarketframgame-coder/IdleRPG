@@ -267,6 +267,13 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
         <div class="status-log-line"><span>โอกาสคริติคอล (CRIT)</span><strong id="detail-crit">กำลังโหลด…</strong></div>
       </div>
       <p class="hint" id="derived-stats-note" style="margin:8px 0 16px">ค่าที่คำนวณได้จากสูตรต่อสู้ปัจจุบันของเซิร์ฟเวอร์</p>
+      <section class="inventory-section" style="margin:10px 0">
+        <div class="top" style="margin-bottom:8px"><h3 class="title" style="margin:0">🗃️ บันทึก Log และข้อมูล Status</h3><button id="status-save-snapshot" type="button">บันทึกสถานะ</button></div>
+        <p class="hint">เก็บ Log การต่อสู้และภาพรวม Status ไว้ในอุปกรณ์นี้ เพื่อเปิดดูหรือคัดลอกส่งตรวจสอบภายหลัง</p>
+        <div class="row" style="flex-wrap:wrap;margin:8px 0"><button id="status-view-archive" type="button">📂 ดู Log ที่เก็บไว้</button><button id="status-copy-archive" type="button">📋 คัดลอก Log + Status</button></div>
+        <p id="status-archive-state" class="hint" role="status">ยังไม่มีการบันทึกสถานะ</p>
+        <pre id="status-archive-preview" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;background:#080f20;border:1px solid #344565;border-radius:8px;padding:9px;color:#cbd8f4;font-size:11px">ยังไม่มีข้อมูลที่บันทึกไว้</pre>
+      </section>
       <div class="top" style="margin:18px 0 10px"><h3 class="title" style="margin:0">จัดสรรค่า Stat</h3><span class="version-tag" id="stat-points-label">แต้มคงเหลือ: —</span></div>
       <div class="hint" style="margin-bottom:8px">กด + หรือ − เพื่อเลือกจำนวนแต้มก่อน แล้วกด Confirm เพื่อบันทึก</div>
       <div id="stats-grid" class="stats-list-panel">
@@ -356,6 +363,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     $('log').appendChild(el);
     $('log').scrollTop = $('log').scrollHeight;
     while ($('log').children.length > 150) $('log').lastElementChild.remove();
+    try { const saved=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]'); saved.push({at:new Date().toISOString(),message:el.textContent}); localStorage.setItem('tbh_status_log_archive',JSON.stringify(saved.slice(-500))); } catch(e) {}
   };
   $('copy-log').addEventListener('click', async () => {
     const lines = Array.from($('log').children).map(el => el.textContent || '');
@@ -888,6 +896,38 @@ $('settings-signout').onclick=signOutUser;
     else setChatState('เปิดแชตเพื่อเริ่มดูข้อความใหม่');
   });
 
+  function buildStatusArchive(){
+    const logs=(()=>{try{return JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]')}catch(e){return []}})();
+    const status={
+      saved_at:new Date().toISOString(),
+      version:APP_VERSION,
+      player:currentUser?{id:currentUser.id,nickname:profile?.nickname||$('pixel-name')?.textContent||null,level:profile?.level??$('pixel-level')?.textContent??null,exp:profile?.exp??null,gold:profile?.gold??null}:null,
+      combat:lastCombatSnapshot?{...lastCombatSnapshot}:null,
+      status_values:{atk:$('detail-atk')?.innerText||null,def:$('detail-def')?.innerText||null,hp:$('detail-hp')?.innerText||null,aspd:$('detail-aspd')?.innerText||null,hit:$('detail-hit')?.innerText||null,flee:$('detail-flee')?.innerText||null,crit:$('detail-crit')?.innerText||null},
+      equipment_overview:{atk:$('overall-atk')?.innerText||null,def:$('overall-def')?.innerText||null,hp:$('overall-hp')?.innerText||null},
+      combat_log:Array.from($('log')?.children||[]).map(x=>x.innerText),
+      inventory_log:(()=>{try{return JSON.parse(localStorage.getItem('tbh_inventory_log_archive')||'[]')}catch(e){return []}})(),
+      archived_log_count:logs.length
+    };
+    return {status,logs};
+  }
+  function renderStatusArchive(){
+    const {status,logs}=buildStatusArchive();
+    const text=JSON.stringify({status,logs:logs.slice(-150)},null,2);
+    const preview=$('status-archive-preview');if(preview)preview.textContent=text;
+    const state=$('status-archive-state');if(state)state.textContent='บันทึก Log '+logs.length+' รายการ · เวอร์ชัน '+APP_VERSION+' · ข้อมูลเก็บในอุปกรณ์นี้';
+    return text;
+  }
+  $('status-save-snapshot')?.addEventListener('click',()=>{
+    try{const {status,logs}=buildStatusArchive();const snapshots=JSON.parse(localStorage.getItem('tbh_status_snapshots')||'[]');snapshots.push(status);localStorage.setItem('tbh_status_snapshots',JSON.stringify(snapshots.slice(-50)));$('status-archive-state').textContent='บันทึก Status สำเร็จ · '+new Date().toLocaleString('th-TH');renderStatusArchive();}
+    catch(e){$('status-archive-state').textContent='บันทึกไม่สำเร็จ: '+e.message;}
+  });
+  $('status-view-archive')?.addEventListener('click',()=>renderStatusArchive());
+  $('status-copy-archive')?.addEventListener('click',async()=>{
+    const text=renderStatusArchive();
+    try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);else{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();if(!document.execCommand('copy'))throw new Error('คัดลอกไม่ได้');ta.remove();} $('status-archive-state').textContent='คัดลอก Log + Status แล้ว';}
+    catch(e){$('status-archive-state').textContent='คัดลอกไม่สำเร็จ: '+e.message;}
+  });
   $('ultimate').onclick=()=>{if(typeof window.triggerHeroSkill==='function')window.triggerHeroSkill('ultimate');};
   $('challenge').onclick=()=>{if(typeof window.challengeCurrentStage==='function')window.challengeCurrentStage();};
   $('refresh').onclick=async()=>{setBusy(true);try{await syncPlayer();}catch(e){msg('โหลดข้อมูลไม่สำเร็จ: '+e.message,true);}finally{setBusy(false);}};
