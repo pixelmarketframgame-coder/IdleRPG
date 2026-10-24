@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.27",
+  "version": "v0.6.28",
   "updated_at": "2026-10-24",
-  "notes": "Chat shows messages from join time and adds copy chat log button"
+  "notes": "Align wrapped chat text beneath the message after sender and time"
 }
