@@ -15,6 +15,32 @@ const maxKillsPerStage = 100;
 let isBossFight = false;
 let currentMonsterId = null;
 let currentMonsterName = "";
+
+function setMonsterDisplayName(monster, monsterId) {
+    const payloadName = monster && (
+        monster.monster_name || monster.monsterName || monster.name ||
+        monster.display_name || monster.displayName || monster.target_name || monster.targetName
+    );
+    if (payloadName && String(payloadName).trim() && String(payloadName).trim().toLowerCase() !== "monster") {
+        currentMonsterName = String(payloadName).trim();
+        if (enemyNameText) enemyNameText.setText(currentMonsterName);
+        return;
+    }
+    // Some combat RPC responses provide only the monster ID and HP. Resolve the display name
+    // from the authoritative public.monsters row so the HUD doesn't stay on the placeholder.
+    const id = monsterId ?? (monster && (monster.id ?? monster.monster_id ?? monster.monsterId ?? monster.target_id ?? monster.targetId));
+    const db = typeof window !== "undefined" ? window.tbhSupabase : null;
+    if (id == null || !db || typeof db.from !== "function") return;
+    const requestedId = String(id);
+    db.from("monsters").select("name").eq("id", requestedId).maybeSingle()
+        .then(({ data, error }) => {
+            if (error || !data || !data.name || String(currentMonsterId) !== requestedId) return;
+            currentMonsterName = String(data.name).trim();
+            if (enemyNameText) enemyNameText.setText(currentMonsterName);
+        })
+        .catch(error => console.warn("Unable to resolve monster display name", error));
+}
+
 let currentMonsterType = "normal";
 let isChallengeTarget = false;
 let awaitingServerResponse = false;
@@ -574,7 +600,7 @@ window.onServerCombatUpdate = function(payload) {
         if (!enemyHpBar) enemyHpBar = gameScene.add.rectangle(0, 0, 60, 5, 0xe74c3c).setOrigin(0.5);
         const changedTarget = String(combatMonsterId) !== String(currentMonsterId ?? "");
         currentMonsterId = String(combatMonsterId);
-        if (combatMonsterName) { currentMonsterName = String(combatMonsterName); enemyNameText.setText(currentMonsterName); }
+        setMonsterDisplayName(combatMonsterName ? { name: combatMonsterName } : null, combatMonsterId);
         if (state.monster_type || state.is_boss != null) {
             currentMonsterType = String(state.monster_type || (state.is_boss ? "boss" : "normal")).toLowerCase();
             isBossFight = Boolean(state.is_boss ?? currentMonsterType === "boss");
@@ -904,6 +930,7 @@ window.initGameState = function(jsonPayload) {
     const monsterId = monster.id ?? monster.monster_id ?? monster.monsterId ?? monster.target_id ?? monster.targetId ?? null;
     currentMonsterId = monsterId == null ? null : String(monsterId);
     currentMonsterName = String(monster.monster_name || monster.monsterName || monster.name || monster.display_name || monster.displayName || currentMonsterName || "Monster");
+    setMonsterDisplayName(monster, monsterId);
     currentMonsterType = String(monster.monster_type || monster.type || (monster.is_boss ? "boss" : "normal")).toLowerCase();
     isBossFight = Boolean(monster.is_boss ?? monster.isBoss ?? (currentMonsterType === "boss"));
     setMonsterCombatProfile(monster);
