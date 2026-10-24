@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.31",
-  "updated_at": "2026-10-24",
-  "notes": "Added frontend-only Inventory/Gear popup with 7 equipment slots, storage grid, filters, equip/unequip, and sample stats; no database changes"
+  "version": "v0.6.32",
+  "updated_at": "2026-10-25",
+  "notes": "Inventory gear bonuses now add to base character stats; base ATK 210, DEF 50, HP 1000 and training sword ATK +20"
 }
