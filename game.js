@@ -27,6 +27,24 @@ let lastDisplayedPlayerHp = null;
 let lastDisplayedMonsterHp = null;
 let lastDisplayedMonsterId = null;
 
+// Combat arena uses 50 logical tiles across the 520px Phaser viewport.
+const ARENA_TILES = 50;
+const TILE_SIZE_PX = 10;
+const ARENA_WIDTH_PX = ARENA_TILES * TILE_SIZE_PX;
+const PLAYER_START_X = 440;
+const MONSTER_START_X = 90;
+const combatProfile = {
+    weaponType: "bow",
+    attackRangeTiles: 10,
+    moveSpeedPxPerSecond: 36
+};
+let monsterCombatProfile = {
+    attackRangeTiles: 1,
+    moveSpeedPxPerSecond: 25,
+    style: "melee"
+};
+let combatDistanceText = null;
+
 // ==========================================
 // Bridge Functions (เรียกจาก HTML Control Panel)
 // ==========================================
@@ -193,7 +211,12 @@ function create() {
     portal = this.add.rectangle(50, 160, 24, 30, 0x0984e3);
     stageLabelText = this.add.text(50, 130, currentStage, { fontSize: '11px', backgroundColor: '#00000088', padding: { x: 4, y: 2 } }).setOrigin(0.5);
 
-    hero = this.add.sprite(390, 165, 'hero_sprite').setDepth(5);
+    hero = this.add.sprite(PLAYER_START_X, 165, 'hero_sprite').setDepth(5);
+    combatDistanceText = this.add.text(260, 12, 'ระยะ -- ช่อง', {
+        fontSize: '9px', color: '#ffffff', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 2, backgroundColor: '#00000088',
+        padding: { x: 4, y: 2 }, align: 'center'
+    }).setOrigin(0.5).setDepth(50);
     // หลอดเลือดตัวละคร: ตำแหน่งคงที่เหนือหัว และค่าจริงอัปเดตจาก Supabase
     playerHpBarBg = this.add.rectangle(368, 137, 44, 5, 0x202020).setOrigin(0, 0.5).setDepth(8);
     playerHpBar = this.add.rectangle(368, 137, 44, 3, 0x2ecc71).setOrigin(0, 0.5).setDepth(9);
@@ -226,11 +249,91 @@ function create() {
     // ❌ ลบบรรทัด this.time.addEvent(...) ที่เป็นลูปโจมตีออกไปด้วยครับ
 }
 
-function update() {
+function update(_time, delta) {
     if (bgFar) bgFar.tilePositionX += 0.1;
     if (bgMid) bgMid.tilePositionX += 0.4;
     if (bgFloor) bgFloor.tilePositionX += 1.2;
-    if (pet) pet.y = 170 + Math.sin(this.time.now / 200) * 2;
+    if (pet) {
+        pet.y = 170 + Math.sin(this.time.now / 200) * 2;
+        if (hero) pet.x = hero.x + 30;
+    }
+    updateCombatMovement(Math.min(50, Math.max(0, Number(delta) || 0)) / 1000);
+}
+
+function setPlayerCombatProfile(playerData = {}) {
+    const equipment = playerData.equipment || playerData.equipped || {};
+    const raw = playerData.weapon_type || playerData.weaponType ||
+        playerData.weapon || equipment.weapon_type || equipment.weaponType ||
+        equipment.weapon || playerData.active_weapon || "bow";
+    const value = String(typeof raw === "object" ? (raw.type || raw.weapon_type || raw.name || "bow") : raw).toLowerCase();
+    const isRanged = /bow|archer|ranged|crossbow|ธนู/.test(value);
+    const isSpear = /spear|lance|หอก/.test(value);
+    combatProfile.weaponType = isRanged ? "bow" : (isSpear ? "spear" : "sword");
+    combatProfile.attackRangeTiles = isRanged ? 10 : (isSpear ? 2 : 1);
+    combatProfile.moveSpeedPxPerSecond = isRanged ? 36 : (isSpear ? 34 : 40);
+}
+
+function setMonsterCombatProfile(monsterData = {}) {
+    const raw = String(monsterData.attack_style || monsterData.attackStyle ||
+        monsterData.monster_type || monsterData.type || (monsterData.is_boss ? "boss" : "melee")).toLowerCase();
+    const isRanged = /ranged|archer|shooter|mage|caster|spitter|ธนู|เวท|พ่น/.test(raw);
+    monsterCombatProfile = {
+        style: isRanged ? "ranged" : "melee",
+        attackRangeTiles: isRanged ? 8 : ( /boss/.test(raw) ? 2 : 1),
+        moveSpeedPxPerSecond: isRanged ? 20 : (/boss/.test(raw) ? 16 : 25)
+    };
+}
+
+function moveTowardX(actor, targetX, maxStep) {
+    if (!actor || maxStep <= 0) return;
+    const diff = targetX - actor.x;
+    if (Math.abs(diff) <= maxStep) actor.x = targetX;
+    else actor.x += Math.sign(diff) * maxStep;
+}
+
+function updateCombatMovement(seconds) {
+    if (!gameScene || !hero || !enemy || !enemy.visible || combatPaused ||
+        awaitingServerResponse || !currentMonsterId || seconds <= 0) {
+        updateCombatDistanceHud();
+        return;
+    }
+    const gapPx = Math.abs(hero.x - enemy.x);
+    const gapTiles = gapPx / TILE_SIZE_PX;
+    const heroRangePx = combatProfile.attackRangeTiles * TILE_SIZE_PX;
+    const monsterRangePx = monsterCombatProfile.attackRangeTiles * TILE_SIZE_PX;
+
+    // Each side moves only until it reaches its own attack range.
+    if (gapTiles > combatProfile.attackRangeTiles) {
+        const direction = enemy.x < hero.x ? -1 : 1;
+        moveTowardX(hero, hero.x + direction * heroRangePx, combatProfile.moveSpeedPxPerSecond * seconds);
+    }
+    if (gapTiles > monsterCombatProfile.attackRangeTiles) {
+        const direction = hero.x < enemy.x ? -1 : 1;
+        moveTowardX(enemy, enemy.x + direction * monsterRangePx, monsterCombatProfile.moveSpeedPxPerSecond * seconds);
+    }
+
+    if (hero) {
+        if (playerHpBarBg) playerHpBarBg.setPosition(hero.x - 22, hero.y - 28);
+        if (playerHpBar) playerHpBar.setPosition(hero.x - 22, hero.y - 28);
+        if (playerHpText) playerHpText.setPosition(hero.x, hero.y - 39);
+    }
+    updateEnemyHpBar();
+    updateCombatDistanceHud();
+}
+
+function updateCombatDistanceHud() {
+    if (!combatDistanceText || !hero || !enemy || !enemy.visible) {
+        if (combatDistanceText) combatDistanceText.setText("ระยะ -- ช่อง");
+        return;
+    }
+    const tiles = Math.abs(hero.x - enemy.x) / TILE_SIZE_PX;
+    const playerInRange = tiles <= combatProfile.attackRangeTiles;
+    const monsterInRange = tiles <= monsterCombatProfile.attackRangeTiles;
+    combatDistanceText.setText(
+        "ระยะ " + tiles.toFixed(1) + "/" + ARENA_TILES + " ช่อง · " +
+        (playerInRange ? "ผู้เล่นโจมตีได้" : "ผู้เล่นกำลังเข้าระยะ") + " · " +
+        (monsterInRange ? "มอนสเตอร์โจมตีได้" : "มอนสเตอร์กำลังเข้าระยะ")
+    );
 }
 
 function updateStageProgress(kills, stage) {
@@ -322,9 +425,19 @@ function performRangedAttack() {
     if (combatPaused || awaitingServerResponse || !currentMonsterId || !enemy || enemyHp <= 0 || !enemy.visible) return;
 
     // Keep the projectile clearly visible above the battlefield and move it from the hero to the monster.
+    const distanceTiles = Math.abs(hero.x - enemy.x) / TILE_SIZE_PX;
+    if (distanceTiles > combatProfile.attackRangeTiles) return;
+
+    // The default prototype weapon is a bow; other weapon styles can be supplied by server state.
+    if (combatProfile.weaponType !== "bow") {
+        const slash = gameScene.add.arc((hero.x + enemy.x) / 2, hero.y - 8, 18, 205, 335, false, 0xffd166, 0.95)
+            .setStrokeStyle(4, 0xffd166).setDepth(25);
+        gameScene.tweens.add({ targets: slash, alpha: 0, scale: 1.3, duration: 180, onComplete: () => slash.destroy() });
+        return;
+    }
     const startX = hero.x - 8;
     const startY = hero.y - 8;
-    const endX = enemy.x + 8;
+    const endX = enemy.x + (enemy.x < hero.x ? 8 : -8);
     const endY = enemy.y - 2;
     const arrow = gameScene.add.image(startX, startY, 'arrow_sprite')
         .setDepth(25)
@@ -366,10 +479,11 @@ function animateMonsterRetaliation(damage) {
     if (!gameScene || !enemy || !hero || !enemy.visible) return;
     const amount = Math.max(0, Number(damage) || 0);
     // ภาพการโจมตีเป็นเพียงเอฟเฟกต์; ค่าความเสียหายมาจาก Supabase เท่านั้น
+    const originalEnemyX = enemy.x;
     gameScene.tweens.killTweensOf(enemy);
     gameScene.tweens.add({
         targets: enemy,
-        x: hero.x - 34,
+        x: hero.x + (enemy.x < hero.x ? -30 : 30),
         duration: 130,
         yoyo: true,
         hold: 35,
@@ -382,7 +496,7 @@ function animateMonsterRetaliation(damage) {
                 onComplete: () => hero.clearTint()
             });
         },
-        onComplete: () => { if (enemy) enemy.x = 180; }
+        onComplete: () => { if (enemy) enemy.x = originalEnemyX; updateEnemyHpBar(); updateCombatDistanceHud(); }
     });
     if (amount > 0) {
         const hit = gameScene.add.text(hero.x, hero.y - 30, "-" + amount, {
@@ -411,6 +525,7 @@ window.onServerCombatUpdate = function(payload) {
         // Ensure Phaser target objects exist even if the initial target query returned no row.
         const combatType = String(state.monster_type || (state.is_boss ? "boss" : "normal")).toLowerCase();
         const combatIsBoss = Boolean(state.is_boss ?? combatType === "boss");
+        setMonsterCombatProfile({ monster_type: combatType, is_boss: combatIsBoss, attack_style: state.attack_style || state.attackStyle });
         if (!enemy) enemy = gameScene.add.sprite(180, combatIsBoss ? 155 : 165, combatIsBoss ? "enemy_boss" : "enemy_normal");
         if (!enemyNameText) enemyNameText = gameScene.add.text(0, 0, "", { fontSize: "10px", color: "#ffffff", fontStyle: "bold", stroke: "#000000", strokeThickness: 3, backgroundColor: "#000000aa", padding: { x: 3, y: 2 } }).setOrigin(0.5);
         if (!enemyHpText) enemyHpText = gameScene.add.text(0, 0, "", { fontSize: "9px", color: "#ffffff", fontStyle: "bold", stroke: "#000000", strokeThickness: 3, backgroundColor: "#000000aa", padding: { x: 3, y: 2 } }).setOrigin(0.5);
@@ -424,7 +539,9 @@ window.onServerCombatUpdate = function(payload) {
             isBossFight = Boolean(state.is_boss ?? currentMonsterType === "boss");
             enemy.setTexture(isBossFight ? "enemy_boss" : "enemy_normal");
         }
-        enemy.setPosition(enemy.x || 180, isBossFight ? 155 : 165).setDepth(15).setVisible(true).setAlpha(1);
+        if (changedTarget) enemy.setPosition(MONSTER_START_X, isBossFight ? 155 : 165);
+        else enemy.setY(isBossFight ? 155 : 165);
+        enemy.setDepth(15).setVisible(true).setAlpha(1);
         enemyNameText.setVisible(true).setAlpha(1).setDepth(33);
         enemyHpText.setVisible(true).setAlpha(1).setDepth(32);
         enemyHpBarBg.setVisible(true).setAlpha(1).setDepth(30);
@@ -707,6 +824,7 @@ window.initGameState = function(jsonPayload) {
     console.log("🎮 Server state received:", state);
     const playerData = state.player || state.profile || {};
     const mapData = state.map || {};
+    setPlayerCombatProfile(playerData);
     if (mapData.theme) changeMapTheme(mapData.theme);
 
     const status = state.stageStatus || state.stage_status || state.stage_status_data || {};
@@ -743,6 +861,7 @@ window.initGameState = function(jsonPayload) {
     currentMonsterId = monsterId == null ? null : String(monsterId);
     currentMonsterType = String(monster.monster_type || monster.type || (monster.is_boss ? "boss" : "normal")).toLowerCase();
     isBossFight = Boolean(monster.is_boss ?? monster.isBoss ?? (currentMonsterType === "boss"));
+    setMonsterCombatProfile(monster);
     isChallengeTarget = Boolean(monster.is_challenge ?? monster.isChallenge ?? false);
     // Keep current HP separate from max HP; Supabase payloads may provide either naming style.
     maxEnemyHp = Math.max(1, Number(monster.monster_max_hp ?? monster.max_hp ?? monster.maxHp ?? monster.max_hp_total ?? monster.monster_hp ?? 100) || 100);
@@ -750,7 +869,7 @@ window.initGameState = function(jsonPayload) {
 
     if (!enemy) enemy = gameScene.add.sprite(180, 165, isBossFight ? 'enemy_boss' : 'enemy_normal');
     enemy.setTexture(isBossFight ? 'enemy_boss' : 'enemy_normal');
-    enemy.setPosition(230, isBossFight ? 155 : 165);
+    enemy.setPosition(MONSTER_START_X, isBossFight ? 155 : 165);
     enemy.setScale(isBossFight ? 1 : 1);
     enemy.setDepth(15).setVisible(true).setAlpha(1);
     enemyNameText.setText(String(monster.monster_name || monster.monsterName || monster.name || monster.display_name || monster.displayName || "Monster"));
@@ -765,10 +884,10 @@ window.initGameState = function(jsonPayload) {
 
     // เล่นวิ่งเข้าหาศัตรูใหม่เฉพาะหลังได้ state ที่เซิร์ฟเวอร์ยืนยันแล้ว
     if (hero) {
-        gameScene.tweens.add({ targets: hero, x: 390, duration: 260, ease: "Sine.easeOut" });
+        gameScene.tweens.add({ targets: hero, x: PLAYER_START_X, duration: 260, ease: "Sine.easeOut" });
     }
     gameScene.tweens.add({
-        targets: enemy, x: 180, duration: 260, ease: "Sine.easeOut",
+        targets: enemy, x: MONSTER_START_X, duration: 260, ease: "Sine.easeOut",
         onUpdate: () => {
             updateEnemyHpBar();
         }
@@ -821,7 +940,7 @@ window.onFlutterFlowResponse = function(jsonPayload) {
             }
             if (hero) {
                 gameScene.tweens.killTweensOf(hero);
-                hero.setX(390);
+                hero.setX(PLAYER_START_X);
             }
             updateEnemyHpBar();
             const serverMessage = response.message || "เซิร์ฟเวอร์ไม่ยืนยันการกำจัดมอนสเตอร์";
@@ -850,7 +969,7 @@ window.onFlutterFlowResponse = function(jsonPayload) {
         } else {
             awaitingServerResponse = false;
             combatPaused = true;
-            if (hero) hero.setX(390);
+            if (hero) hero.setX(PLAYER_START_X);
             showTopNotification("บันทึกรางวัลแล้ว แต่ยังไม่ได้รับมอนสเตอร์ตัวถัดไป");
         }
     } else if (response.event === "CHALLENGE_RESULT" && response.success === false) {
