@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.24",
+  "version": "v0.6.25",
   "updated_at": "2026-10-24",
-  "notes": "Chat combat-log lines have no vertical gaps"
+  "notes": "Test centralized version update: version.json only"
 }
