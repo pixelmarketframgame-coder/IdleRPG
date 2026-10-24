@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.26",
+  "version": "v0.6.27",
   "updated_at": "2026-10-24",
-  "notes": "Wrapped chat message lines align after the colon"
+  "notes": "Chat shows messages from join time and adds copy chat log button"
 }
