@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.34",
+  "version": "v0.6.35",
   "updated_at": "2026-10-25",
-  "notes": "Inventory equip and unequip now persist through an ownership-checked Supabase RPC; equipped gear stats recalculate from database data."
+  "notes": "Fixed equipment slot selection when unequipping and added live overall ATK, DEF, and HP summary outside the Bag popup."
 }
