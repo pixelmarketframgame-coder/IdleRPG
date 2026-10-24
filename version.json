@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.33",
+  "version": "v0.6.34",
   "updated_at": "2026-10-25",
-  "notes": "Inventory reads signed-in character inventory, equipped slots, and item template bonuses from Supabase; equip actions remain disabled until secure persistence is wired."
+  "notes": "Inventory equip and unequip now persist through an ownership-checked Supabase RPC; equipped gear stats recalculate from database data."
 }
