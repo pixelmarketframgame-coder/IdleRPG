@@ -13,6 +13,13 @@
 .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.modal-close{min-width:42px;padding:8px 12px;background:#202b43;border-color:#445477}.status-menu-button{min-width:unset;padding:9px 15px;background:#253b70;border-color:#8d9fc9}
 @media(max-width:620px){.status-modal{padding:13px;max-height:94vh}.modal-backdrop{padding:8px}}
 .stat-preview{width:min(520px,100%);background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #c59b45;border-radius:16px;padding:18px;box-shadow:0 24px 80px #000b}.preview-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #2a3858}.preview-line:last-child{border-bottom:0}
+#stats-grid.stats-list-panel{display:block!important;gap:0!important;padding:0 12px;border:1px solid #2a3858;border-radius:10px;background:#0a1121}
+.stats-list-row{display:flex;align-items:center;gap:10px;padding:5px 0;margin:0;border:0;min-height:0}
+.stats-list-name{flex:1;min-width:0;color:#d8e3fb;font-size:14px}
+.stats-list-value{display:flex;align-items:center;gap:4px;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stats-pending{color:#73e6ad;font-size:13px;font-weight:800}
+.stats-list-controls{display:flex;gap:4px;flex:0 0 auto}
+.stats-list-controls button{min-width:32px;padding:3px 8px;line-height:1.2;border-radius:6px}
 .status-log-list{max-height:190px;overflow-y:auto;overscroll-behavior:contain;padding:0!important;margin:0!important;border:0!important;border-radius:0;background:transparent;white-space:normal!important;scrollbar-width:thin;scrollbar-color:#526ba6 transparent}
 .status-log-line{display:flex!important;flex-direction:row!important;align-items:baseline;justify-content:space-between;gap:8px;padding:0!important;margin:0!important;border:0!important;font-size:14px;line-height:normal!important;min-height:0!important;height:auto!important;white-space:normal!important}
 .status-log-line span{color:#aebfe2;margin:0!important;padding:0!important;line-height:normal!important}
@@ -72,13 +79,13 @@
       <p class="hint" id="derived-stats-note" style="margin:8px 0 16px">ค่าที่คำนวณได้จากสูตรต่อสู้ปัจจุบันของเซิร์ฟเวอร์</p>
       <div class="top" style="margin:18px 0 10px"><h3 class="title" style="margin:0">จัดสรรค่า Stat</h3><span class="version-tag" id="stat-points-label">แต้มคงเหลือ: —</span></div>
       <div class="hint" style="margin-bottom:8px">กด + หรือ − เพื่อเลือกจำนวนแต้มก่อน แล้วกด Confirm เพื่อบันทึก</div>
-      <div class="grid" id="stats-grid">
-        <div class="stat"><small>STR · Strength</small><strong id="stat-str">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="str" type="button">−</button><button data-stat-plus="str" type="button">+</button></div><small id="pending-str">เลือกเพิ่ม: 0</small></div>
-        <div class="stat"><small>AGI · Agility</small><strong id="stat-agi">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="agi" type="button">−</button><button data-stat-plus="agi" type="button">+</button></div><small id="pending-agi">เลือกเพิ่ม: 0</small></div>
-        <div class="stat"><small>DEX · Dexterity</small><strong id="stat-dex">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="dex" type="button">−</button><button data-stat-plus="dex" type="button">+</button></div><small id="pending-dex">เลือกเพิ่ม: 0</small></div>
-        <div class="stat"><small>LUK · Luck</small><strong id="stat-luk">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="luk" type="button">−</button><button data-stat-plus="luk" type="button">+</button></div><small id="pending-luk">เลือกเพิ่ม: 0</small></div>
-        <div class="stat"><small>INT · Intelligence</small><strong id="stat-int">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="int" type="button">−</button><button data-stat-plus="int" type="button">+</button></div><small id="pending-int">เลือกเพิ่ม: 0</small></div>
-        <div class="stat"><small>VIT · Vitality</small><strong id="stat-vit">—</strong><div class="row" style="margin-top:8px"><button data-stat-minus="vit" type="button">−</button><button data-stat-plus="vit" type="button">+</button></div><small id="pending-vit">เลือกเพิ่ม: 0</small></div>
+      <div id="stats-grid" class="stats-list-panel">
+        <div class="stats-list-row"><span class="stats-list-name">STR · Strength</span><strong class="stats-list-value"><span id="stat-str">—</span><span id="pending-str" class="stats-pending"></span></strong><div class="stats-list-controls"><button data-stat-plus="str" type="button" aria-label="เพิ่ม STR · Strength">+</button><button data-stat-minus="str" type="button" aria-label="ลด STR · Strength">−</button></div></div>
+        <div class="stats-list-row"><span class="stats-list-name">AGI · Agility</span><strong class="stats-list-value"><span id="stat-agi">—</span><span id="pending-agi" class="stats-pending"></span></strong><div class="stats-list-controls"><button data-stat-plus="agi" type="button" aria-label="เพิ่ม AGI · Agility">+</button><button data-stat-minus="agi" type="button" aria-label="ลด AGI · Agility">−</button></div></div>
+        <div class="stats-list-row"><span class="stats-list-name">DEX · Dexterity</span><strong class="stats-list-value"><span id="stat-dex">—</span><span id="pending-dex" class="stats-pending"></span></strong><div class="stats-list-controls"><button data-stat-plus="dex" type="button" aria-label="เพิ่ม DEX · Dexterity">+</button><button data-stat-minus="dex" type="button" aria-label="ลด DEX · Dexterity">−</button></div></div>
+        <div class="stats-list-row"><span class="stats-list-name">LUK · Luck</span><strong class="stats-list-value"><span id="stat-luk">—</span><span id="pending-luk" class="stats-pending"></span></strong><div class="stats-list-controls"><button data-stat-plus="luk" type="button" aria-label="เพิ่ม LUK · Luck">+</button><button data-stat-minus="luk" type="button" aria-label="ลด LUK · Luck">−</button></div></div>
+        <div class="stats-list-row"><span class="stats-list-name">INT · Intelligence</span><strong class="stats-list-value"><span id="stat-int">—</span><span id="pending-int" class="stats-pending"></span></strong><div class="stats-list-controls"><button data-stat-plus="int" type="button" aria-label="เพิ่ม INT · Intelligence">+</button><button data-stat-minus="int" type="button" aria-label="ลด INT · Intelligence">−</button></div></div>
+        <div class="stats-list-row"><span class="stats-list-name">VIT · Vitality</span><strong class="stats-list-value"><span id="stat-vit">—</span><span id="pending-vit" class="stats-pending"></span></strong><div class="stats-list-controls"><button data-stat-plus="vit" type="button" aria-label="เพิ่ม VIT · Vitality">+</button><button data-stat-minus="vit" type="button" aria-label="ลด VIT · Vitality">−</button></div></div>
       </div>
       <p class="hint" id="stats-hint">กำลังโหลดค่าสถานะ…</p>
       <div class="row" style="margin-top:12px"><button id="cancel-stat-changes" type="button">ยกเลิก</button><button id="confirm-stat-changes" class="green" type="button">✓ Confirm</button></div>
@@ -102,7 +109,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.4.8";
+  const APP_VERSION = "v0.4.9";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -374,7 +381,7 @@
     statKeys.forEach(key=>{
       const chosen=Number(stagedStats[key]||0);
       const value=$("pending-"+key);
-      if(value)value.textContent="เลือกเพิ่ม: "+chosen;
+      if(value)value.textContent=chosen>0?" (+"+chosen+")":"";
       const minus=document.querySelector('[data-stat-minus="'+key+'"]');
       const plus=document.querySelector('[data-stat-plus="'+key+'"]');
       if(minus)minus.disabled=busy||chosen<1;
@@ -485,6 +492,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.4.8"></script>
+<script src="game.js?v=0.4.9"></script>
 </body>
 </html>
