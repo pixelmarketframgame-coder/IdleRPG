@@ -31,9 +31,9 @@
 
 /* Keep the character status and Phaser viewport within half the screen height */
 .game-top-status .pixel-status-bar{max-height:50vh;overflow:hidden}
-#game-container{max-height:50vh;flex:0 1 auto;aspect-ratio:520/220;width:100%;height:auto;min-height:0;align-self:center}
-#game-container canvas{max-height:50vh;object-fit:contain}
-@media(max-height:500px){.game-top-status .pixel-status-bar{max-height:24vh}#game-container,#game-container canvas{max-height:38vh}}
+#game-container{box-sizing:border-box;max-height:50vh;flex:0 1 auto;aspect-ratio:520/220;width:100%;height:auto;min-height:0;align-self:center;overflow:hidden;background:#05070d}
+#game-container canvas{display:block!important;width:100%!important;height:100%!important;max-height:none!important;object-fit:fill}
+@media(max-height:500px){.game-top-status .pixel-status-bar{max-height:24vh}#game-container{max-height:38vh}}
 /* Responsive viewport-fit game layout */
 html,body{width:100%;height:100%;min-height:0}
 body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
@@ -115,7 +115,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <div class="wrap">
   <header class="top" style="justify-content:flex-end"></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.11</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.12</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -189,12 +189,12 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     </section>
   </div>
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
-  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.11</span></div>
+  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.12</span></div>
 </div>
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.11";
+  const APP_VERSION = "v0.6.12";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -307,7 +307,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     };
   }
   const setBusy = value => { busy=value; ['login','register','create-character','ultimate','challenge','refresh'].forEach(id=>{if($(id)) $(id).disabled=value;}); };
-  function showAuth(){ $('auth-panel').classList.remove('hidden'); $('character-panel').classList.add('hidden'); $('game-panel').classList.add('hidden'); $('signout').classList.add('hidden'); }
+  function showAuth(){ $('auth-panel').classList.remove('hidden'); $('character-panel').classList.add('hidden'); $('game-panel').classList.add('hidden');  }
   function updatePixelStatus(data={}) {
     const name = data.nickname ?? profile?.nickname ?? 'Hero';
     const level = Math.max(1, Number(data.level ?? profile?.level ?? 1));
@@ -333,8 +333,8 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     if(error) throw error;
     if(!data) throw new Error('ไม่พบ profiles ของบัญชีนี้');
     profile=data;
-    if(!data.character_created){$('auth-panel').classList.add('hidden');$('game-panel').classList.add('hidden');$('character-panel').classList.remove('hidden');$('signout').classList.remove('hidden');msg('เข้าสู่ระบบแล้ว กรุณาสร้างตัวละคร');return;}
-    $('auth-panel').classList.add('hidden');$('character-panel').classList.add('hidden');$('game-panel').classList.remove('hidden');$('signout').classList.remove('hidden');
+    if(!data.character_created){$('auth-panel').classList.add('hidden');$('game-panel').classList.add('hidden');$('character-panel').classList.remove('hidden');msg('เข้าสู่ระบบแล้ว กรุณาสร้างตัวละคร');return;}
+    $('auth-panel').classList.add('hidden');$('character-panel').classList.add('hidden');$('game-panel').classList.remove('hidden');
     $('player-name').textContent=data.nickname||'Hero'; updatePixelStatus({nickname:data.nickname,level:data.level,exp:data.exp,gold:data.gold});
     $('level').textContent=data.level??1;$('exp').textContent=data.exp??0;$('gold').textContent=Number(data.gold??0).toLocaleString();
     log("👤 เข้าสู่ระบบ: "+(data.nickname||"ตัวละคร")+" · Lv."+(data.level??1));
@@ -605,6 +605,6 @@ $('settings-signout').onclick=signOutUser;
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.6.11"></script>
+<script src="game.js?v=0.6.12"></script>
 </body>
 </html>
