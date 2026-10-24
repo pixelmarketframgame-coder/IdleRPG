@@ -53,15 +53,17 @@
   <div id="status-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
     <section class="status-modal">
       <div class="modal-head"><div><h2 class="title" id="status-modal-title" style="margin:0">📊 STATUS</h2><p class="hint" style="margin:5px 0 0">รายละเอียดค่าสถานะและจัดสรรคะแนน</p></div><button id="close-status" class="modal-close" aria-label="ปิดเมนู Status">✕</button></div>
-      <h3 class="title">รายละเอียดค่าสถานะ</h3>
-      <div class="grid" id="stat-details-grid">
-        <div class="stat"><small>STR · Strength</small><strong>กายภาพระยะประชิด</strong><small>เพิ่มความจุน้ำหนัก</small></div>
-        <div class="stat"><small>AGI · Agility</small><strong>ความเร็วโจมตี</strong><small>หลบหลีก · ความเร็วเคลื่อนที่</small></div>
-        <div class="stat"><small>DEX · Dexterity</small><strong>ความแม่นยำ</strong><small>โจมตีระยะไกล · ลดเวลาร่าย</small></div>
-        <div class="stat"><small>INT · Intelligence</small><strong>พลังเวทมนตร์</strong><small>Max MP · ฟื้นฟู MP · MDEF</small></div>
-        <div class="stat"><small>VIT · Vitality</small><strong>Max HP · ฟื้นฟู HP</strong><small>ป้องกันกายภาพ · ต้านสถานะ</small></div>
-        <div class="stat"><small>LUK · Luck</small><strong>โอกาสคริติคอล</strong><small>ไอเทมดรอป · Perfect Dodge · สถานะผิดปกติ</small></div>
+      <h3 class="title">รายละเอียดตัวละคร</h3>
+      <div id="stat-details-list" class="status" style="padding:4px 12px">
+        <div class="preview-line"><span>พลังโจมตี (ATK)</span><strong id="detail-atk">กำลังโหลด…</strong></div>
+        <div class="preview-line"><span>พลังป้องกัน (DEF)</span><strong id="detail-def">กำลังโหลด…</strong></div>
+        <div class="preview-line"><span>พลังชีวิต (HP)</span><strong id="detail-hp">กำลังโหลด…</strong></div>
+        <div class="preview-line"><span>ความเร็วโจมตี (ASPD)</span><strong id="detail-aspd">กำลังโหลด…</strong></div>
+        <div class="preview-line"><span>ความแม่นยำ (HIT)</span><strong id="detail-hit">กำลังโหลด…</strong></div>
+        <div class="preview-line"><span>หลบหลีก (FLEE)</span><strong id="detail-flee">กำลังโหลด…</strong></div>
+        <div class="preview-line"><span>โอกาสคริติคอล (CRIT)</span><strong id="detail-crit">กำลังโหลด…</strong></div>
       </div>
+      <p class="hint" id="derived-stats-note" style="margin:8px 0 16px">ค่าที่คำนวณได้จากสูตรต่อสู้ปัจจุบันของเซิร์ฟเวอร์</p>
       <div class="top" style="margin:18px 0 10px"><h3 class="title" style="margin:0">จัดสรรค่า Stat</h3><span class="version-tag" id="stat-points-label">แต้มคงเหลือ: —</span></div>
       <div class="hint" style="margin-bottom:8px">กด + หรือ − เพื่อเลือกจำนวนแต้มก่อน แล้วกด Confirm เพื่อบันทึก</div>
       <div class="grid" id="stats-grid">
@@ -94,7 +96,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.4.2";
+  const APP_VERSION = "v0.4.3";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -377,13 +379,29 @@
   }
   async function loadStats(){
     if(!currentUser) return;
-    const {data,error}=await client.from('player_stats').select('str,agi,dex,luk,int_stat,vit,stat_points').eq('player_id',currentUser.id).maybeSingle();
+    const {data,error}=await client.from('player_stats').select('str,agi,dex,luk,int_stat,vit,stat_points,atk_level,hp_level').eq('player_id',currentUser.id).maybeSingle();
     if(error) throw error;
     if(!data) throw new Error('ไม่พบข้อมูลค่าสถานะของตัวละคร');
-    cachedStats={str:Number(data.str??0),agi:Number(data.agi??0),dex:Number(data.dex??0),luk:Number(data.luk??0),int:Number(data.int_stat??0),vit:Number(data.vit??0),stat_points:Number(data.stat_points??0)};
+    const level=Math.max(1,Number(profile?.level??1));
+    cachedStats={str:Number(data.str??0),agi:Number(data.agi??0),dex:Number(data.dex??0),luk:Number(data.luk??0),int:Number(data.int_stat??0),vit:Number(data.vit??0),stat_points:Number(data.stat_points??0),atk_level:Number(data.atk_level??1),hp_level:Number(data.hp_level??1)};
     const values={str:data.str??0,agi:data.agi??0,dex:data.dex??0,luk:data.luk??0,int:data.int_stat??0,vit:data.vit??0};
     Object.entries(values).forEach(([key,value])=>{if($('stat-'+key)) $('stat-'+key).textContent=String(value);});
-    $('stats-hint').textContent='แต้มที่เลือก '+stagedTotal()+' / '+cachedStats.stat_points+' · ผลของแต่ละค่าแสดงไว้ด้านบน';
+    // Keep these readouts aligned with the formulas currently used by public.advance_combat.
+    const attack=Math.max(1,Math.round(10*Math.pow(level,1.20))+((cachedStats.atk_level-1)*5)+(cachedStats.str*2));
+    const maxHp=Math.max(1,100+((cachedStats.hp_level-1)*20)+((level-1)*10)+(cachedStats.vit*10));
+    let currentHp=null;
+    const {data:combatData,error:combatError}=await client.from('player_combat_state').select('player_hp,player_max_hp').eq('player_id',currentUser.id).maybeSingle();
+    if(combatError) throw combatError;
+    if(combatData) currentHp=Math.max(0,Number(combatData.player_hp??maxHp));
+    $('detail-atk').textContent=attack.toLocaleString();
+    $('detail-def').textContent='ยังไม่เปิดใช้';
+    $('detail-hp').textContent=(currentHp===null?maxHp:currentHp).toLocaleString()+' / '+maxHp.toLocaleString();
+    $('detail-aspd').textContent='1 ครั้ง/วินาที (รอบต่อสู้ปัจจุบัน)';
+    $('detail-hit').textContent=Math.round(Math.min(0.99,0.90+(cachedStats.dex*0.01))*100)+'%';
+    $('detail-flee').textContent=Math.round(Math.min(0.50,cachedStats.agi*0.01)*100)+'%';
+    $('detail-crit').textContent=Math.round(Math.min(0.50,0.05+(cachedStats.luk*0.01))*100)+'%';
+    $('derived-stats-note').textContent='ATK, HP, HIT, FLEE และ CRIT อิงสูตรใน Supabase ปัจจุบัน · DEF ยังไม่มีผลในสูตรต่อสู้ และรอบโจมตีปัจจุบันทำงานประมาณ 1 ครั้ง/วินาที';
+    $('stats-hint').textContent='แต้มที่เลือก '+stagedTotal()+' / '+cachedStats.stat_points+' · กด +/− เพื่อเลือก แล้ว Confirm เพื่อบันทึก';
     renderStagedStats();
   }
   async function makeState(){
@@ -428,8 +446,9 @@
   });
   $('cancel-stat-changes').onclick=()=>{
     stagedStats={str:0,agi:0,dex:0,luk:0,int:0,vit:0};
-    renderStagedStats();
+    statusBackdrop.classList.add('hidden');
     loadStats().catch(e=>msg('โหลดค่าสถานะไม่สำเร็จ: '+e.message,true));
+    msg('ยกเลิกการจัดสรรค่าสถานะแล้ว · ยังไม่มีการใช้แต้ม');
   };
   $('confirm-stat-changes').onclick=async()=>{
     if(!currentUser||busy||!cachedStats)return;
@@ -460,6 +479,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.4.2"></script>
+<script src="game.js?v=0.4.3"></script>
 </body>
 </html>
