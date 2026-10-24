@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.28",
+  "version": "v0.6.29",
   "updated_at": "2026-10-24",
-  "notes": "Align wrapped chat text beneath the message after sender and time"
+  "notes": "Fix chat message wrapping alignment beside sender"
 }
