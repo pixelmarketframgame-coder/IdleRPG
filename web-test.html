@@ -620,6 +620,6 @@ $('settings-signout').onclick=signOutUser;
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.6.16"></script>
+<script src="game.js?v=0.6.17"></script>
 </body>
 </html>
