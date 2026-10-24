@@ -12,7 +12,14 @@
 .modal-backdrop.hidden{display:none!important}.status-modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #526ba6;border-radius:18px;padding:18px;box-shadow:0 24px 80px #000b}
 .modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.modal-close{min-width:42px;padding:8px 12px;background:#202b43;border-color:#445477}.status-menu-button{min-width:unset;padding:9px 15px;background:#253b70;border-color:#8d9fc9}
 @media(max-width:620px){.status-modal{padding:13px;max-height:94vh}.modal-backdrop{padding:8px}}
-.stat-preview{width:min(520px,100%);background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #c59b45;border-radius:16px;padding:18px;box-shadow:0 24px 80px #000b}.preview-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #2a3858}.preview-line:last-child{border-bottom:0}.preview-plus{color:#73e6ad;font-weight:900}.preview-select{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.preview-select button{padding:9px 4px}@media(max-width:420px){.stat-preview{padding:13px}.preview-select{gap:5px}.preview-select button{font-size:13px}}
+.stat-preview{width:min(520px,100%);background:linear-gradient(145deg,#17223b,#0d1426);border:1px solid #c59b45;border-radius:16px;padding:18px;box-shadow:0 24px 80px #000b}.preview-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #2a3858}.preview-line:last-child{border-bottom:0}
+.status-log-list{max-height:190px;overflow-y:auto;overscroll-behavior:contain;padding:0 12px!important;border:1px solid #2a3858;border-radius:10px;background:#0a1120;scrollbar-width:thin;scrollbar-color:#526ba6 #0a1120}
+.status-log-line{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:10px 2px;border-bottom:1px solid #202d48;font-size:14px;line-height:1.45}
+.status-log-line:last-child{border-bottom:0}
+.status-log-line span{color:#aebfe2}
+.status-log-line strong{color:#eaf1ff;text-align:right;max-width:55%;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.status-log-list::-webkit-scrollbar{width:6px}
+.status-log-list::-webkit-scrollbar-thumb{background:#526ba6;border-radius:6px}.preview-plus{color:#73e6ad;font-weight:900}.preview-select{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.preview-select button{padding:9px 4px}@media(max-width:420px){.stat-preview{padding:13px}.preview-select{gap:5px}.preview-select button{font-size:13px}}
 @media(max-width:620px){body{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.authgrid{grid-template-columns:1fr}.panel{padding:12px}.brand{font-size:17px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -54,14 +61,14 @@
     <section class="status-modal">
       <div class="modal-head"><div><h2 class="title" id="status-modal-title" style="margin:0">📊 STATUS</h2><p class="hint" style="margin:5px 0 0">รายละเอียดค่าสถานะและจัดสรรคะแนน</p></div><button id="close-status" class="modal-close" aria-label="ปิดเมนู Status">✕</button></div>
       <h3 class="title">รายละเอียดตัวละคร</h3>
-      <div id="stat-details-list" class="status" style="padding:4px 12px">
-        <div class="preview-line"><span>พลังโจมตี (ATK)</span><strong id="detail-atk">กำลังโหลด…</strong></div>
-        <div class="preview-line"><span>พลังป้องกัน (DEF)</span><strong id="detail-def">กำลังโหลด…</strong></div>
-        <div class="preview-line"><span>พลังชีวิต (HP)</span><strong id="detail-hp">กำลังโหลด…</strong></div>
-        <div class="preview-line"><span>ความเร็วโจมตี (ASPD)</span><strong id="detail-aspd">กำลังโหลด…</strong></div>
-        <div class="preview-line"><span>ความแม่นยำ (HIT)</span><strong id="detail-hit">กำลังโหลด…</strong></div>
-        <div class="preview-line"><span>หลบหลีก (FLEE)</span><strong id="detail-flee">กำลังโหลด…</strong></div>
-        <div class="preview-line"><span>โอกาสคริติคอล (CRIT)</span><strong id="detail-crit">กำลังโหลด…</strong></div>
+      <div id="stat-details-list" class="status status-log-list" aria-label="รายการค่าสถานะตัวละคร เลื่อนได้">
+        <div class="status-log-line"><span>พลังโจมตี (ATK)</span><strong id="detail-atk">กำลังโหลด…</strong></div>
+        <div class="status-log-line"><span>พลังป้องกัน (DEF)</span><strong id="detail-def">กำลังโหลด…</strong></div>
+        <div class="status-log-line"><span>พลังชีวิต (HP)</span><strong id="detail-hp">กำลังโหลด…</strong></div>
+        <div class="status-log-line"><span>ความเร็วโจมตี (ASPD)</span><strong id="detail-aspd">กำลังโหลด…</strong></div>
+        <div class="status-log-line"><span>ความแม่นยำ (HIT)</span><strong id="detail-hit">กำลังโหลด…</strong></div>
+        <div class="status-log-line"><span>หลบหลีก (FLEE)</span><strong id="detail-flee">กำลังโหลด…</strong></div>
+        <div class="status-log-line"><span>โอกาสคริติคอล (CRIT)</span><strong id="detail-crit">กำลังโหลด…</strong></div>
       </div>
       <p class="hint" id="derived-stats-note" style="margin:8px 0 16px">ค่าที่คำนวณได้จากสูตรต่อสู้ปัจจุบันของเซิร์ฟเวอร์</p>
       <div class="top" style="margin:18px 0 10px"><h3 class="title" style="margin:0">จัดสรรค่า Stat</h3><span class="version-tag" id="stat-points-label">แต้มคงเหลือ: —</span></div>
@@ -96,7 +103,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.4.3";
+  const APP_VERSION = "v0.4.4";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -479,6 +486,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.4.3"></script>
+<script src="game.js?v=0.4.4"></script>
 </body>
 </html>
