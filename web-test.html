@@ -109,7 +109,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.4.9";
+  const APP_VERSION = "v0.5.0";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -376,6 +376,31 @@
   const statKeys = ["str","agi","dex","luk","int","vit"];
   let stagedStats = {str:0,agi:0,dex:0,luk:0,int:0,vit:0};
   function stagedTotal(){return statKeys.reduce((sum,key)=>sum+Number(stagedStats[key]||0),0);}
+  let cachedCombatHp=null;
+  let cachedLevel=1;
+  function renderDerivedStatPreview(){
+    if(!cachedStats)return;
+    const projected={...cachedStats};
+    statKeys.forEach(key=>projected[key]=Number(cachedStats[key]||0)+Number(stagedStats[key]||0));
+    const attackBase=Math.max(1,Math.round(10*Math.pow(cachedLevel,1.20))+((cachedStats.atk_level-1)*5)+(cachedStats.str*2));
+    const attackNext=Math.max(1,Math.round(10*Math.pow(cachedLevel,1.20))+((cachedStats.atk_level-1)*5)+(projected.str*2));
+    const maxHpBase=Math.max(1,100+((cachedStats.hp_level-1)*20)+((cachedLevel-1)*10)+(cachedStats.vit*10));
+    const maxHpNext=Math.max(1,100+((cachedStats.hp_level-1)*20)+((cachedLevel-1)*10)+(projected.vit*10));
+    const hitBase=Math.round(Math.min(0.99,0.90+cachedStats.dex*0.01)*100);
+    const hitNext=Math.round(Math.min(0.99,0.90+projected.dex*0.01)*100);
+    const fleeBase=Math.round(Math.min(0.50,cachedStats.agi*0.01)*100);
+    const fleeNext=Math.round(Math.min(0.50,projected.agi*0.01)*100);
+    const critBase=Math.round(Math.min(0.50,0.05+cachedStats.luk*0.01)*100);
+    const critNext=Math.round(Math.min(0.50,0.05+projected.luk*0.01)*100);
+    const suffix=(delta,unit='')=>delta>0?' (+'+delta.toLocaleString()+unit+')':'';
+    $('detail-atk').textContent=attackBase.toLocaleString()+suffix(attackNext-attackBase);
+    $('detail-def').textContent='ยังไม่เปิดใช้';
+    $('detail-hp').textContent=(cachedCombatHp===null?maxHpBase:cachedCombatHp).toLocaleString()+' / '+maxHpBase.toLocaleString()+suffix(maxHpNext-maxHpBase);
+    $('detail-aspd').textContent='1 ครั้ง/วินาที (รอบต่อสู้ปัจจุบัน)';
+    $('detail-hit').textContent=hitBase+'%'+suffix(hitNext-hitBase,'%');
+    $('detail-flee').textContent=fleeBase+'%'+suffix(fleeNext-fleeBase,'%');
+    $('detail-crit').textContent=critBase+'%'+suffix(critNext-critBase,'%');
+  }
   function renderStagedStats(){
     if(!cachedStats) return;
     statKeys.forEach(key=>{
@@ -389,6 +414,7 @@
     });
     $("stat-points-label").textContent="แต้มคงเหลือ: "+Math.max(0,Number(cachedStats.stat_points||0)-stagedTotal());
     $("confirm-stat-changes").disabled=busy||stagedTotal()<1||stagedTotal()>Number(cachedStats.stat_points||0);
+    renderDerivedStatPreview();
   }
   async function loadStats(){
     if(!currentUser) return;
@@ -396,6 +422,7 @@
     if(error) throw error;
     if(!data) throw new Error('ไม่พบข้อมูลค่าสถานะของตัวละคร');
     const level=Math.max(1,Number(profile?.level??1));
+    cachedLevel=level;
     cachedStats={str:Number(data.str??0),agi:Number(data.agi??0),dex:Number(data.dex??0),luk:Number(data.luk??0),int:Number(data.int_stat??0),vit:Number(data.vit??0),stat_points:Number(data.stat_points??0),atk_level:Number(data.atk_level??1),hp_level:Number(data.hp_level??1)};
     const values={str:data.str??0,agi:data.agi??0,dex:data.dex??0,luk:data.luk??0,int:data.int_stat??0,vit:data.vit??0};
     Object.entries(values).forEach(([key,value])=>{if($('stat-'+key)) $('stat-'+key).textContent=String(value);});
@@ -406,13 +433,8 @@
     const {data:combatData,error:combatError}=await client.from('player_combat_state').select('player_hp,player_max_hp').eq('player_id',currentUser.id).maybeSingle();
     if(combatError) throw combatError;
     if(combatData) currentHp=Math.max(0,Number(combatData.player_hp??maxHp));
-    $('detail-atk').textContent=attack.toLocaleString();
-    $('detail-def').textContent='ยังไม่เปิดใช้';
-    $('detail-hp').textContent=(currentHp===null?maxHp:currentHp).toLocaleString()+' / '+maxHp.toLocaleString();
-    $('detail-aspd').textContent='1 ครั้ง/วินาที (รอบต่อสู้ปัจจุบัน)';
-    $('detail-hit').textContent=Math.round(Math.min(0.99,0.90+(cachedStats.dex*0.01))*100)+'%';
-    $('detail-flee').textContent=Math.round(Math.min(0.50,cachedStats.agi*0.01)*100)+'%';
-    $('detail-crit').textContent=Math.round(Math.min(0.50,0.05+(cachedStats.luk*0.01))*100)+'%';
+    cachedCombatHp=currentHp;
+    renderDerivedStatPreview();
     $('derived-stats-note').textContent='ATK, HP, HIT, FLEE และ CRIT อิงสูตรใน Supabase ปัจจุบัน · DEF ยังไม่มีผลในสูตรต่อสู้ และรอบโจมตีปัจจุบันทำงานประมาณ 1 ครั้ง/วินาที';
     $('stats-hint').textContent='แต้มที่เลือก '+stagedTotal()+' / '+cachedStats.stat_points+' · กด +/− เพื่อเลือก แล้ว Confirm เพื่อบันทึก';
     renderStagedStats();
@@ -492,6 +514,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.4.9"></script>
+<script src="game.js?v=0.5.0"></script>
 </body>
 </html>
