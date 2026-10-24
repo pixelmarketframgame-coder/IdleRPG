@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.25",
+  "version": "v0.6.26",
   "updated_at": "2026-10-24",
-  "notes": "Test centralized version update: version.json only"
+  "notes": "Wrapped chat message lines align after the colon"
 }
