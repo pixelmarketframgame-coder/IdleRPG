@@ -364,7 +364,15 @@ window.onServerCombatUpdate = function(payload) {
     const combatMonsterId = state.monster_id ?? state.monsterId ?? state.target_id ?? state.targetId ?? null;
     const combatMonsterName = state.monster_name ?? state.monsterName ?? state.target_name ?? state.targetName ?? null;
     if ((state.status === "fighting" || state.status === "monster_defeated") &&
-        combatMonsterId != null && gameScene && enemy && enemyNameText && enemyHpText && enemyHpBarBg && enemyHpBar) {
+        combatMonsterId != null && gameScene) {
+        // Ensure Phaser target objects exist even if the initial target query returned no row.
+        const combatType = String(state.monster_type || (state.is_boss ? "boss" : "normal")).toLowerCase();
+        const combatIsBoss = Boolean(state.is_boss ?? combatType === "boss");
+        if (!enemy) enemy = gameScene.add.sprite(180, combatIsBoss ? 155 : 165, combatIsBoss ? "enemy_boss" : "enemy_normal");
+        if (!enemyNameText) enemyNameText = gameScene.add.text(0, 0, "", { fontSize: "10px", color: "#ffffff", fontStyle: "bold", stroke: "#000000", strokeThickness: 3, backgroundColor: "#000000aa", padding: { x: 3, y: 2 } }).setOrigin(0.5);
+        if (!enemyHpText) enemyHpText = gameScene.add.text(0, 0, "", { fontSize: "9px", color: "#ffffff", fontStyle: "bold", stroke: "#000000", strokeThickness: 3, backgroundColor: "#000000aa", padding: { x: 3, y: 2 } }).setOrigin(0.5);
+        if (!enemyHpBarBg) enemyHpBarBg = gameScene.add.rectangle(0, 0, 64, 7, 0x111111).setOrigin(0.5);
+        if (!enemyHpBar) enemyHpBar = gameScene.add.rectangle(0, 0, 60, 5, 0xe74c3c).setOrigin(0.5);
         const changedTarget = String(combatMonsterId) !== String(currentMonsterId ?? "");
         currentMonsterId = String(combatMonsterId);
         if (combatMonsterName) enemyNameText.setText(String(combatMonsterName));
