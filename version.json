@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.35",
+  "version": "v0.6.36",
   "updated_at": "2026-10-25",
-  "notes": "Fixed equipment slot selection when unequipping and added live overall ATK, DEF, and HP summary outside the Bag popup."
+  "notes": "Overall status panel now reflects equipped gear bonuses; equipped items are hidden from the bag list; added Copy Log beside Inventory close button."
 }
