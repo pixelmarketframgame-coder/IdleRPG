@@ -321,6 +321,19 @@ function updateCombatMovement(seconds) {
     updateCombatDistanceHud();
 }
 
+// ส่งสถานะระยะไปให้ Supabase เพื่อไม่ให้ระบบต่อสู้หัก HP ก่อนตัวละครเข้าระยะ
+// หมายเหตุ: ค่านี้มาจาก client; ต้องเพิ่มการยืนยันตำแหน่งฝั่ง server ก่อนใช้เป็น anti-cheat เต็มรูปแบบ
+window.getCombatRangeState = function() {
+    if (!hero || !enemy || !enemy.visible || combatPaused || !currentMonsterId) {
+        return { playerInRange: false, monsterInRange: false };
+    }
+    const distanceTiles = Math.abs(hero.x - enemy.x) / TILE_SIZE_PX;
+    return {
+        playerInRange: distanceTiles <= combatProfile.attackRangeTiles,
+        monsterInRange: distanceTiles <= monsterCombatProfile.attackRangeTiles
+    };
+};
+
 function updateCombatDistanceHud() {
     const htmlHud = typeof document !== "undefined" ? document.getElementById("combat-distance") : null;
     if (!hero || !enemy || !enemy.visible) {
