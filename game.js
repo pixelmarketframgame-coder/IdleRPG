@@ -106,12 +106,15 @@ window.triggerHeroSkill = function(skillName) {
         return;
     }
     gameScene.cameras.main.shake(250, 0.012);
-    const beam = gameScene.add.rectangle(enemy.x, 110, 50, 220, 0xf1c40f, 0.8);
+    const beam = gameScene.add.rectangle(enemy.x, 110, 50, 220, 0xf1c40f, 0.8).setDepth(40);
     gameScene.tweens.add({
         targets: beam, alpha: 0, duration: 400,
         onComplete: () => {
             beam.destroy();
             applyDamage();
+            // Ask the web/Supabase bridge to resolve a combat tick immediately.
+            // Supabase remains authoritative for range validation, HP, death and rewards.
+            sendToFlutterFlow({ event: "ULTIMATE_REQUEST", skillName: String(skillName || "ultimate"), monsterId: currentMonsterId });
         }
     });
 };
