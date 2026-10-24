@@ -24,6 +24,7 @@
 .status-log-line{display:flex!important;flex-direction:row!important;align-items:baseline;justify-content:space-between;gap:8px;padding:0!important;margin:0!important;border:0!important;font-size:14px;line-height:normal!important;min-height:0!important;height:auto!important;white-space:normal!important}
 .status-log-line span{color:#aebfe2;margin:0!important;padding:0!important;line-height:normal!important}
 .status-log-line strong{color:#eaf1ff;text-align:right;max-width:55%;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;margin:0!important;padding:0!important;line-height:normal!important}
+  .derived-delta{color:#55e889;font-weight:700;white-space:nowrap}
 .status-log-list::-webkit-scrollbar{width:6px}
 .status-log-list::-webkit-scrollbar-thumb{background:#526ba6;border-radius:6px}.preview-plus{color:#73e6ad;font-weight:900}.preview-select{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.preview-select button{padding:9px 4px}@media(max-width:420px){.stat-preview{padding:13px}.preview-select{gap:5px}.preview-select button{font-size:13px}}
 @media(max-width:620px){body{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.authgrid{grid-template-columns:1fr}.panel{padding:12px}.brand{font-size:17px}}
@@ -109,7 +110,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.5.0";
+  const APP_VERSION = "v0.5.1";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -392,14 +393,14 @@
     const fleeNext=Math.round(Math.min(0.50,projected.agi*0.01)*100);
     const critBase=Math.round(Math.min(0.50,0.05+cachedStats.luk*0.01)*100);
     const critNext=Math.round(Math.min(0.50,0.05+projected.luk*0.01)*100);
-    const suffix=(delta,unit='')=>delta>0?' (+'+delta.toLocaleString()+unit+')':'';
-    $('detail-atk').textContent=attackBase.toLocaleString()+suffix(attackNext-attackBase);
+    const suffix=(delta,unit='')=>delta>0?' <span class="derived-delta">(+'+delta.toLocaleString()+unit+')</span>':'';
+    $('detail-atk').innerHTML=attackBase.toLocaleString()+suffix(attackNext-attackBase);
     $('detail-def').textContent='ยังไม่เปิดใช้';
-    $('detail-hp').textContent=(cachedCombatHp===null?maxHpBase:cachedCombatHp).toLocaleString()+' / '+maxHpBase.toLocaleString()+suffix(maxHpNext-maxHpBase);
+    $('detail-hp').innerHTML=(cachedCombatHp===null?maxHpBase:cachedCombatHp).toLocaleString()+' / '+maxHpBase.toLocaleString()+suffix(maxHpNext-maxHpBase);
     $('detail-aspd').textContent='1 ครั้ง/วินาที (รอบต่อสู้ปัจจุบัน)';
-    $('detail-hit').textContent=hitBase+'%'+suffix(hitNext-hitBase,'%');
-    $('detail-flee').textContent=fleeBase+'%'+suffix(fleeNext-fleeBase,'%');
-    $('detail-crit').textContent=critBase+'%'+suffix(critNext-critBase,'%');
+    $('detail-hit').innerHTML=hitBase+'%'+suffix(hitNext-hitBase,'%');
+    $('detail-flee').innerHTML=fleeBase+'%'+suffix(fleeNext-fleeBase,'%');
+    $('detail-crit').innerHTML=critBase+'%'+suffix(critNext-critBase,'%');
   }
   function renderStagedStats(){
     if(!cachedStats) return;
@@ -514,6 +515,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.5.0"></script>
+<script src="game.js?v=0.5.1"></script>
 </body>
 </html>
