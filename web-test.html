@@ -108,7 +108,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 }
 
 
-/* v0.6.20: remove unused vertical space from the game panel and give it to the log */
+/* v0.6.21: remove unused vertical space from the game panel and give it to the log */
 #game-panel{grid-template-rows:auto auto minmax(90px,1fr)!important;align-content:stretch}
 #game-panel>.panel:first-of-type{height:auto!important;min-height:0;align-self:start;gap:6px!important}
 #game-container{flex:0 0 auto!important;width:min(100%,720px)!important;height:auto!important;aspect-ratio:520/220!important;min-height:0!important;max-height:24vh!important;align-self:center}
@@ -129,7 +129,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <div class="wrap">
   <header class="top" style="justify-content:flex-end"></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.20</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.21</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -160,7 +160,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     <section class="status-modal" style="width:min(420px,100%)">
       <div class="modal-head"><div><h2 class="title" id="settings-modal-title" style="margin:0">⚙ SETTINGS</h2><p class="hint" style="margin:5px 0 0">การตั้งค่าหน้าเว็บทดสอบ</p></div><button id="close-settings" class="modal-close" aria-label="ปิด Settings">✕</button></div>
       <div class="row"><button id="settings-check-version" class="primary" type="button">🔄 ตรวจสอบเวอร์ชัน / อัปเดต</button></div>
-      <p id="settings-version-status" class="hint" role="status" style="margin:8px 0 12px">เวอร์ชันที่ใช้งาน: v0.6.20 · กดเพื่อตรวจสอบเวอร์ชันล่าสุด</p>
+      <p id="settings-version-status" class="hint" role="status" style="margin:8px 0 12px">เวอร์ชันที่ใช้งาน: v0.6.21 · กดเพื่อตรวจสอบเวอร์ชันล่าสุด</p>
       <div class="row"><button id="settings-refresh" type="button">↻ รีเฟรช / โหลดสถานะ</button><button id="settings-signout" class="green" type="button">ออกจากระบบ</button></div>
     </section>
   </div>
@@ -205,12 +205,12 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     </section>
   </div>
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
-  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.20</span></div>
+  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.21</span></div>
 </div>
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.20";
+  const APP_VERSION = "v0.6.21";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -444,13 +444,8 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
         if(error) throw error;
         const result=typeof data==='string'?JSON.parse(data):data;
         if(!result?.success) throw new Error(result?.message||result?.error||'Supabase ไม่ยืนยัน Ultimate');
-        if(result.status==='miss'){
-          log('⚡ Ultimate พลาด: Supabase ยืนยันผลแล้ว');
-          msg('Ultimate พลาดเป้า');
-        }else{
-          log('💥 CRITICAL ULTIMATE! ดาเมจ '+Number(result.damage||0).toLocaleString()+' (5x ATK) · Supabase ยืนยันแล้ว');
-          if(typeof window.onServerCombatUpdate==='function') window.onServerCombatUpdate(result);
-        }
+        log('💥 CRITICAL ULTIMATE! ดาเมจ '+Number(result.damage||0).toLocaleString()+' (5x ATK · ไม่มีพลาด · ไม่มีคูลดาวน์) · Supabase ยืนยันแล้ว');
+        if(typeof window.onServerCombatUpdate==='function') window.onServerCombatUpdate(result);
         updatePixelHp(result.player_hp,result.player_max_hp);
         if(result.status==='monster_defeated'){
           await syncProfileOnly();
