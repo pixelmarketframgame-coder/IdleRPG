@@ -645,17 +645,17 @@ $('settings-signout').onclick=signOutUser;
     const button=$('settings-check-version'), status=$('settings-version-status');
     button.disabled=true; status.textContent='กำลังตรวจสอบเวอร์ชันล่าสุด...';
     try{
-      await loadAppVersion();
+      const currentVersion=APP_VERSION;
       const response=await fetch('version.json?check='+Date.now(),{cache:'no-store'});
       if(!response.ok) throw new Error('อ่านข้อมูลเวอร์ชันไม่ได้ (HTTP '+response.status+')');
       const latest=await response.json();
       const latestVersion=String(latest.version||'').trim();
       if(!latestVersion) throw new Error('ไฟล์เวอร์ชันไม่มีหมายเลขเวอร์ชัน');
-      if(latestVersion===APP_VERSION){
+      if(latestVersion===currentVersion){
         status.textContent='✅ ใช้เวอร์ชันล่าสุดแล้ว: '+APP_VERSION;
         msg('เวอร์ชันเป็นปัจจุบันแล้ว: '+APP_VERSION);
       }else{
-        status.textContent='พบเวอร์ชันใหม่ '+latestVersion+' (ปัจจุบัน '+APP_VERSION+') กำลังโหลดใหม่...';
+        status.textContent='พบเวอร์ชันใหม่ '+latestVersion+' (ปัจจุบัน '+currentVersion+') กำลังโหลดใหม่...';
         msg('พบเวอร์ชันใหม่ '+latestVersion+' กำลังโหลดหน้าเว็บใหม่');
         const url=new URL(window.location.href);
         url.searchParams.set('v',latestVersion);
