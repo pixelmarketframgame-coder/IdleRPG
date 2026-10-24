@@ -108,7 +108,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 }
 
 
-/* v0.6.21: remove unused vertical space from the game panel and give it to the log */
+/* v0.6.22: remove unused vertical space from the game panel and give it to the log */
 #game-panel{grid-template-rows:auto auto minmax(90px,1fr)!important;align-content:stretch}
 #game-panel>.panel:first-of-type{height:auto!important;min-height:0;align-self:start;gap:6px!important}
 #game-container{flex:0 0 auto!important;width:min(100%,720px)!important;height:auto!important;aspect-ratio:520/220!important;min-height:0!important;max-height:24vh!important;align-self:center}
@@ -121,6 +121,29 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 @media(max-height:500px){
  #game-container{max-height:20vh!important}
 }
+
+/* v0.6.22 floating draggable global chat */
+#floating-chat-button{position:fixed;z-index:10050;right:18px;top:42%;width:58px;height:58px;border-radius:50%;padding:0;display:none;align-items:center;justify-content:center;background:linear-gradient(145deg,#6d5dfc,#344fc8);border:2px solid #c8d0ff;box-shadow:0 8px 28px #0009;font-size:25px;touch-action:none;user-select:none;cursor:grab}
+#floating-chat-button:active{cursor:grabbing}
+#floating-chat-button .chat-unread{position:absolute;right:-2px;top:-3px;min-width:19px;height:19px;padding:1px 5px;border-radius:20px;background:#ef4444;color:white;font-size:11px;line-height:17px;display:none}
+#floating-chat-button .chat-unread.show{display:block}
+#chat-popup{position:fixed;z-index:10040;right:16px;bottom:16px;width:min(360px,calc(100vw - 24px));height:min(520px,calc(100dvh - 110px));min-height:300px;background:#101729;border:1px solid #50618b;border-radius:16px;box-shadow:0 18px 55px #000b;display:flex;flex-direction:column;overflow:hidden}
+#chat-popup.hidden{display:none}
+.chat-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(120deg,#263d75,#182647);border-bottom:1px solid #34466c}
+.chat-head h3{margin:0;color:#fff;font-size:16px}
+#chat-close{padding:4px 9px;min-width:32px}
+#chat-state{font-size:11px;color:#b8c8ef;margin-top:3px}
+#chat-messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;overscroll-behavior:contain}
+.chat-empty{color:#9eaccb;text-align:center;font-size:12px;margin:auto}
+.chat-line{max-width:92%;align-self:flex-start;background:#202d49;border:1px solid #344566;border-radius:11px;padding:7px 9px;overflow-wrap:anywhere}
+.chat-line.mine{align-self:flex-end;background:#273d76;border-color:#4e68ae}
+.chat-line .chat-meta{font-size:10px;color:#b5c4e5;margin-bottom:3px;display:flex;gap:8px;justify-content:space-between}
+.chat-line .chat-body{font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.chat-compose{display:flex;gap:7px;padding:10px;border-top:1px solid #2a3858;background:#141d32}
+.chat-compose input{flex:1;min-width:0;padding:10px;font-size:13px}
+.chat-compose button{padding:9px 12px}
+@media(max-width:480px){#floating-chat-button{width:52px;height:52px;right:12px;font-size:23px}#chat-popup{right:8px;bottom:8px;width:calc(100vw - 16px);height:min(68dvh,520px)}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -129,7 +152,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <div class="wrap">
   <header class="top" style="justify-content:flex-end"></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.21</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.22</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -160,7 +183,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     <section class="status-modal" style="width:min(420px,100%)">
       <div class="modal-head"><div><h2 class="title" id="settings-modal-title" style="margin:0">⚙ SETTINGS</h2><p class="hint" style="margin:5px 0 0">การตั้งค่าหน้าเว็บทดสอบ</p></div><button id="close-settings" class="modal-close" aria-label="ปิด Settings">✕</button></div>
       <div class="row"><button id="settings-check-version" class="primary" type="button">🔄 ตรวจสอบเวอร์ชัน / อัปเดต</button></div>
-      <p id="settings-version-status" class="hint" role="status" style="margin:8px 0 12px">เวอร์ชันที่ใช้งาน: v0.6.21 · กดเพื่อตรวจสอบเวอร์ชันล่าสุด</p>
+      <p id="settings-version-status" class="hint" role="status" style="margin:8px 0 12px">เวอร์ชันที่ใช้งาน: v0.6.22 · กดเพื่อตรวจสอบเวอร์ชันล่าสุด</p>
       <div class="row"><button id="settings-refresh" type="button">↻ รีเฟรช / โหลดสถานะ</button><button id="settings-signout" class="green" type="button">ออกจากระบบ</button></div>
     </section>
   </div>
@@ -204,13 +227,21 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
       <div class="row" style="margin-top:12px"><button id="cancel-stat-upgrade" type="button">ยกเลิก</button><button id="confirm-stat-upgrade" class="green" type="button">✓ Confirm Upgrade</button></div>
     </section>
   </div>
+  
+<button id="floating-chat-button" type="button" aria-label="เปิด Chat" title="ลากปุ่มไปวางตำแหน่งที่ต้องการ">💬<span id="chat-unread" class="chat-unread">!</span></button>
+<section id="chat-popup" class="hidden" role="dialog" aria-modal="false" aria-labelledby="chat-title">
+  <header class="chat-head"><div><h3 id="chat-title">💬 Global Chat</h3><div id="chat-state">เข้าสู่ระบบเพื่อแชต</div></div><button id="chat-close" type="button" aria-label="ปิด Chat">✕</button></header>
+  <div id="chat-messages" aria-live="polite"><div class="chat-empty">ข้อความแชตจะแสดงที่นี่</div></div>
+  <form id="chat-compose" class="chat-compose"><input id="chat-input" maxlength="500" autocomplete="off" placeholder="พิมพ์ข้อความ..." aria-label="ข้อความแชต"><button id="chat-send" class="primary" type="submit">ส่ง</button></form>
+</section>
+
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
-  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.21</span></div>
+  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.22</span></div>
 </div>
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.21";
+  const APP_VERSION = "v0.6.22";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -667,12 +698,96 @@ $('settings-signout').onclick=signOutUser;
       await loadStats().catch(()=>{});
     }finally{setBusy(false);await loadStats().catch(()=>{});}
   };
+
+  // Floating global chat. Messages are stored in Supabase and refreshed while the popup is open.
+  const chatButton=$('floating-chat-button'), chatPopup=$('chat-popup'), chatMessages=$('chat-messages');
+  const chatInput=$('chat-input'), chatState=$('chat-state'), chatUnread=$('chat-unread');
+  let chatPollTimer=null, chatLastSeen=0, chatLoading=false, chatUnreadCount=0;
+  function setChatState(text){ if(chatState) chatState.textContent=text; }
+  function openChat(){
+    if(!currentUser){msg('กรุณาเข้าสู่ระบบก่อนใช้ Chat',true);return;}
+    chatPopup.classList.remove('hidden'); chatUnreadCount=0;chatUnread.classList.remove('show');
+    chatInput.focus(); loadChatMessages();
+    if(chatPollTimer) clearInterval(chatPollTimer);
+    chatPollTimer=setInterval(()=>{if(!chatPopup.classList.contains('hidden'))loadChatMessages();},3000);
+  }
+  function closeChat(){chatPopup.classList.add('hidden');if(chatPollTimer){clearInterval(chatPollTimer);chatPollTimer=null;}}
+  chatButton.addEventListener('click',openChat);
+  $('chat-close').addEventListener('click',closeChat);
+  // Pointer-based drag works with mouse and touch. A click without movement opens chat.
+  let chatDrag=null;
+  chatButton.addEventListener('pointerdown',e=>{
+    chatDrag={x:e.clientX,y:e.clientY,left:chatButton.getBoundingClientRect().left,top:chatButton.getBoundingClientRect().top,moved:false};
+    try{chatButton.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  chatButton.addEventListener('pointermove',e=>{
+    if(!chatDrag)return;
+    const dx=e.clientX-chatDrag.x,dy=e.clientY-chatDrag.y;
+    if(Math.abs(dx)+Math.abs(dy)>7)chatDrag.moved=true;
+    if(!chatDrag.moved)return;
+    chatButton.style.left=Math.max(4,Math.min(window.innerWidth-chatButton.offsetWidth-4,chatDrag.left+dx))+'px';
+    chatButton.style.top=Math.max(4,Math.min(window.innerHeight-chatButton.offsetHeight-4,chatDrag.top+dy))+'px';
+    chatButton.style.right='auto';
+  });
+  chatButton.addEventListener('pointerup',()=>{if(chatDrag?.moved){chatButton.dataset.dragged='1';setTimeout(()=>delete chatButton.dataset.dragged,250);}chatDrag=null;});
+  chatButton.addEventListener('click',e=>{if(chatButton.dataset.dragged==='1'){e.preventDefault();e.stopImmediatePropagation();}},true);
+  async function loadChatMessages(){
+    if(!currentUser||chatLoading)return;
+    chatLoading=true;
+    try{
+      const {data,error}=await client.from('chat_messages').select('id,sender_id,sender_name,message,created_at').order('created_at',{ascending:false}).limit(50);
+      if(error)throw error;
+      const rows=(data||[]).reverse();
+      const nearBottom=chatMessages.scrollHeight-chatMessages.scrollTop-chatMessages.clientHeight<70;
+      const oldNewest=chatLastSeen;
+      chatMessages.replaceChildren();
+      if(!rows.length){const empty=document.createElement('div');empty.className='chat-empty';empty.textContent='ยังไม่มีข้อความ · เริ่มทักทายกันได้เลย';chatMessages.appendChild(empty);}
+      rows.forEach(row=>{
+        const line=document.createElement('div');line.className='chat-line'+(row.sender_id===currentUser.id?' mine':'');
+        const meta=document.createElement('div');meta.className='chat-meta';
+        const name=document.createElement('span');name.textContent=row.sender_id===currentUser.id?'คุณ':(row.sender_name||'Player');
+        const time=document.createElement('time');time.textContent=new Date(row.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+        meta.append(name,time);
+        const body=document.createElement('div');body.className='chat-body';body.textContent=row.message;
+        line.append(meta,body);chatMessages.appendChild(line);
+      });
+      if(rows.length){chatLastSeen=Math.max(chatLastSeen,Number(rows[rows.length-1].id)||0);
+        if(oldNewest&&Number(rows[rows.length-1].id)>oldNewest&&chatPopup.classList.contains('hidden')){chatUnreadCount++;chatUnread.textContent=chatUnreadCount;chatUnread.classList.add('show');}
+      }
+      if(nearBottom||chatMessages.children.length<=1)chatMessages.scrollTop=chatMessages.scrollHeight;
+      setChatState('ออนไลน์ · แสดง '+rows.length+' ข้อความล่าสุด');
+    }catch(e){setChatState('โหลดแชตไม่สำเร็จ');log('Chat load: '+e.message);}
+    finally{chatLoading=false;}
+  }
+  $('chat-compose').addEventListener('submit',async e=>{
+    e.preventDefault();
+    if(!currentUser){msg('กรุณาเข้าสู่ระบบก่อนใช้ Chat',true);return;}
+    const message=chatInput.value.trim();
+    if(!message)return;
+    if(message.length>500){msg('ข้อความยาวได้สูงสุด 500 ตัวอักษร',true);return;}
+    const send=$('chat-send');send.disabled=true;
+    try{
+      const senderName=($('pixel-name')?.textContent||currentUser.email?.split('@')[0]||'Player').slice(0,40);
+      const {error}=await client.from('chat_messages').insert({sender_id:currentUser.id,sender_name:senderName,message});
+      if(error)throw error;
+      chatInput.value='';await loadChatMessages();chatMessages.scrollTop=chatMessages.scrollHeight;
+    }catch(e){msg('ส่งข้อความไม่สำเร็จ: '+e.message,true);setChatState('ส่งข้อความไม่สำเร็จ');}
+    finally{send.disabled=false;chatInput.focus();}
+  });
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeChat();});
+  const chatAuthObserver=client.auth.onAuthStateChange((_event,session)=>{
+    currentUser=session?.user||null;
+    chatButton.style.display=currentUser?'flex':'none';
+    if(!currentUser)closeChat();
+    else setChatState('พร้อมแชต');
+  });
+
   $('ultimate').onclick=()=>{if(typeof window.triggerHeroSkill==='function')window.triggerHeroSkill('ultimate');};
   $('challenge').onclick=()=>{if(typeof window.challengeCurrentStage==='function')window.challengeCurrentStage();};
   $('refresh').onclick=async()=>{setBusy(true);try{await syncPlayer();}catch(e){msg('โหลดข้อมูลไม่สำเร็จ: '+e.message,true);}finally{setBusy(false);}};
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.6.19"></script>
+<script src="game.js?v=0.6.22"></script>
 </body>
 </html>
