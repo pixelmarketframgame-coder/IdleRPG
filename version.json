@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.30",
+  "version": "v0.6.31",
   "updated_at": "2026-10-24",
-  "notes": "Chat wrapped lines align to the start of sender name"
+  "notes": "Added frontend-only Inventory/Gear popup with 7 equipment slots, storage grid, filters, equip/unequip, and sample stats; no database changes"
 }
