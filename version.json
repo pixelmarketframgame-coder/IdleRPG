@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.21",
+  "version": "v0.6.22",
   "updated_at": "2026-10-24",
-  "notes": "Ultimate guaranteed hit, 5x server-calculated ATK, no cooldown"
+  "notes": "Draggable floating global chat popup with Supabase message storage"
 }
