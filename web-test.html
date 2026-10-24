@@ -69,7 +69,7 @@
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.2.9";
+  const APP_VERSION = "v0.3.0";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -260,6 +260,17 @@
         $('last-reward').textContent='ได้รับ EXP +'+(combat.reward?.exp_gain??0)+' · Gold +'+(combat.reward?.gold_gain??0)+(combat.reward?.material_quantity?' · วัสดุ '+combat.reward.material_id+' x'+combat.reward.material_quantity:'');
         log('🎁 รางวัลยืนยันแล้ว: EXP +'+(combat.reward?.exp_gain??0)+', Gold +'+(combat.reward?.gold_gain??0));
       }
+      // Keep the visible HTML diagnostic HUD aligned with the authoritative combat RPC,
+      // even if get_current_combat_target returns no row.
+      if (combat.status === 'fighting' || combat.status === 'monster_defeated') {
+        const activeName = combat.monster_name || combat.target_name || combat.monster_id || combat.target_id || 'กำลังต่อสู้';
+        if ($('monster-hud-name')) $('monster-hud-name').textContent = String(activeName);
+        const mhp = Math.max(0, Number(combat.monster_hp ?? 0) || 0);
+        const mhmax = Math.max(1, Number(combat.monster_max_hp ?? mhp ?? 1) || 1);
+        if ($('monster-hud-hp')) $('monster-hud-hp').textContent = 'HP ' + mhp.toLocaleString() + ' / ' + mhmax.toLocaleString();
+        if ($('monster-hud-fill')) $('monster-hud-fill').style.width = Math.min(100, mhp / mhmax * 100) + '%';
+        if ($('combat-hint')) $('combat-hint').textContent = 'HP ผู้เล่น ' + Number(combat.player_hp ?? 0).toLocaleString() + '/' + Number(combat.player_max_hp ?? 0).toLocaleString() + ' · HP มอนสเตอร์ ' + mhp.toLocaleString() + '/' + mhmax.toLocaleString() + ' · ผลคำนวณจาก Supabase';
+      }
       if(typeof window.onServerCombatUpdate==='function') window.onServerCombatUpdate(combat);
     } catch(e) {
       if(!window._lastCombatPollError || Date.now()-window._lastCombatPollError>10000){
@@ -366,6 +377,6 @@
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.2.9"></script>
+<script src="game.js?v=0.3.0"></script>
 </body>
 </html>
