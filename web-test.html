@@ -100,6 +100,28 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
  #game-panel>.panel:first-of-type .farm-progress-hint{display:none}
 }
 
+
+/* v0.6.3: reliable farm progress layout — target actual battle panel, not first div */
+#game-panel>.panel:nth-of-type(2) .farm-progress,
+#game-panel .farm-progress{
+ display:block!important;visibility:visible!important;opacity:1!important;
+ position:relative!important;z-index:10!important;order:3!important;
+ width:100%!important;min-height:48px!important;flex:0 0 auto!important;
+ height:auto!important;max-height:none!important;overflow:visible!important;
+ margin:3px auto!important;padding:6px 8px!important;
+}
+#game-panel .farm-progress-head{display:flex!important;justify-content:space-between!important;align-items:center!important;flex-wrap:nowrap!important;gap:6px!important;width:100%!important}
+#game-panel .farm-progress-title{display:block!important;visibility:visible!important;opacity:1!important;flex:1 1 auto!important;min-width:0!important;white-space:normal!important;font-size:clamp(9px,1.5vw,12px)!important;line-height:1.2!important}
+#game-panel .farm-progress-count{display:block!important;visibility:visible!important;opacity:1!important;flex:0 0 auto!important;white-space:nowrap!important;font-size:clamp(9px,1.5vw,12px)!important;color:#fff!important}
+#game-panel .farm-progress-meter{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;width:100%!important;height:9px!important;min-height:9px!important;flex:0 0 9px!important;margin-top:5px!important}
+#game-panel .farm-progress-fill{display:block!important;visibility:visible!important;opacity:1!important;height:100%!important;background:linear-gradient(#7af0a7,#198754)!important}
+#game-panel .farm-progress-hint{display:none!important}
+@media(max-width:700px){
+ #game-panel{grid-template-rows:auto minmax(0,1fr) minmax(72px,.23fr)!important}
+ #game-panel>.panel:nth-of-type(2){min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
+ #game-panel .farm-progress{min-height:42px!important;padding:5px 7px!important}
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -182,7 +204,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.2";
+  const APP_VERSION = "v0.6.3";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -587,6 +609,6 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.6.2"></script>
+<script src="game.js?v=0.6.3"></script>
 </body>
 </html>
