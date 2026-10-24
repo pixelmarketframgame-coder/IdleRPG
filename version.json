@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.38",
+  "version": "v0.6.39",
   "updated_at": "2026-10-25",
-  "notes": "Added Status menu controls to save Status snapshots, view and copy archived combat/inventory logs; logs persist locally on device."
+  "notes": "Status ATK now uses total Inventory ATK including equipped weapon bonuses, while retaining staged STR preview."
 }
