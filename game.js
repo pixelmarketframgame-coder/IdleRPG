@@ -97,6 +97,7 @@ window.changePetSkin = function(skinType) {
     console.log("Pet changed to:", skinType);
 };
 
+// TBH Pixel Auto Battler test build v0.6.19: Ultimate is a server-confirmed critical hit (5x ATK).
 window.triggerHeroSkill = function(skillName) {
     if (!gameScene || !hero || !enemy || combatPaused || awaitingServerResponse || !currentMonsterId || !enemy.visible) return;
     // Never show an attack before the player has reached the weapon's range.
@@ -106,13 +107,13 @@ window.triggerHeroSkill = function(skillName) {
         return;
     }
     gameScene.cameras.main.shake(250, 0.012);
-    const beam = gameScene.add.rectangle(enemy.x, 110, 50, 220, 0xf1c40f, 0.8).setDepth(40);
+    const beam = gameScene.add.rectangle(enemy.x, 110, 70, 220, 0xff3030, 0.9).setDepth(40);
     gameScene.tweens.add({
         targets: beam, alpha: 0, duration: 400,
         onComplete: () => {
             beam.destroy();
-            applyDamage();
-            // Ask the web/Supabase bridge to resolve a combat tick immediately.
+            createImpactSparks(enemy.x, enemy.y);
+            // Ask the web/Supabase bridge for a dedicated Ultimate RPC, not an auto-combat tick.
             // Supabase remains authoritative for range validation, HP, death and rewards.
             sendToFlutterFlow({ event: "ULTIMATE_REQUEST", skillName: String(skillName || "ultimate"), monsterId: currentMonsterId });
         }
