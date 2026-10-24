@@ -359,6 +359,34 @@ window.onServerCombatUpdate = function(payload) {
     catch (err) { console.error("Invalid server combat update", err); return; }
     if (!state || state.success !== true) return;
 
+    // Fallback: combat RPC may be active even when get_current_combat_target returns no row.
+    // Build a visible Phaser target from the authoritative combat payload when it includes a monster ID.
+    const combatMonsterId = state.monster_id ?? state.monsterId ?? state.target_id ?? state.targetId ?? null;
+    const combatMonsterName = state.monster_name ?? state.monsterName ?? state.target_name ?? state.targetName ?? null;
+    if ((state.status === "fighting" || state.status === "monster_defeated") &&
+        combatMonsterId != null && gameScene && enemy && enemyNameText && enemyHpText && enemyHpBarBg && enemyHpBar) {
+        const changedTarget = String(combatMonsterId) !== String(currentMonsterId ?? "");
+        currentMonsterId = String(combatMonsterId);
+        if (combatMonsterName) enemyNameText.setText(String(combatMonsterName));
+        if (state.monster_type || state.is_boss != null) {
+            currentMonsterType = String(state.monster_type || (state.is_boss ? "boss" : "normal")).toLowerCase();
+            isBossFight = Boolean(state.is_boss ?? currentMonsterType === "boss");
+            enemy.setTexture(isBossFight ? "enemy_boss" : "enemy_normal");
+        }
+        enemy.setPosition(enemy.x || 180, isBossFight ? 155 : 165).setDepth(15).setVisible(true).setAlpha(1);
+        enemyNameText.setVisible(true).setAlpha(1).setDepth(33);
+        enemyHpText.setVisible(true).setAlpha(1).setDepth(32);
+        enemyHpBarBg.setVisible(true).setAlpha(1).setDepth(30);
+        enemyHpBar.setVisible(true).setAlpha(1).setDepth(31);
+        if (changedTarget) {
+            lastDisplayedMonsterHp = null;
+            lastDisplayedMonsterId = currentMonsterId;
+        }
+        if (state.monster_hp != null) enemyHp = Math.max(0, Number(state.monster_hp) || 0);
+        if (state.monster_max_hp != null) maxEnemyHp = Math.max(1, Number(state.monster_max_hp) || 1);
+        updateEnemyHpBar();
+    }
+
     const previousStatus = lastServerCombatStatus;
     const previousHp = lastDisplayedPlayerHp ?? serverPlayerHp;
     const incomingMonsterId = state.monster_id != null ? String(state.monster_id) : currentMonsterId;
