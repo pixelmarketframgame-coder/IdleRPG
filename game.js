@@ -14,6 +14,7 @@ let killsInStage = 0;
 const maxKillsPerStage = 100;
 let isBossFight = false;
 let currentMonsterId = null;
+let currentMonsterName = "";
 let currentMonsterType = "normal";
 let isChallengeTarget = false;
 let awaitingServerResponse = false;
@@ -423,7 +424,7 @@ function spawnEnemy() {
     } else {
         enemy.setTexture('enemy_normal');
         enemy.setPosition(180, 165);
-        enemyNameText.setText("Slime Minion").setColor("#ffffff");
+        enemyNameText.setText(currentMonsterName || "Monster").setColor("#ffffff");
     }
 
     enemy.setVisible(true);
@@ -573,7 +574,7 @@ window.onServerCombatUpdate = function(payload) {
         if (!enemyHpBar) enemyHpBar = gameScene.add.rectangle(0, 0, 60, 5, 0xe74c3c).setOrigin(0.5);
         const changedTarget = String(combatMonsterId) !== String(currentMonsterId ?? "");
         currentMonsterId = String(combatMonsterId);
-        if (combatMonsterName) enemyNameText.setText(String(combatMonsterName));
+        if (combatMonsterName) { currentMonsterName = String(combatMonsterName); enemyNameText.setText(currentMonsterName); }
         if (state.monster_type || state.is_boss != null) {
             currentMonsterType = String(state.monster_type || (state.is_boss ? "boss" : "normal")).toLowerCase();
             isBossFight = Boolean(state.is_boss ?? currentMonsterType === "boss");
@@ -902,6 +903,7 @@ window.initGameState = function(jsonPayload) {
     // Show the server-provided monster even if its identifier is absent; attacks remain disabled until an ID arrives.
     const monsterId = monster.id ?? monster.monster_id ?? monster.monsterId ?? monster.target_id ?? monster.targetId ?? null;
     currentMonsterId = monsterId == null ? null : String(monsterId);
+    currentMonsterName = String(monster.monster_name || monster.monsterName || monster.name || monster.display_name || monster.displayName || currentMonsterName || "Monster");
     currentMonsterType = String(monster.monster_type || monster.type || (monster.is_boss ? "boss" : "normal")).toLowerCase();
     isBossFight = Boolean(monster.is_boss ?? monster.isBoss ?? (currentMonsterType === "boss"));
     setMonsterCombatProfile(monster);
@@ -915,7 +917,7 @@ window.initGameState = function(jsonPayload) {
     enemy.setPosition(MONSTER_START_X, isBossFight ? 155 : 165);
     enemy.setScale(isBossFight ? 1 : 1);
     enemy.setDepth(15).setVisible(true).setAlpha(1);
-    enemyNameText.setText(String(monster.monster_name || monster.monsterName || monster.name || monster.display_name || monster.displayName || "Monster"));
+    enemyNameText.setText(currentMonsterName);
     enemyNameText.setColor(isBossFight ? "#f1c40f" : "#ffffff");
     enemyNameText.setVisible(true).setAlpha(1).setDepth(33);
     enemyHpText.setVisible(true).setAlpha(1).setDepth(32);
