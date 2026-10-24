@@ -230,7 +230,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
       <div class="inventory-layout">
         <section class="inventory-section"><h3 class="inventory-section-title">⚔ EQUIPPED GEAR · 7 SLOTS</h3><div id="gear-slots" class="gear-slots"></div><p class="inventory-note">เลือกช่องอุปกรณ์เพื่อดูรายละเอียดหรือถอดไอเทม</p></section>
         <div class="inventory-main">
-          <div class="inventory-stats"><div class="inventory-stat"><small>ATK</small><strong id="inventory-atk">10</strong></div><div class="inventory-stat"><small>DEF</small><strong id="inventory-def">5</strong></div><div class="inventory-stat"><small>HP</small><strong id="inventory-hp">100</strong></div></div>
+          <div class="inventory-stats"><div class="inventory-stat"><small>ATK</small><strong id="inventory-atk">210</strong></div><div class="inventory-stat"><small>DEF</small><strong id="inventory-def">50</strong></div><div class="inventory-stat"><small>HP</small><strong id="inventory-hp">1000</strong></div></div>
           <section class="inventory-section"><h3 class="inventory-section-title">📦 BAG STORAGE</h3><div class="inventory-filters" id="inventory-filters"><button type="button" class="active" data-filter="all">ทั้งหมด</button><button type="button" data-filter="gear">อุปกรณ์</button><button type="button" data-filter="material">วัตถุดิบ</button><button type="button" data-filter="consumable">ของใช้</button></div><div id="inventory-items" class="inventory-item-grid"></div></section>
           <section class="inventory-detail" id="inventory-detail" aria-live="polite"><strong>เลือกไอเทม</strong><p>แตะไอเทมในกระเป๋าเพื่อดูรายละเอียด</p></section>
           <div class="inventory-actions"><button id="inventory-equip" class="primary" type="button" disabled>สวมใส่</button><button id="inventory-unequip" type="button" disabled>ถอดอุปกรณ์</button></div>
@@ -904,7 +904,7 @@ $('settings-signout').onclick=signOutUser;
   {id:'right_accessory',label:'เครื่องประดับขวา',icon:'📿'}
  ];
  const items=[
-  {id:'sword_01',name:'ดาบฝึกหัด',icon:'🗡️',type:'gear',slot:'weapon',rarity:'common',atk:5,def:0,hp:0,qty:1,desc:'ดาบเริ่มต้นที่สมดุล เหมาะกับนักผจญภัยมือใหม่'},
+  {id:'sword_01',name:'ดาบฝึกหัด',icon:'🗡️',type:'gear',slot:'weapon',rarity:'common',atk:20,def:0,hp:0,qty:1,desc:'ดาบฝึกหัด เพิ่ม ATK +20 ให้กับค่าสถานะพื้นฐาน'},
   {id:'helm_01',name:'หมวกนักเดินทาง',icon:'⛑️',type:'gear',slot:'head',rarity:'common',atk:0,def:2,hp:5,qty:1,desc:'หมวกน้ำหนักเบาช่วยป้องกันการโจมตี'},
   {id:'armor_01',name:'เกราะผ้า',icon:'🥋',type:'gear',slot:'armor',rarity:'common',atk:0,def:4,hp:15,qty:1,desc:'เกราะพื้นฐานที่เพิ่มพลังป้องกันและ HP'},
   {id:'boots_01',name:'รองเท้าหนัง',icon:'👢',type:'gear',slot:'legs',rarity:'common',atk:0,def:1,hp:3,qty:1,desc:'รองเท้าสำหรับเดินทางในดินแดนเริ่มต้น'},
@@ -918,7 +918,7 @@ $('settings-signout').onclick=signOutUser;
  const equipped={weapon:'sword_01',head:'helm_01',armor:'armor_01',legs:null,wings:null,left_accessory:null,right_accessory:null};
  let filter='all',selectedItem=null,selectedSlot=null;
  const findItem=id=>items.find(x=>x.id===id);
- function stats(){return Object.values(equipped).map(findItem).filter(Boolean).reduce((s,x)=>({atk:s.atk+x.atk,def:s.def+x.def,hp:s.hp+x.hp}),{atk:10,def:5,hp:100});}
+ function stats(){return Object.values(equipped).map(findItem).filter(Boolean).reduce((s,x)=>({atk:s.atk+x.atk,def:s.def+x.def,hp:s.hp+x.hp}),{atk:210,def:50,hp:1000});}
  function renderGear(){
   const root=$inv('gear-slots');root.replaceChildren();
   gearSlots.forEach(slot=>{
@@ -961,6 +961,6 @@ $('settings-signout').onclick=signOutUser;
 })();
 </script>
 
-<script src="game.js?v=0.6.22"></script>
+<script src="game.js?v=0.6.32"></script>
 </body>
 </html>
