@@ -963,7 +963,7 @@ $('settings-signout').onclick=signOutUser;
  };
  let filter='all',selectedItem=null,selectedSlot=null,profileData=null,playerStats=null,items=[],loading=false;
  const inventoryLog=[];
- const addInventoryLog=(message)=>{const line='['+new Date().toISOString()+'] '+String(message);inventoryLog.push(line);if(inventoryLog.length>80)inventoryLog.shift();const box=$inv('inventory-log-preview');if(box)box.textContent=inventoryLog.slice(-8).join('\n');};
+ const addInventoryLog=(message)=>{const line='['+new Date().toISOString()+'] '+String(message);inventoryLog.push(line);if(inventoryLog.length>80)inventoryLog.shift();try{const saved=JSON.parse(localStorage.getItem('tbh_inventory_log_archive')||'[]');saved.push(line);localStorage.setItem('tbh_inventory_log_archive',JSON.stringify(saved.slice(-300)));}catch(e){}const box=$inv('inventory-log-preview');if(box)box.textContent=inventoryLog.slice(-8).join('\n');};
  const equipped={eq_weapon:null,eq_head:null,eq_armor:null,eq_legs:null,eq_wings:null,eq_left_accessory:null,eq_right_accessory:null};
  const num=v=>Number.isFinite(Number(v))?Number(v):0;
  const itemBonuses=item=>{
