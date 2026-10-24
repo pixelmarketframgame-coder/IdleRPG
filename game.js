@@ -322,18 +322,21 @@ function updateCombatMovement(seconds) {
 }
 
 function updateCombatDistanceHud() {
-    if (!combatDistanceText || !hero || !enemy || !enemy.visible) {
+    const htmlHud = typeof document !== "undefined" ? document.getElementById("combat-distance") : null;
+    if (!hero || !enemy || !enemy.visible) {
         if (combatDistanceText) combatDistanceText.setText("ระยะ -- ช่อง");
+        if (htmlHud) htmlHud.textContent = "ระยะ -- ช่อง · รอข้อมูลมอนสเตอร์";
         return;
     }
     const tiles = Math.abs(hero.x - enemy.x) / TILE_SIZE_PX;
     const playerInRange = tiles <= combatProfile.attackRangeTiles;
     const monsterInRange = tiles <= monsterCombatProfile.attackRangeTiles;
-    combatDistanceText.setText(
+    const label =
         "ระยะ " + tiles.toFixed(1) + "/" + ARENA_TILES + " ช่อง · " +
         (playerInRange ? "ผู้เล่นโจมตีได้" : "ผู้เล่นกำลังเข้าระยะ") + " · " +
-        (monsterInRange ? "มอนสเตอร์โจมตีได้" : "มอนสเตอร์กำลังเข้าระยะ")
-    );
+        (monsterInRange ? "มอนสเตอร์โจมตีได้" : "มอนสเตอร์กำลังเข้าระยะ");
+    if (combatDistanceText) combatDistanceText.setText(label);
+    if (htmlHud) htmlHud.textContent = label;
 }
 
 function updateStageProgress(kills, stage) {
