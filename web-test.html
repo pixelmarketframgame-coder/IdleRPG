@@ -156,6 +156,8 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 .inventory-head{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #435579;padding-bottom:10px;margin-bottom:12px}
 .inventory-head h2{margin:0;color:#ffd166;font-size:18px;letter-spacing:1px}
 .inventory-close{padding:6px 11px;min-width:38px;background:#542c42;border-color:#a35b6d}
+.inventory-head-actions{display:flex;align-items:center;gap:7px}.inventory-copy-log{padding:6px 9px;min-height:34px;font-size:12px;background:#1c4260;border-color:#4e91b5;white-space:nowrap}.inventory-copy-log:disabled{opacity:.55}
+
 .inventory-layout{display:grid;grid-template-columns:minmax(220px, .85fr) minmax(0,1.4fr);gap:12px}
 .inventory-section{min-width:0;background:#0a1122;border:1px solid #2e4165;border-radius:9px;padding:10px}
 .inventory-section-title{font-size:13px;font-weight:900;color:#ffd166;margin:0 0 9px;letter-spacing:.5px}
@@ -228,7 +230,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   </section>
   <div id="inventory-backdrop" class="inventory-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-title">
     <section class="inventory-window">
-      <header class="inventory-head"><h2 id="inventory-title">🎒 INVENTORY / GEAR</h2><button id="inventory-close" class="inventory-close" type="button" aria-label="ปิด Inventory">✕</button></header>
+      <header class="inventory-head"><h2 id="inventory-title">🎒 INVENTORY / GEAR</h2><div class="inventory-head-actions"><button id="inventory-copy-log" class="inventory-copy-log" type="button">📋 Copy Log</button><button id="inventory-close" class="inventory-close" type="button" aria-label="ปิด Inventory">✕</button></div></header>
       <div class="inventory-layout">
         <section class="inventory-section"><h3 class="inventory-section-title">⚔ EQUIPPED GEAR · 7 SLOTS</h3><div id="gear-slots" class="gear-slots"></div><p class="inventory-note">เลือกช่องอุปกรณ์เพื่อดูรายละเอียดหรือถอดไอเทม</p></section>
         <div class="inventory-main">
@@ -974,7 +976,8 @@ $('settings-signout').onclick=signOutUser;
  }
  function renderItems(){
   const root=$inv('inventory-items');root.replaceChildren();
-  const shown=items.filter(x=>filter==='all'||(filter==='gear'?x.type==='gear':filter==='material'?x.type!=='gear':x.type==='consumable'));
+  const equippedIds=new Set(Object.values(equipped).filter(Boolean));
+  const shown=items.filter(x=>!equippedIds.has(x.id)&&(filter==='all'||(filter==='gear'?x.type==='gear':filter==='material'?x.type!=='gear':x.type==='consumable')));
   if(!shown.length){const e=document.createElement('div');e.className='inventory-empty';e.textContent=loading?'กำลังโหลดข้อมูล...':'ไม่มีไอเทมในกระเป๋าตามข้อมูล Supabase';root.append(e);return;}
   shown.forEach(item=>{
    const b=document.createElement('button');b.type='button';b.className='inventory-item rarity-'+(item.template?.tier||'common')+(selectedItem===item.id?' selected':'');b.setAttribute('aria-label',itemName(item));
@@ -995,11 +998,21 @@ $('settings-signout').onclick=signOutUser;
   $inv('inventory-unequip').disabled=!alreadyEquipped;
  }
  function renderAll(){
-  renderGear();renderItems();renderDetail();const s=stats();setText('inventory-atk',s.atk.toLocaleString());setText('inventory-def',s.def.toLocaleString());setText('inventory-hp',s.hp.toLocaleString());setText('overall-atk',s.atk.toLocaleString());setText('overall-def',s.def.toLocaleString());setText('overall-hp',s.hp.toLocaleString());
+  renderGear();renderItems();renderDetail();const s=stats();
+  setText('inventory-atk',s.atk.toLocaleString());setText('inventory-def',s.def.toLocaleString());setText('inventory-hp',s.hp.toLocaleString());
+  setText('overall-atk',s.atk.toLocaleString());setText('overall-def',s.def.toLocaleString());setText('overall-hp',s.hp.toLocaleString());
+  const atkEl=$inv('detail-atk'),defEl=$inv('detail-def'),hpEl=$inv('detail-hp');
+  if(atkEl)atkEl.textContent=s.atk.toLocaleString();
+  if(defEl)defEl.textContent=s.def.toLocaleString();
+  if(hpEl){const hpText=$inv('pixel-hp-text')?.textContent||'';const current=hpText.match(/HP\s*([\d,]+)/i)?.[1];hpEl.textContent=(current?current+' / ':'')+s.hp.toLocaleString();}
  }
  async function open(){backdrop.classList.remove('hidden');document.body.style.overflow='hidden';loading=true;renderAll();try{await loadInventory();}catch(e){items=[];gearSlots.forEach(s=>equipped[s.id]=null);renderAll();const root=$inv('inventory-items');root.replaceChildren();const msg=document.createElement('div');msg.className='inventory-empty';msg.textContent='โหลด Inventory ไม่สำเร็จ: '+(e.message||e);root.append(msg);}finally{loading=false;$inv('inventory-close').focus();}}
  function close(){backdrop.classList.add('hidden');document.body.style.overflow='';$inv('inventory-open').focus();}
  $inv('inventory-open').addEventListener('click',open);$inv('inventory-close').addEventListener('click',close);
+ $inv('inventory-copy-log').addEventListener('click',async()=>{
+  const button=$inv('inventory-copy-log');const logText=[$inv('log')?.innerText||'', $inv('last-reward')?.innerText||'', $inv('copy-log-status')?.innerText||''].filter(Boolean).join('\n\n');
+  try{if(!logText.trim())throw new Error('ยังไม่มี log ให้คัดลอก');if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(logText);else{const ta=document.createElement('textarea');ta.value=logText;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก');}button.textContent='✓ Copied';setTimeout(()=>button.textContent='📋 Copy Log',1600);}catch(e){button.textContent='คัดลอกไม่สำเร็จ';setTimeout(()=>button.textContent='📋 Copy Log',2200);}
+ });
  backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.classList.contains('hidden'))close();});
  $inv('inventory-filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;filter=b.dataset.filter;$inv('inventory-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderItems();});
@@ -1038,6 +1051,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.35"></script>
+<script src="game.js?v=0.6.36"></script>
 </body>
 </html>
