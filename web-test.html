@@ -107,6 +107,20 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
  #game-panel 
 }
 
+
+/* v0.6.13: remove unused vertical space from the game panel and give it to the log */
+#game-panel{grid-template-rows:auto auto minmax(90px,1fr)!important;align-content:stretch}
+#game-panel>.panel:first-of-type{height:auto!important;min-height:0;align-self:start;gap:6px!important}
+#game-container{flex:0 0 auto!important;width:min(100%,720px)!important;height:auto!important;aspect-ratio:520/220!important;min-height:0!important;max-height:34vh!important;align-self:center}
+#game-container canvas{display:block!important;width:100%!important;height:100%!important}
+#game-panel>.panel:last-of-type{min-height:0;height:100%;overflow:hidden}
+@media(max-width:700px){
+ #game-panel{grid-template-rows:auto auto minmax(90px,1fr)!important}
+ #game-container{max-height:30vh!important}
+}
+@media(max-height:500px){
+ #game-container{max-height:26vh!important}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -115,7 +129,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 <div class="wrap">
   <header class="top" style="justify-content:flex-end"></header>
   <section id="auth-panel" class="panel">
-    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.12</span></div>
+    <div class="top" style="margin-bottom:12px"><h2 class="title" style="margin:0">เข้าสู่ระบบเพื่อทดสอบกับ Supabase</h2><span class="version-tag" id="login-version">VERSION v0.6.13</span></div>
     <div class="authgrid">
       <div><label class="hint" for="email">อีเมล</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div>
       <div><label class="hint" for="password">รหัสผ่าน</label><input id="password" type="password" autocomplete="current-password" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
@@ -189,12 +203,12 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     </section>
   </div>
   <div id="message" class="status" role="status">กำลังเตรียมระบบ…</div>
-  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.12</span></div>
+  <div class="footer">Prototype สำหรับทดสอบบนเว็บ · Supabase Auth + RPC · ไม่ใช่เวอร์ชัน production <span class="version-tag" id="footer-version">VERSION v0.6.13</span></div>
 </div>
 <script>
 (() => {
   // เพิ่มเลขเวอร์ชันนี้ทุกครั้งที่มีการอัปเดตหน้าเว็บหรือ game.js
-  const APP_VERSION = "v0.6.12";
+  const APP_VERSION = "v0.6.13";
   const $versionLabel = "VERSION " + APP_VERSION;
   document.querySelectorAll(".version-tag").forEach(el => el.textContent = $versionLabel);
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
@@ -605,6 +619,6 @@ $('settings-signout').onclick=signOutUser;
   client.auth.getSession().then(async({data,error})=>{if(error)throw error;if(data.session){currentUser=data.session.user;await syncPlayer();}else{showAuth();msg('พร้อมใช้งาน · เข้าสู่ระบบเพื่อเริ่มทดสอบ');}}).catch(e=>msg('เริ่มต้นระบบไม่สำเร็จ: '+e.message,true));
 })();
 </script>
-<script src="game.js?v=0.6.12"></script>
+<script src="game.js?v=0.6.13"></script>
 </body>
 </html>
