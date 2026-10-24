@@ -245,17 +245,18 @@ function create() {
     topBanner = this.add.rectangle(260, -30, 340, 24, 0x000000, 0.85).setStrokeStyle(1, 0x555555);
     topBannerText = this.add.text(260, -30, '', { fontSize: '12px', color: '#ffffff' }).setOrigin(0.5);
 
-    // Farm progress HUD: compact horizontal bar at the bottom-left of the Phaser canvas.
-    farmProgressBg = this.add.rectangle(96, 190, 184, 28, 0x0b1713, 0.88)
-        .setStrokeStyle(1, 0x34715c).setOrigin(0, 0.5).setDepth(60);
-    farmProgressText = this.add.text(104, 181, 'ฟาร์ม 0 / 100 ตัว', {
-        fontSize: '10px', color: '#9ff0c8', fontStyle: 'bold',
-        stroke: '#000000', strokeThickness: 2, align: 'left'
-    }).setOrigin(0, 0.5).setDepth(61);
-    farmProgressBarBg = this.add.rectangle(104, 199, 168, 5, 0x050b09)
-        .setOrigin(0, 0.5).setDepth(61);
-    farmProgressBar = this.add.rectangle(104, 199, 0, 3, 0x35d07f)
-        .setOrigin(0, 0.5).setDepth(62);
+    // Classic farm progress HUD: bottom-right, green fill, counter inside, demon icon at right.
+    farmProgressBg = this.add.rectangle(450, 205, 80, 8, 0x2d3436)
+        .setDepth(40);
+    farmProgressBarBg = farmProgressBg;
+    farmProgressBar = this.add.rectangle(410, 205, 0, 6, 0x35d07f)
+        .setOrigin(0, 0.5).setDepth(41);
+    farmProgressText = this.add.text(450, 205, '0/100', {
+        fontSize: '9px', color: '#ffffff', fontStyle: 'bold',
+        stroke: '#000000', strokeThickness: 2, align: 'center'
+    }).setOrigin(0.5).setDepth(42);
+    this.add.text(495, 205, '👹', { fontSize: '10px' })
+        .setOrigin(0.5).setDepth(42);
     updateFarmProgressHud();
 
     // ❌ ลบบรรทัด this.time.addEvent(...) ที่เป็นลูปโจมตีออกไปด้วยครับ
@@ -379,10 +380,10 @@ function updateFarmProgressHud() {
     const kills = Math.max(0, Math.min(maxKillsPerStage, Number(killsInStage) || 0));
     const ratio = kills / maxKillsPerStage;
     farmProgressBg.setVisible(true);
-    farmProgressText.setVisible(true).setText('⚔ ฟาร์มด่านนี้  ' + kills.toLocaleString() + ' / ' + maxKillsPerStage.toLocaleString() + ' ตัว');
+    farmProgressText.setVisible(true).setText(kills.toLocaleString() + '/' + maxKillsPerStage.toLocaleString());
     farmProgressBarBg.setVisible(true);
-    farmProgressBar.setVisible(true).setSize(284 * ratio, 3);
-    farmProgressBar.fillColor = ratio >= 1 ? 0x7af0a7 : 0x35d07f;
+    farmProgressBar.setVisible(true).setSize(80 * ratio, 6);
+    farmProgressBar.fillColor = 0x35d07f;
 }
 window.updateFarmProgressHud = updateFarmProgressHud;
 window.updateStageProgress = updateStageProgress;
