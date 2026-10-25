@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.48",
+  "version": "v0.6.49",
   "updated_at": "2026-10-25",
-  "notes": "Compact Status layout: lock outer page scroll, place status groups inside one scrollable dashboard, remove per-stat dividers and vertical gaps; preserve existing stat allocation and server-authoritative combat."
+  "notes": "Tighten spacing across all Status groups to match Character Summary; remove inherited row margins/padding and preserve single internal scroll box."
 }
