@@ -272,11 +272,7 @@
     if (error) return setMessage(error.message, true);
     if (data && data.success) {
       if (typeof window.onServerCombatUpdate === "function") {
-        const result = Object.assign({}, data, {
-          monster_name: currentState && currentState.monster && currentState.monster.name,
-          monster_type: currentState && currentState.monster && currentState.monster.monster_type
-        });
-        window.onServerCombatUpdate(result);
+        window.onServerCombatUpdate(data);
       }
       setMessage("Ultimate: เซิร์ฟเวอร์ยืนยันผลแล้ว", false);
       if (data.status === "monster_defeated") await loadState();
@@ -324,7 +320,10 @@
     $("signup-button") && $("signup-button").addEventListener("click", signUp);
     $("logout-button") && $("logout-button").addEventListener("click", signOut);
     $("create-character-button") && $("create-character-button").addEventListener("click", createCharacter);
-    $("ultimate-button") && $("ultimate-button").addEventListener("click", useUltimate);
+    $("ultimate-button") && $("ultimate-button").addEventListener("click", () => {
+      if (typeof window.triggerHeroSkill === "function") window.triggerHeroSkill("ultimate");
+      else useUltimate();
+    });
     $("challenge-button") && $("challenge-button").addEventListener("click", challengeStage);
     $("refresh-button") && $("refresh-button").addEventListener("click", loadState);
     $("inventory-list") && $("inventory-list").addEventListener("click", (event) => {
