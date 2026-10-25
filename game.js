@@ -97,7 +97,7 @@ window.changePetSkin = function(skinType) {
     console.log("Pet changed to:", skinType);
 };
 
-// TBH Pixel Auto Battler v0.6.45: Ultimate damage is calculated and confirmed by Supabase (5x ATK).
+// TBH Pixel Auto Battler v0.6.46: Ultimate damage is calculated and confirmed by Supabase (5x ATK).
 window.triggerHeroSkill = function(skillName) {
     if (!gameScene || !hero || !enemy || combatPaused || awaitingServerResponse || !currentMonsterId || !enemy.visible) return;
     // Never show an attack before the player has reached the weapon's range.
