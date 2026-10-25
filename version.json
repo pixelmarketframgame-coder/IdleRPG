@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.47",
+  "version": "v0.6.48",
   "updated_at": "2026-10-25",
-  "notes": "Status dashboard redesign: grouped combat, survival, and future advanced stats; preserves existing primary stat allocation and Supabase-authoritative combat. Future stats labeled Preview only."
+  "notes": "Compact Status layout: lock outer page scroll, place status groups inside one scrollable dashboard, remove per-stat dividers and vertical gaps; preserve existing stat allocation and server-authoritative combat."
 }
