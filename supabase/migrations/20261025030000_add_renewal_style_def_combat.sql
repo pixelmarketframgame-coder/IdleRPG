@@ -125,6 +125,7 @@ begin
     raise exception 'Could not locate incoming monster damage line; DEF migration stopped';
   end if;
   v_def := replace(v_def, v_old, v_new);
+  execute v_def;
 
   v_def := pg_get_functiondef('public.get_equipment_stat_diagnostics()'::regprocedure);
   v_old := '  v_atk_bonus integer := 0;';
