@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.46",
+  "version": "v0.6.47",
   "updated_at": "2026-10-25",
-  "notes": "DEF display fix: use Supabase Hard DEF + Soft DEF when total DEF is omitted, render all DEF fields consistently, and bust cached web assets; preserves server-authoritative combat/rewards and full monster HP reset on player respawn."
+  "notes": "Status dashboard redesign: grouped combat, survival, and future advanced stats; preserves existing primary stat allocation and Supabase-authoritative combat. Future stats labeled Preview only."
 }
