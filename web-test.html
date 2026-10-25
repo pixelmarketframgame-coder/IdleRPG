@@ -645,7 +645,12 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     // STATUS ATK must include equipped gear from Inventory, while previewing staged STR points.
     const gearTotalAtk=Number(($('overall-atk')?.textContent||'').replace(/,/g,''))||attackBase;
     $('detail-atk').innerHTML=gearTotalAtk.toLocaleString()+suffix(attackNext-attackBase);
-    $('detail-def').textContent='ยังไม่เปิดใช้';
+    // DEF: equipment contributes Hard DEF; VIT and level contribute Soft DEF.
+    // Use the live equipment breakdown loaded from Supabase-backed Inventory.
+    const hardDef=Math.max(0,Number(window.tbhStatBreakdown?.def?.gear ?? ($('overall-def')?.textContent||'0').replace(/,/g,''))||0);
+    const softDef=Math.max(0,Number(projected.vit||0)+Math.floor((cachedLevel-1)/2));
+    const totalDef=hardDef+softDef;
+    $('detail-def').textContent=totalDef.toLocaleString()+' (Hard '+hardDef.toLocaleString()+' + Soft '+softDef.toLocaleString()+')';
     $('detail-hp').innerHTML=(cachedCombatHp===null?maxHpBase:cachedCombatHp).toLocaleString()+' / '+maxHpBase.toLocaleString()+suffix(maxHpNext-maxHpBase);
     $('detail-aspd').textContent='1 ครั้ง/วินาที (รอบต่อสู้ปัจจุบัน)';
     $('detail-hit').innerHTML=hitBase+'%'+suffix(hitNext-hitBase,'%');
@@ -686,7 +691,7 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     if(combatData) currentHp=Math.max(0,Number(combatData.player_hp??maxHp));
     cachedCombatHp=currentHp;
     renderDerivedStatPreview();
-    $('derived-stats-note').textContent='ATK, HP, HIT, FLEE และ CRIT อิงสูตรใน Supabase ปัจจุบัน · DEF ยังไม่มีผลในสูตรต่อสู้ และรอบโจมตีปัจจุบันทำงานประมาณ 1 ครั้ง/วินาที';
+    $('derived-stats-note').textContent='ATK, HP, HIT, FLEE และ CRIT อิงสูตรปัจจุบัน · DEF รวมจาก Hard DEF ของอุปกรณ์ + Soft DEF (VIT + โบนัสตามเลเวล) · รอบโจมตีปัจจุบันประมาณ 1 ครั้ง/วินาที';
     $('stats-hint').textContent='แต้มที่เลือก '+stagedTotal()+' / '+cachedStats.stat_points+' · กด +/− เพื่อเลือก แล้ว Confirm เพื่อบันทึก';
     renderStagedStats();
   }
@@ -1158,6 +1163,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.38"></script>
+<script src="game.js?v=0.6.46"></script>
 </body>
 </html>
