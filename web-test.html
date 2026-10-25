@@ -228,6 +228,15 @@ body{padding:8px}
  .status-card .status-log-line{grid-template-columns:minmax(0,1fr) auto}
  .status-card .status-log-line span{font-size:12px}
 }
+
+/* v0.6.49: compact every Status section */
+.status-dashboard .status-card{padding-top:2px!important;padding-bottom:2px!important}
+.status-dashboard .status-card h3{margin:0!important;padding:0!important;line-height:1.25!important}
+.status-dashboard .status-card .hint{margin:0!important;padding:0!important;line-height:1.25!important}
+.status-dashboard .status-card .status-log-line,.status-dashboard .status-card .status-log-line span,.status-dashboard .status-card .status-log-line strong{margin:0!important;padding:0!important;min-height:0!important;height:auto!important;line-height:1.2!important;border:0!important}
+.status-dashboard .status-card .status-log-line{gap:4px!important}
+.status-dashboard #stats-grid .stats-list-row{margin:0!important;padding:0!important;min-height:0!important}
+.status-dashboard #stats-grid .stats-list-name,.status-dashboard #stats-grid .stats-list-value{margin:0!important;padding:0!important;line-height:1.2!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -1249,6 +1258,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.48"></script>
+<script src="game.js?v=0.6.49"></script>
 </body>
 </html>
