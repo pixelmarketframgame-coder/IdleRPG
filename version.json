@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.43",
+  "version": "v0.6.44",
   "updated_at": "2026-10-25",
-  "notes": "Added server-authoritative Renewal-inspired Hard DEF and Soft DEF: equipped base_def applies percentage mitigation, VIT/level and gear DEF bonuses reduce incoming damage; preserved full monster HP reset on player death."
+  "notes": "Added wooden armor item (เกราะไม้, Hard DEF 25) and granted one copy to Max02 for server-side DEF testing; retains v0.6.43 Renewal-inspired Hard/Soft DEF combat rules."
 }
