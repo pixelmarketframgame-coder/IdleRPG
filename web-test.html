@@ -690,6 +690,8 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
     if(combatError) throw combatError;
     if(combatData) currentHp=Math.max(0,Number(combatData.player_hp??maxHp));
     cachedCombatHp=currentHp;
+    try { if (window.tbhLoadStatBreakdown) await window.tbhLoadStatBreakdown(); }
+    catch (e) { console.warn('โหลดโบนัส DEF จากอุปกรณ์ไม่สำเร็จ:', e); }
     renderDerivedStatPreview();
     $('derived-stats-note').textContent='ATK, HP, HIT, FLEE และ CRIT อิงสูตรปัจจุบัน · DEF รวมจาก Hard DEF ของอุปกรณ์ + Soft DEF (VIT + โบนัสตามเลเวล) · รอบโจมตีปัจจุบันประมาณ 1 ครั้ง/วินาที';
     $('stats-hint').textContent='แต้มที่เลือก '+stagedTotal()+' / '+cachedStats.stat_points+' · กด +/− เพื่อเลือก แล้ว Confirm เพื่อบันทึก';
