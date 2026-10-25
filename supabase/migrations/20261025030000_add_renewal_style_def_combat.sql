@@ -150,11 +150,22 @@ begin
   end if;
   v_def := replace(v_def, v_old, v_new);
 
-  v_old := '      ''normal_attack_uses_equipment_def'',coalesce(position(''equipped_def_bonus(v_uid)'' in v_normal_def)>0,false),\n      ''monster_damage_reduces_by_equipment_def'',coalesce(position(''equipped_def_bonus(v_uid)'' in v_normal_def)>0,false),\n      ''note'',''DEF equipment bonus is diagnostic-only until a server DEF formula is implemented.''';
-  v_new := '      ''normal_attack_uses_equipment_def'',false,\n      ''monster_damage_reduces_by_equipment_def'',coalesce(position(''equipped_hard_def(v_uid)'' in v_normal_def)>0,false) and coalesce(position(''equipped_soft_def_bonus(v_uid)'' in v_normal_def)>0,false),\n      ''hard_def_formula'',''Renewal-inspired: incoming damage * (4000 + Hard DEF) / (4000 + 10 * Hard DEF)'',\n      ''soft_def_formula'',''VIT + floor((level - 1) / 2) + equipped Soft DEF bonus'',\n      ''minimum_incoming_damage'',1,\n      ''note'',''Equipment base_def is Hard DEF; generic DEF bonus options are Soft DEF. Combat damage is server-authoritative.''';
-  if position(v_old in v_def) = 0 then
-    raise exception 'Could not locate diagnostics DEF flags; DEF migration stopped';
-  end if;
+  v_old := '      ''normal_attack_uses_equipment_def'',coalesce(position(''equipped_def_bonus(v_uid)'' in v_normal_def)>0,false),';
+  v_new := '      ''normal_attack_uses_equipment_def'',false,';
+  if position(v_old in v_def) = 0 then raise exception 'Could not locate diagnostics normal DEF flag'; end if;
+  v_def := replace(v_def, v_old, v_new);
+
+  v_old := '      ''monster_damage_reduces_by_equipment_def'',coalesce(position(''equipped_def_bonus(v_uid)'' in v_normal_def)>0,false),';
+  v_new := '      ''monster_damage_reduces_by_equipment_def'',coalesce(position(''equipped_hard_def(v_uid)'' in v_normal_def)>0,false) and coalesce(position(''equipped_soft_def_bonus(v_uid)'' in v_normal_def)>0,false),';
+  if position(v_old in v_def) = 0 then raise exception 'Could not locate diagnostics monster DEF flag'; end if;
+  v_def := replace(v_def, v_old, v_new);
+
+  v_old := '      ''note'',''DEF equipment bonus is diagnostic-only until a server DEF formula is implemented.''';
+  v_new := '      ''hard_def_formula'',''Renewal-inspired: incoming damage * (4000 + Hard DEF) / (4000 + 10 * Hard DEF)'',
+      ''soft_def_formula'',''VIT + floor((level - 1) / 2) + equipped Soft DEF bonus'',
+      ''minimum_incoming_damage'',1,
+      ''note'',''Equipment base_def is Hard DEF; generic DEF bonus options are Soft DEF. Combat damage is server-authoritative.''';
+  if position(v_old in v_def) = 0 then raise exception 'Could not locate diagnostics note'; end if;
   execute replace(v_def, v_old, v_new);
 end
 $migration$;
