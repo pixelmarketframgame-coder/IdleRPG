@@ -97,7 +97,7 @@ window.changePetSkin = function(skinType) {
     console.log("Pet changed to:", skinType);
 };
 
-// TBH Pixel Auto Battler test build v0.6.19: Ultimate is a server-confirmed critical hit (5x ATK).
+// TBH Pixel Auto Battler v0.6.45: Ultimate damage is calculated and confirmed by Supabase (5x ATK).
 window.triggerHeroSkill = function(skillName) {
     if (!gameScene || !hero || !enemy || combatPaused || awaitingServerResponse || !currentMonsterId || !enemy.visible) return;
     // Never show an attack before the player has reached the weapon's range.
@@ -113,7 +113,7 @@ window.triggerHeroSkill = function(skillName) {
         onComplete: () => {
             beam.destroy();
             createImpactSparks(enemy.x, enemy.y);
-            // Ask the web/Supabase bridge for a dedicated Ultimate RPC, not an auto-combat tick.
+            // Ask the shared web game API for the dedicated Supabase Ultimate RPC, not an auto-combat tick.
             // Supabase remains authoritative for range validation, HP, death and rewards.
             sendToFlutterFlow({ event: "ULTIMATE_REQUEST", skillName: String(skillName || "ultimate"), monsterId: currentMonsterId });
         }
@@ -173,11 +173,15 @@ window.challengeCurrentStage = function() {
 };
 
 function sendToFlutterFlow(payload) {
+    // Web build: route game intents through the shared Supabase API layer.
+    // Keep the legacy Flutter channel only as a backward-compatible bridge.
+    if (window.TBHGame && typeof window.TBHGame.handleGameEvent === "function") {
+        Promise.resolve(window.TBHGame.handleGameEvent(payload)).catch((error) => {
+            console.error("Game API action failed", error);
+        });
+    }
     if (window.FlutterChannel && window.FlutterChannel.postMessage) {
         window.FlutterChannel.postMessage(JSON.stringify(payload));
-    }
-    if (payload.event === 'ITEM_DROPPED' && typeof addLootToInventoryUI === 'function') {
-        addLootToInventoryUI(payload.icon, payload.itemName);
     }
 }
 
@@ -870,10 +874,8 @@ function showConfirmedRewards(reward) {
         });
     }
 
-    // อัปเดตกระเป๋าตัวอย่างเฉพาะเมื่อผล RPC ยืนยันว่ามีวัสดุตกจริง
-    if (materialQty > 0 && materialId && typeof addLootToInventoryUI === "function") {
-        addLootToInventoryUI("💎", `${materialId} x${materialQty}`);
-    }
+    // Inventory UI is refreshed from the central Supabase game-state payload.
+    // Do not append local loot previews to the authoritative inventory list.
 }
 
 // ==========================================
