@@ -192,6 +192,29 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 .inventory-note{font-size:10px;color:#8293b5;margin-top:8px}
 @media(max-width:560px){.inventory-backdrop{padding:5px}.inventory-window{padding:9px;max-height:95dvh}.inventory-layout{grid-template-columns:1fr}.gear-slots{grid-template-columns:repeat(4,minmax(0,1fr))}.gear-slot{min-height:75px}.inventory-item-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.inventory-head h2{font-size:16px}}
 
+
+/* Status dashboard mockup v0.6.47 */
+.status-modal{width:min(1180px,100%);}
+.status-dashboard{display:grid;grid-template-columns:minmax(280px,.78fr) minmax(0,1.22fr);gap:14px;align-items:start}
+.status-left,.status-right{display:grid;gap:12px;min-width:0}
+.status-card{border:1px solid #24507e;border-radius:13px;padding:13px;background:linear-gradient(145deg,#0c1b31,#0a1222)}
+.status-card h3{margin:0 0 10px;padding-bottom:9px;border-bottom:1px solid #23466d;color:#55c9ff;font-size:16px}
+.status-card.combat{border-color:#0caa83;background:linear-gradient(145deg,#042b2b,#0a1726)}
+.status-card.combat h3{color:#5ce8bd;border-color:#176b62}
+.status-card.survival{border-color:#bc5c9d;background:linear-gradient(145deg,#291532,#101326)}
+.status-card.survival h3{color:#f0a3de;border-color:#66365f}
+.status-card.advanced{border-color:#8c58d7;background:linear-gradient(145deg,#21143b,#101326)}
+.status-card.advanced h3{color:#c7a1ff;border-color:#533783}
+.status-card.primary-card{border-color:#087ac4;background:linear-gradient(145deg,#06284a,#0a1222)}
+.status-card .status-log-list{max-height:none!important}
+.status-card .status-log-line{display:grid!important;grid-template-columns:minmax(100px,1fr) minmax(85px,.7fr);gap:8px;padding:9px 0!important;border-bottom:1px solid #20314e!important}
+.status-card .status-log-line:last-child{border-bottom:0!important}
+.status-card .status-log-line strong{text-align:right;color:#f3f7ff}
+.status-card .hint{font-size:12px}
+.status-planned{opacity:.92}
+.status-planned .status-log-line strong{color:#bfa8f7!important}
+.status-group-label{font-size:11px;color:#a9b8d8;text-transform:uppercase;letter-spacing:.5px}
+@media(max-width:760px){.status-modal{width:min(680px,100%)}.status-dashboard{grid-template-columns:1fr}.status-card .status-log-line{grid-template-columns:minmax(0,1fr) auto}.status-card .status-log-line span{font-size:13px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -256,17 +279,65 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   <div id="status-modal-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
     <section class="status-modal">
       <div class="modal-head"><div><h2 class="title" id="status-modal-title" style="margin:0">📊 STATUS</h2><p class="hint" style="margin:5px 0 0">รายละเอียดค่าสถานะและจัดสรรคะแนน</p></div><div style="display:flex;align-items:center;gap:6px;flex:0 0 auto"><button id="open-stat-log" type="button" style="min-width:0;padding:6px 9px;font-size:12px;background:#263c66;border-color:#d4b45f" aria-label="ดูที่มาของค่าสถานะ">📋 Log</button><button id="close-status" class="modal-close" aria-label="ปิดเมนู Status">✕</button></div></div>
-      <h3 class="title">รายละเอียดตัวละคร</h3>
-      <div id="stat-details-list" class="status status-log-list" aria-label="รายการค่าสถานะตัวละคร เลื่อนได้">
-        <div class="status-log-line"><span>พลังโจมตี (ATK)</span><strong id="detail-atk">กำลังโหลด…</strong></div>
-        <div class="status-log-line"><span>พลังป้องกัน (DEF)</span><strong id="detail-def">กำลังโหลด…</strong></div>
-        <div class="status-log-line"><span>พลังชีวิต (HP)</span><strong id="detail-hp">กำลังโหลด…</strong></div>
-        <div class="status-log-line"><span>ความเร็วโจมตี (ASPD)</span><strong id="detail-aspd">กำลังโหลด…</strong></div>
-        <div class="status-log-line"><span>ความแม่นยำ (HIT)</span><strong id="detail-hit">กำลังโหลด…</strong></div>
-        <div class="status-log-line"><span>หลบหลีก (FLEE)</span><strong id="detail-flee">กำลังโหลด…</strong></div>
-        <div class="status-log-line"><span>โอกาสคริติคอล (CRIT)</span><strong id="detail-crit">กำลังโหลด…</strong></div>
+      <div class="status-dashboard">
+        <div class="status-left">
+          <section class="status-card primary-card">
+            <h3>👤 สถานะหลัก (Primary Stats)</h3>
+            <div class="hint">จัดสรรคะแนนด้วยปุ่ม + / − ด้านล่าง แล้วกด Confirm เพื่อบันทึก</div>
+          </section>
+          <section class="status-card">
+            <h3>⚔️ สรุปตัวละคร</h3>
+            <div id="stat-details-list" class="status status-log-list" aria-label="รายการค่าสถานะตัวละคร เลื่อนได้">
+              <div class="status-log-line"><span>พลังโจมตี (ATK)</span><strong id="detail-atk">กำลังโหลด…</strong></div>
+              <div class="status-log-line"><span>พลังป้องกัน (DEF)</span><strong id="detail-def">กำลังโหลด…</strong></div>
+              <div class="status-log-line"><span>พลังชีวิต (HP)</span><strong id="detail-hp">กำลังโหลด…</strong></div>
+              <div class="status-log-line"><span>ความเร็วโจมตี (ASPD)</span><strong id="detail-aspd">กำลังโหลด…</strong></div>
+              <div class="status-log-line"><span>ความแม่นยำ (HIT)</span><strong id="detail-hit">กำลังโหลด…</strong></div>
+              <div class="status-log-line"><span>หลบหลีก (FLEE)</span><strong id="detail-flee">กำลังโหลด…</strong></div>
+              <div class="status-log-line"><span>โอกาสคริติคอล (CRIT)</span><strong id="detail-crit">กำลังโหลด…</strong></div>
+            </div>
+            <p class="hint" id="derived-stats-note" style="margin:8px 0 0">ค่าที่คำนวณได้จากสูตรต่อสู้ปัจจุบันของเซิร์ฟเวอร์</p>
+          </section>
+          <section class="status-card survival">
+            <h3>♥️ Survival Status</h3>
+            <div class="status-log-line"><span>HP Regeneration · ฟื้นฟู HP</span><strong>Preview · ยังไม่เปิดใช้</strong></div>
+            <div class="status-log-line"><span>Damage Reduction · ลดความเสียหาย</span><strong>Preview · ยังไม่เปิดใช้</strong></div>
+            <div class="status-log-line"><span>Lifesteal · ดูดเลือด</span><strong>Preview · ยังไม่เปิดใช้</strong></div>
+          </section>
+        </div>
+        <div class="status-right">
+          <section class="status-card combat">
+            <h3>⚔️ สถานะการต่อสู้ (Combat Stats)</h3>
+            <div class="hint">ค่าที่ระบบคำนวณอยู่ในปัจจุบัน</div>
+            <div class="status-log-line"><span>ATK · Attack</span><strong id="combat-atk">ดูรายละเอียดตัวละคร</strong></div>
+            <div class="status-log-line"><span>DEF · Defense</span><strong id="combat-def">ดูรายละเอียดตัวละคร</strong></div>
+            <div class="status-log-line"><span>HP · Health</span><strong id="combat-hp">ดูรายละเอียดตัวละคร</strong></div>
+            <div class="status-log-line"><span>ASPD · Attack Speed</span><strong id="combat-aspd">ประมาณ 1 ครั้ง/วินาที</strong></div>
+            <div class="status-log-line"><span>HIT · Accuracy</span><strong id="combat-hit">ดูรายละเอียดตัวละคร</strong></div>
+            <div class="status-log-line"><span>FLEE · Evasion</span><strong id="combat-flee">ดูรายละเอียดตัวละคร</strong></div>
+            <div class="status-log-line"><span>CRIT · Critical Rate</span><strong id="combat-crit">ดูรายละเอียดตัวละคร</strong></div>
+          </section>
+          <section class="status-card survival">
+            <h3>🛡️ การเอาตัวรอด (Survival)</h3>
+            <div class="status-log-line"><span>Max HP · พลังชีวิตสูงสุด</span><strong id="survival-maxhp">อิงจาก HP ปัจจุบัน</strong></div>
+            <div class="status-log-line"><span>HP Regeneration · ฟื้นฟู HP</span><strong>Preview · ยังไม่เปิดใช้</strong></div>
+            <div class="status-log-line"><span>Damage Reduction · ลดความเสียหาย</span><strong>Preview · ยังไม่เปิดใช้</strong></div>
+          </section>
+          <section class="status-card advanced status-planned">
+            <h3>✦ Advanced Stats · สถานะเพิ่มเติมในอนาคต</h3>
+            <div class="hint">ค่าเหล่านี้เป็น Mockup เท่านั้น ยังไม่ส่งผลต่อการต่อสู้หรือรางวัล</div>
+            <div class="status-log-line"><span>ASPD Bonus · โบนัสความเร็วโจมตี</span><strong>+0% · Preview</strong></div>
+            <div class="status-log-line"><span>CRIT DMG · ความเสียหายคริติคอล</span><strong>+0% · Preview</strong></div>
+            <div class="status-log-line"><span>Penetration · เจาะเกราะ</span><strong>+0% · Preview</strong></div>
+            <div class="status-log-line"><span>Accuracy Bonus · โบนัสความแม่นยำ</span><strong>+0% · Preview</strong></div>
+            <div class="status-log-line"><span>Lifesteal · ดูดเลือด</span><strong>+0% · Preview</strong></div>
+            <div class="status-log-line"><span>Skill Power · พลังสกิล</span><strong>+0% · Preview</strong></div>
+            <div class="status-log-line"><span>Elemental ATK · พลังธาตุ</span><strong>+0% · Preview</strong></div>
+            <div class="status-log-line"><span>Elemental Resistance · ต้านทานธาตุ</span><strong>+0% · Preview</strong></div>
+            <div class="status-log-line"><span>Boss Damage · ความเสียหายต่อบอส</span><strong>+0% · Preview</strong></div>
+          </section>
+        </div>
       </div>
-      <p class="hint" id="derived-stats-note" style="margin:8px 0 16px">ค่าที่คำนวณได้จากสูตรต่อสู้ปัจจุบันของเซิร์ฟเวอร์</p>
       <div class="top" style="margin:18px 0 10px"><h3 class="title" style="margin:0">จัดสรรค่า Stat</h3><span class="version-tag" id="stat-points-label">แต้มคงเหลือ: —</span></div>
       <div class="hint" style="margin-bottom:8px">กด + หรือ − เพื่อเลือกจำนวนแต้มก่อน แล้วกด Confirm เพื่อบันทึก</div>
       <div id="stats-grid" class="stats-list-panel">
@@ -1165,6 +1236,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.46"></script>
+<script src="game.js?v=0.6.47"></script>
 </body>
 </html>
