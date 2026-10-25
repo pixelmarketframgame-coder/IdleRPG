@@ -193,28 +193,41 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
 @media(max-width:560px){.inventory-backdrop{padding:5px}.inventory-window{padding:9px;max-height:95dvh}.inventory-layout{grid-template-columns:1fr}.gear-slots{grid-template-columns:repeat(4,minmax(0,1fr))}.gear-slot{min-height:75px}.inventory-item-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.inventory-head h2{font-size:16px}}
 
 
-/* Status dashboard mockup v0.6.47 */
-.status-modal{width:min(1180px,100%);}
-.status-dashboard{display:grid;grid-template-columns:minmax(280px,.78fr) minmax(0,1.22fr);gap:14px;align-items:start}
-.status-left,.status-right{display:grid;gap:12px;min-width:0}
-.status-card{border:1px solid #24507e;border-radius:13px;padding:13px;background:linear-gradient(145deg,#0c1b31,#0a1222)}
-.status-card h3{margin:0 0 10px;padding-bottom:9px;border-bottom:1px solid #23466d;color:#55c9ff;font-size:16px}
-.status-card.combat{border-color:#0caa83;background:linear-gradient(145deg,#042b2b,#0a1726)}
-.status-card.combat h3{color:#5ce8bd;border-color:#176b62}
-.status-card.survival{border-color:#bc5c9d;background:linear-gradient(145deg,#291532,#101326)}
-.status-card.survival h3{color:#f0a3de;border-color:#66365f}
-.status-card.advanced{border-color:#8c58d7;background:linear-gradient(145deg,#21143b,#101326)}
-.status-card.advanced h3{color:#c7a1ff;border-color:#533783}
-.status-card.primary-card{border-color:#087ac4;background:linear-gradient(145deg,#06284a,#0a1222)}
+/* Status dashboard compact scroll box v0.6.48 */
+html,body{height:100%;overflow:hidden}
+body{padding:8px}
+.wrap{height:calc(100dvh - 16px);min-height:0;overflow:hidden}
+.status-modal{width:min(1180px,100%);max-height:calc(100dvh - 16px);height:min(850px,calc(100dvh - 16px));overflow:hidden;display:flex;flex-direction:column;padding:12px}
+#status-modal-backdrop{overflow:hidden}
+#status-modal-backdrop .status-modal{min-height:0}
+.status-modal>.modal-head{flex:0 0 auto;margin-bottom:6px}
+.status-modal>.status-dashboard{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:0 2px}
+.status-dashboard{display:grid;grid-template-columns:minmax(280px,.78fr) minmax(0,1.22fr);gap:8px;align-items:start}
+.status-left,.status-right{display:grid;gap:0;min-width:0}
+.status-card{border:0;border-radius:0;padding:8px 10px;background:transparent}
+.status-card h3{margin:0;padding:0 0 4px;border:0;color:#55c9ff;font-size:15px}
+.status-card.combat,.status-card.survival,.status-card.advanced,.status-card.primary-card{border:0;background:transparent}
+.status-card.combat h3{color:#5ce8bd}
+.status-card.survival h3{color:#f0a3de}
+.status-card.advanced h3{color:#c7a1ff}
+.status-card.primary-card h3{color:#55c9ff}
 .status-card .status-log-list{max-height:none!important}
-.status-card .status-log-line{display:grid!important;grid-template-columns:minmax(100px,1fr) minmax(85px,.7fr);gap:8px;padding:9px 0!important;border-bottom:1px solid #20314e!important}
-.status-card .status-log-line:last-child{border-bottom:0!important}
+.status-card .status-log-line{display:grid!important;grid-template-columns:minmax(100px,1fr) minmax(85px,.7fr);gap:6px;padding:0!important;margin:0!important;border:0!important;line-height:1.25!important;min-height:0!important}
 .status-card .status-log-line strong{text-align:right;color:#f3f7ff}
-.status-card .hint{font-size:12px}
+.status-card .hint{font-size:11px;margin:2px 0 4px!important}
 .status-planned{opacity:.92}
 .status-planned .status-log-line strong{color:#bfa8f7!important}
-.status-group-label{font-size:11px;color:#a9b8d8;text-transform:uppercase;letter-spacing:.5px}
-@media(max-width:760px){.status-modal{width:min(680px,100%)}.status-dashboard{grid-template-columns:1fr}.status-card .status-log-line{grid-template-columns:minmax(0,1fr) auto}.status-card .status-log-line span{font-size:13px}}
+.status-card #stat-details-list .status-log-line{grid-template-columns:minmax(100px,1fr) auto}
+#stats-grid.stats-list-panel{padding:0 8px}
+.stats-list-row{padding:0!important;gap:6px}
+@media(max-width:760px){
+ body{padding:4px}.wrap{height:calc(100dvh - 8px)}
+ .status-modal{width:100%;height:calc(100dvh - 8px);max-height:calc(100dvh - 8px);padding:9px}
+ .status-dashboard{grid-template-columns:1fr;gap:0}
+ .status-card{padding:5px 7px}
+ .status-card .status-log-line{grid-template-columns:minmax(0,1fr) auto}
+ .status-card .status-log-line span{font-size:12px}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
@@ -1236,6 +1249,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.47"></script>
+<script src="game.js?v=0.6.48"></script>
 </body>
 </html>
