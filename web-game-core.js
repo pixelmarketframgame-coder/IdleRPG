@@ -1,4 +1,4 @@
-/* TBH Pixel Auto Battler - central web data contract v0.6.45
+/* TBH Pixel Auto Battler - central web data contract v0.6.46
  * Supabase is authoritative. UI and Phaser consume the same get_player_game_state payload.
  */
 (function () {
@@ -6,7 +6,7 @@
 
   const SUPABASE_URL = "https://syzjmokthuuprlbbcvew.supabase.co";
   const SUPABASE_KEY = "sb_publishable_J4MMp1j4Gj4hOF8sGIEmZA_fBaJ3j8g";
-  const VERSION_FALLBACK = "v0.6.45";
+  const VERSION_FALLBACK = "v0.6.46";
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
@@ -48,9 +48,13 @@
   function renderStats(state) {
     const stats = state && state.stats ? state.stats : {};
     text("stat-atk", num(stats.atk));
-    text("stat-def", num(stats.def));
-    text("stat-hard-def", num(stats.hard_def));
-    text("stat-soft-def", num(stats.soft_def));
+    const hardDef = num(stats.hard_def);
+    const softDef = num(stats.soft_def);
+    const totalDef = stats.def == null ? hardDef + softDef : num(stats.def);
+    text("stat-def", totalDef);
+    text("stat-hard-def", hardDef);
+    text("stat-soft-def", softDef);
+    
     text("stat-hp", num(stats.hp) + " / " + num(stats.max_hp));
     text("stat-aspd", num(stats.aspd, 1).toFixed(2).replace(/0+$/, "").replace(/\.$/, "") + " ครั้ง/วินาที");
     text("stat-hit", num(stats.hit).toFixed(0) + "%");
