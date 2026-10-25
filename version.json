@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.42",
+  "version": "v0.6.43",
   "updated_at": "2026-10-25",
-  "notes": "Added Status Log copy diagnostic report with equipped gear, frontend stat breakdown, and Supabase combat ATK/DEF integration checks."
+  "notes": "Added server-authoritative Renewal-inspired Hard DEF and Soft DEF: equipped base_def applies percentage mitigation, VIT/level and gear DEF bonuses reduce incoming damage; preserved full monster HP reset on player death."
 }
