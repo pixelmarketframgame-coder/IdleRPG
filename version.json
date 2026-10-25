@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.44",
+  "version": "v0.6.45",
   "updated_at": "2026-10-25",
-  "notes": "Added wooden armor item (เกราะไม้, Hard DEF 25) and granted one copy to Max02 for server-side DEF testing; retains v0.6.43 Renewal-inspired Hard/Soft DEF combat rules."
+  "notes": "Web-only architecture: added authenticated Supabase web login, one central get_player_game_state contract for character stats/equipment/inventory/stage/monster state, server-driven combat ticks, Ultimate and stage challenge RPC wiring; preserves existing combat rules including full monster HP on respawn and Renewal-inspired Hard/Soft DEF."
 }
