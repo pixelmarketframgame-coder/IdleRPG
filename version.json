@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.45",
+  "version": "v0.6.46",
   "updated_at": "2026-10-25",
-  "notes": "Web-only architecture: added authenticated Supabase web login, one central get_player_game_state contract for character stats/equipment/inventory/stage/monster state, server-driven combat ticks, Ultimate and stage challenge RPC wiring; preserves existing combat rules including full monster HP on respawn and Renewal-inspired Hard/Soft DEF."
+  "notes": "DEF display fix: use Supabase Hard DEF + Soft DEF when total DEF is omitted, render all DEF fields consistently, and bust cached web assets; preserves server-authoritative combat/rewards and full monster HP reset on player respawn."
 }
