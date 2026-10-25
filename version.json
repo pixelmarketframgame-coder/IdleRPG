@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.40",
+  "version": "v0.6.41",
   "updated_at": "2026-10-25",
-  "notes": "Moved Status log archive out of the Status panel and added a compact Log popup showing stat formulas and equipped gear bonuses."
+  "notes": "Fixed server-authoritative combat ATK to include equipped item base ATK and ATK bonus options for normal attacks and Ultimate."
 }
