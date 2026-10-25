@@ -283,9 +283,9 @@ body{height:100vh;height:100dvh;padding:clamp(6px,1.2vw,14px);overflow:hidden}
   </div>
   <div id="stat-log-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="stat-log-title">
     <section class="stat-preview" style="width:min(560px,100%);max-height:90vh;overflow:auto">
-      <div class="modal-head"><div><h2 class="title" id="stat-log-title" style="margin:0">📋 ที่มาของค่าสถานะ</h2><p class="hint" style="margin:5px 0 0">แยกค่าพื้นฐาน โบนัสอุปกรณ์ และสูตรที่ใช้คำนวณ</p></div><button id="close-stat-log" class="modal-close" aria-label="ปิด Log">✕</button></div>
-      <div id="stat-log-content" class="status" style="white-space:normal;max-height:65vh;overflow:auto">กำลังคำนวณรายละเอียดค่าสถานะ…</div>
-      <p class="hint" style="margin:10px 0 0">ค่าที่แสดงมาจากสูตรและข้อมูลอุปกรณ์ที่หน้าเว็บโหลดได้ในขณะนี้</p>
+      <div class="modal-head"><div><h2 class="title" id="stat-log-title" style="margin:0">📋 ที่มาของค่าสถานะ</h2><p class="hint" style="margin:5px 0 0">แยกค่าหน้า Status และตรวจสอบสูตรฝั่ง Supabase</p></div><div style="display:flex;gap:6px;align-items:center"><button id="copy-stat-diagnostic" type="button" style="padding:6px 9px;font-size:12px;background:#17694f;border-color:#278b6b;white-space:nowrap">⧉ Copy ตรวจสอบ</button><button id="close-stat-log" class="modal-close" aria-label="ปิด Log">✕</button></div></div>
+      <div id="stat-log-content" class="status" style="white-space:normal;max-height:58vh;overflow:auto">กำลังคำนวณรายละเอียดค่าสถานะ…</div>
+      <p id="stat-diagnostic-copy-status" class="hint" role="status" aria-live="polite" style="margin:8px 0 0">กด Copy ตรวจสอบ เพื่อคัดลอกค่า Status, อุปกรณ์ที่สวม และผลตรวจสูตร Supabase สำหรับส่งมาตรวจสอบ</p>
     </section>
   </div>
   <div id="stat-confirm-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="stat-confirm-title">
@@ -785,6 +785,54 @@ $('settings-signout').onclick=signOutUser;
   $('open-status').onclick=async()=>{statusBackdrop.classList.remove('hidden');try{await loadStats();}catch(e){msg('โหลดค่าสถานะไม่สำเร็จ: '+e.message,true);}};
   $('close-status').onclick=closeStatus;
   $('open-stat-log').onclick=async()=>{statLogBackdrop.classList.remove('hidden');const root=$('stat-log-content');if(root)root.textContent='กำลังโหลดอุปกรณ์และคำนวณค่าสถานะ…';try{if(window.tbhLoadStatBreakdown)await window.tbhLoadStatBreakdown();}catch(e){console.warn('Unable to refresh stat breakdown',e);}renderStatLog();};
+  $('copy-stat-diagnostic').onclick=async()=>{
+    const button=$('copy-stat-diagnostic'),status=$('stat-diagnostic-copy-status');
+    const original=button.textContent;button.disabled=true;button.textContent='กำลังตรวจ…';
+    try{
+      let serverDiagnostic=null,serverDiagnosticError=null;
+      try{
+        if(!client||!currentUser)throw new Error('ไม่พบเซสชันผู้ใช้ที่เข้าสู่ระบบ');
+        const {data,error}=await client.rpc('get_equipment_stat_diagnostics');
+        if(error)throw error;
+        serverDiagnostic=typeof data==='string'?JSON.parse(data):data;
+        window.tbhServerStatDiagnostic=serverDiagnostic;
+      }catch(e){serverDiagnosticError=String(e?.message||e);}
+      const breakdown=window.tbhStatBreakdown||null;
+      const report={
+        report_type:'TBH Pixel Auto Battler — Equipment Stat Diagnostic',
+        generated_at:new Date().toISOString(),
+        app_version:document.querySelector('.version-tag')?.textContent||'unknown',
+        page_url:location.href,
+        user_id:currentUser?.id||null,
+        status_page_values:{
+          atk:$('detail-atk')?.textContent||$('overall-atk')?.textContent||null,
+          def:$('detail-def')?.textContent||$('overall-def')?.textContent||null,
+          hp:$('detail-hp')?.textContent||$('overall-hp')?.textContent||null,
+          overall_atk:$('overall-atk')?.textContent||null,
+          overall_def:$('overall-def')?.textContent||null,
+          overall_hp:$('overall-hp')?.textContent||null
+        },
+        frontend_stat_breakdown:breakdown,
+        supabase_server_diagnostic:serverDiagnostic,
+        supabase_diagnostic_error:serverDiagnosticError,
+        interpretation:{
+          frontend_values:'คำนวณจากข้อมูล item_templates + player_inventory.bonus_options และช่องอุปกรณ์ใน profiles ที่หน้าเว็บโหลดได้',
+          server_atk:'ดู supabase_server_diagnostic.server_combat.normal_attack_uses_equipment_atk และ ultimate_uses_equipment_atk',
+          server_def:'ดู supabase_server_diagnostic.server_combat.normal_attack_uses_equipment_def และ monster_damage_reduces_by_equipment_def; false หมายถึงยังไม่พบการใช้โบนัส DEF ในสูตรต่อสู้',
+          reminder:'รายงานนี้เป็นการตรวจข้อมูลและนิยามฟังก์ชัน ไม่ได้เรียกโจมตีจริงหรือเปลี่ยน HP/รางวัล'
+        }
+      };
+      const text=JSON.stringify(report,null,2);
+      if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);
+      else{
+        const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();
+        const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก');
+      }
+      button.textContent='✓ คัดลอกแล้ว';
+      status.textContent=serverDiagnostic?'คัดลอกข้อมูลหน้า Status + ผลตรวจ Supabase แล้ว ส่งข้อความที่คัดลอกมาให้ตรวจสอบต่อได้':'คัดลอกข้อมูลหน้า Status แล้ว แต่ตรวจ Supabase ไม่สำเร็จ: '+(serverDiagnosticError||'ไม่ทราบสาเหตุ');
+    }catch(e){status.textContent='คัดลอกไม่สำเร็จ: '+String(e?.message||e);}
+    finally{setTimeout(()=>{button.textContent=original;button.disabled=false;},1800);}
+  };
   $('close-stat-log').onclick=closeStatLog;
   statLogBackdrop.addEventListener('click',e=>{if(e.target===statLogBackdrop)closeStatLog();});
   statusBackdrop.addEventListener('click',e=>{if(e.target===statusBackdrop)closeStatus();});
