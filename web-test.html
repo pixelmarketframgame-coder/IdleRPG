@@ -720,6 +720,7 @@ body{padding:8px}
   function stagedTotal(){return statKeys.reduce((sum,key)=>sum+Number(stagedStats[key]||0),0);}
   let cachedCombatHp=null;
   let cachedLevel=1;
+  let cachedServerStats=null;
   function renderDerivedStatPreview(){
     if(!cachedStats)return;
     const projected={...cachedStats};
@@ -735,20 +736,33 @@ body{padding:8px}
     const critBase=Math.round(Math.min(0.50,0.05+cachedStats.luk*0.01)*100);
     const critNext=Math.round(Math.min(0.50,0.05+projected.luk*0.01)*100);
     const suffix=(delta,unit='')=>delta>0?' <span class="derived-delta" style="color:#55e889!important;-webkit-text-fill-color:#55e889!important;font-weight:700">(+'+delta.toLocaleString()+unit+')</span>':'';
-    // STATUS ATK must include equipped gear from Inventory, while previewing staged STR points.
-    const gearTotalAtk=Number(($('overall-atk')?.textContent||'').replace(/,/g,''))||attackBase;
-    $('detail-atk').innerHTML=gearTotalAtk.toLocaleString()+suffix(attackNext-attackBase);
-    // DEF: equipment contributes Hard DEF; VIT and level contribute Soft DEF.
-    // Use the live equipment breakdown loaded from Supabase-backed Inventory.
-    const hardDef=Math.max(0,Number(window.tbhStatBreakdown?.def?.gear ?? ($('overall-def')?.textContent||'0').replace(/,/g,''))||0);
-    const softDef=Math.max(0,Number(projected.vit||0)+Math.floor((cachedLevel-1)/2));
-    const totalDef=hardDef+softDef;
+    // Base combat values come from the server RPC; staged-point deltas are previews only.
+    const server=cachedServerStats||{};
+    const baseAtk=Number(server.atk??attackBase);
+    const baseMaxHp=Number(server.max_hp??maxHpBase);
+    const hardDef=Math.max(0,Number(server.hard_def??window.tbhStatBreakdown?.def?.gear??0));
+    const softDef=Math.max(0,Number(server.soft_def??(cachedStats.vit+Math.floor((cachedLevel-1)/2))));
+    const totalDef=Number(server.def??(hardDef+softDef));
+    const baseHit=Number(server.hit??hitBase);
+    const baseFlee=Number(server.flee??fleeBase);
+    const baseCrit=Number(server.crit??critBase);
+    $('detail-atk').innerHTML=baseAtk.toLocaleString()+suffix(attackNext-attackBase);
     $('detail-def').textContent=totalDef.toLocaleString()+' (Hard '+hardDef.toLocaleString()+' + Soft '+softDef.toLocaleString()+')';
-    $('detail-hp').innerHTML=(cachedCombatHp===null?maxHpBase:cachedCombatHp).toLocaleString()+' / '+maxHpBase.toLocaleString()+suffix(maxHpNext-maxHpBase);
-    $('detail-aspd').textContent='1 ครั้ง/วินาที (รอบต่อสู้ปัจจุบัน)';
-    $('detail-hit').innerHTML=hitBase+'%'+suffix(hitNext-hitBase,'%');
-    $('detail-flee').innerHTML=fleeBase+'%'+suffix(fleeNext-fleeBase,'%');
-    $('detail-crit').innerHTML=critBase+'%'+suffix(critNext-critBase,'%');
+    const currentHp=server.hp??cachedCombatHp??baseMaxHp;
+    $('detail-hp').innerHTML=Number(currentHp).toLocaleString()+' / '+baseMaxHp.toLocaleString()+suffix(maxHpNext-maxHpBase);
+    $('detail-aspd').textContent=Number(server.aspd??1).toLocaleString()+' ครั้ง/วินาที (เซิร์ฟเวอร์)';
+    $('detail-hit').innerHTML=baseHit+'%'+suffix(hitNext-hitBase,'%');
+    $('detail-flee').innerHTML=baseFlee+'%'+suffix(fleeNext-fleeBase,'%');
+    $('detail-crit').innerHTML=baseCrit+'%'+suffix(critNext-critBase,'%');
+    const put=(id,value)=>{const el=$(id);if(el)el.textContent=String(value);};
+    put('combat-atk',baseAtk.toLocaleString());
+    put('combat-def',totalDef.toLocaleString()+' (Hard '+hardDef+' + Soft '+softDef+')');
+    put('combat-hp',Number(currentHp).toLocaleString()+' / '+baseMaxHp.toLocaleString());
+    put('combat-aspd',Number(server.aspd??1).toLocaleString()+' ครั้ง/วินาที');
+    put('combat-hit',baseHit+'%');
+    put('combat-flee',baseFlee+'%');
+    put('combat-crit',baseCrit+'%');
+    put('survival-maxhp',baseMaxHp.toLocaleString());
   }
   function renderStagedStats(){
     if(!cachedStats) return;
@@ -775,18 +789,16 @@ body{padding:8px}
     cachedStats={str:Number(data.str??0),agi:Number(data.agi??0),dex:Number(data.dex??0),luk:Number(data.luk??0),int:Number(data.int_stat??0),vit:Number(data.vit??0),stat_points:Number(data.stat_points??0),atk_level:Number(data.atk_level??1),hp_level:Number(data.hp_level??1)};
     const values={str:data.str??0,agi:data.agi??0,dex:data.dex??0,luk:data.luk??0,int:data.int_stat??0,vit:data.vit??0};
     Object.entries(values).forEach(([key,value])=>{if($('stat-'+key)) $('stat-'+key).textContent=String(value);});
-    // Keep these readouts aligned with the formulas currently used by public.advance_combat.
-    const attack=Math.max(1,Math.round(10*Math.pow(level,1.20))+((cachedStats.atk_level-1)*5)+(cachedStats.str*2));
-    const maxHp=Math.max(1,100+((cachedStats.hp_level-1)*20)+((level-1)*10)+(cachedStats.vit*10));
-    let currentHp=null;
-    const {data:combatData,error:combatError}=await client.from('player_combat_state').select('player_hp,player_max_hp').eq('player_id',currentUser.id).maybeSingle();
-    if(combatError) throw combatError;
-    if(combatData) currentHp=Math.max(0,Number(combatData.player_hp??maxHp));
-    cachedCombatHp=currentHp;
+    // Pull authoritative derived combat stats, including equipped-item bonuses, from Supabase.
+    const {data:gameState,error:gameStateError}=await client.rpc('get_player_game_state');
+    if(gameStateError) throw gameStateError;
+    cachedServerStats=gameState?.stats||null;
+    if(!cachedServerStats) throw new Error('RPC get_player_game_state ไม่ส่ง stats กลับมา');
+    cachedCombatHp=Math.max(0,Number(cachedServerStats.hp??0));
     try { if (window.tbhLoadStatBreakdown) await window.tbhLoadStatBreakdown(); }
     catch (e) { console.warn('โหลดโบนัส DEF จากอุปกรณ์ไม่สำเร็จ:', e); }
     renderDerivedStatPreview();
-    $('derived-stats-note').textContent='ATK, HP, HIT, FLEE และ CRIT อิงสูตรปัจจุบัน · DEF รวมจาก Hard DEF ของอุปกรณ์ + Soft DEF (VIT + โบนัสตามเลเวล) · รอบโจมตีปัจจุบันประมาณ 1 ครั้ง/วินาที';
+    $('derived-stats-note').textContent='ค่าพื้นฐานจาก Supabase get_player_game_state; โบนัสจากแต้มที่เลือกเป็นค่าพรีวิวก่อนกดยืนยัน · ASPD ตามค่าที่เซิร์ฟเวอร์ส่งกลับ';
     $('stats-hint').textContent='แต้มที่เลือก '+stagedTotal()+' / '+cachedStats.stat_points+' · กด +/− เพื่อเลือก แล้ว Confirm เพื่อบันทึก';
     renderStagedStats();
   }
@@ -1258,6 +1270,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.49"></script>
+<script src="game.js?v=0.6.50"></script>
 </body>
 </html>
