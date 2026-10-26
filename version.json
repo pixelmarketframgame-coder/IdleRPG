@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.49",
-  "updated_at": "2026-10-25",
-  "notes": "Tighten spacing across all Status groups to match Character Summary; remove inherited row margins/padding and preserve single internal scroll box."
+  "version": "v0.6.50",
+  "updated_at": "2026-10-26",
+  "notes": "Connect Status derived combat stats and Combat Stats panel to Supabase get_player_game_state; display server-calculated ATK, HP, Hard/Soft DEF, HIT, FLEE, CRIT and ASPD; retain staged stat deltas as previews and mark future stats as Preview."
 }
