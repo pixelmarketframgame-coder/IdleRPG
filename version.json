@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.51",
+  "version": "v0.6.52",
   "updated_at": "2026-11-21",
-  "notes": "Integrate Phaser event bridge with the existing single Supabase client and route client kill intents through authoritative advance_combat; avoid loading the duplicate legacy web-game-core client."
+  "notes": "Use get_player_game_state as the shared authoritative data contract for Inventory, Equipment and Status; remove duplicate direct table reads and local derived totals from Inventory."
 }
