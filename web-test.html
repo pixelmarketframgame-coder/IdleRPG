@@ -884,51 +884,31 @@ $('settings-signout').onclick=signOutUser;
   $('open-stat-log').onclick=async()=>{statLogBackdrop.classList.remove('hidden');const root=$('stat-log-content');if(root)root.textContent='กำลังโหลดอุปกรณ์และคำนวณค่าสถานะ…';try{if(window.tbhLoadStatBreakdown)await window.tbhLoadStatBreakdown();}catch(e){console.warn('Unable to refresh stat breakdown',e);}renderStatLog();};
   $('copy-stat-diagnostic').onclick=async()=>{
     const button=$('copy-stat-diagnostic'),status=$('stat-diagnostic-copy-status');
-    const original=button.textContent;button.disabled=true;button.textContent='กำลังตรวจ…';
+    button.disabled=true;button.textContent='กำลังเตรียมรายงาน…';
+    if(status)status.textContent='กำลังดึงผลตรวจสูตรอุปกรณ์จาก Supabase…';
     try{
-      let serverDiagnostic=null,serverDiagnosticError=null;
       try{
         if(!client||!currentUser)throw new Error('ไม่พบเซสชันผู้ใช้ที่เข้าสู่ระบบ');
         const {data,error}=await client.rpc('get_equipment_stat_diagnostics');
         if(error)throw error;
-        serverDiagnostic=typeof data==='string'?JSON.parse(data):data;
-        window.tbhServerStatDiagnostic=serverDiagnostic;
-      }catch(e){serverDiagnosticError=String(e?.message||e);}
-      const breakdown=window.tbhStatBreakdown||null;
-      const report={
-        report_type:'TBH Pixel Auto Battler — Equipment Stat Diagnostic',
-        generated_at:new Date().toISOString(),
-        app_version:document.querySelector('.version-tag')?.textContent||'unknown',
-        page_url:location.href,
-        user_id:currentUser?.id||null,
-        status_page_values:{
-          atk:$('detail-atk')?.textContent||$('overall-atk')?.textContent||null,
-          def:$('detail-def')?.textContent||$('overall-def')?.textContent||null,
-          hp:$('detail-hp')?.textContent||$('overall-hp')?.textContent||null,
-          overall_atk:$('overall-atk')?.textContent||null,
-          overall_def:$('overall-def')?.textContent||null,
-          overall_hp:$('overall-hp')?.textContent||null
-        },
-        frontend_stat_breakdown:breakdown,
-        supabase_server_diagnostic:serverDiagnostic,
-        supabase_diagnostic_error:serverDiagnosticError,
-        interpretation:{
-          frontend_values:'คำนวณจากข้อมูล item_templates + player_inventory.bonus_options และช่องอุปกรณ์ใน profiles ที่หน้าเว็บโหลดได้',
-          server_atk:'ดู supabase_server_diagnostic.server_combat.normal_attack_uses_equipment_atk และ ultimate_uses_equipment_atk',
-          server_def:'ดู supabase_server_diagnostic.server_combat.normal_attack_uses_equipment_def และ monster_damage_reduces_by_equipment_def; false หมายถึงยังไม่พบการใช้โบนัส DEF ในสูตรต่อสู้',
-          reminder:'รายงานนี้เป็นการตรวจข้อมูลและนิยามฟังก์ชัน ไม่ได้เรียกโจมตีจริงหรือเปลี่ยน HP/รางวัล'
-        }
-      };
-      const text=JSON.stringify(report,null,2);
-      if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(text);
-      else{
-        const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();
-        const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก');
+        window.tbhServerStatDiagnostic=typeof data==='string'?JSON.parse(data):data;
+        window.tbhServerStatDiagnosticError=null;
+      }catch(e){
+        window.tbhServerStatDiagnostic=null;
+        window.tbhServerStatDiagnosticError=String(e?.message||e);
       }
-      button.textContent='✓ คัดลอกแล้ว';
-      status.textContent=serverDiagnostic?'คัดลอกข้อมูลหน้า Status + ผลตรวจ Supabase แล้ว ส่งข้อความที่คัดลอกมาให้ตรวจสอบต่อได้':'คัดลอกข้อมูลหน้า Status แล้ว แต่ตรวจ Supabase ไม่สำเร็จ: '+(serverDiagnosticError||'ไม่ทราบสาเหตุ');
-    }catch(e){status.textContent='คัดลอกไม่สำเร็จ: '+String(e?.message||e);}
-    finally{setTimeout(()=>{button.textContent=original;button.disabled=false;},1800);}
+      const fullReportButton=$('inventory-copy-log');
+      if(!fullReportButton)throw new Error('ไม่พบตัวสร้างรายงานมาตรฐาน กรุณารีเฟรชหน้าเว็บ');
+      fullReportButton.click();
+      if(status)status.textContent=window.tbhServerStatDiagnostic
+        ?'กำลังคัดลอกรายงานมาตรฐาน พร้อมผลตรวจ Supabase…'
+        :'กำลังคัดลอกรายงานมาตรฐาน (การตรวจ Supabase ไม่สำเร็จ: '+(window.tbhServerStatDiagnosticError||'ไม่ทราบสาเหตุ')+')…';
+    }catch(e){
+      if(status)status.textContent='เตรียมรายงานไม่สำเร็จ: '+String(e?.message||e);
+      button.textContent='คัดลอกไม่สำเร็จ';
+    }finally{
+      setTimeout(()=>{button.disabled=false;if(button.textContent!=='✓ คัดลอกแล้ว')button.textContent='⧉ Copy ตรวจสอบ';},3500);
+    }
   };
   $('close-stat-log').onclick=closeStatLog;
   statLogBackdrop.addEventListener('click',e=>{if(e.target===statLogBackdrop)closeStatLog();});
@@ -1226,18 +1206,21 @@ $('settings-signout').onclick=signOutUser;
  $inv('inventory-copy-log').addEventListener('click',async()=>{
   const button=$inv('inventory-copy-log');
   const mainCopyButton=$('copy-log');
+  const statusCopyButton=$('copy-stat-diagnostic');
   const status=$('copy-log-status');
   const original='📋 Copy Log';
   button.disabled=true;
   if(mainCopyButton)mainCopyButton.disabled=true;
+  if(statusCopyButton)statusCopyButton.disabled=true;
   button.textContent='กำลังคัดลอก…';
   if(mainCopyButton)mainCopyButton.textContent='กำลังคัดลอก…';
+  if(statusCopyButton)statusCopyButton.textContent='กำลังคัดลอก…';
   if(status)status.textContent='กำลังเตรียมรายงานวิเคราะห์ฉบับเต็ม…';
   try{
     let combatArchive=[];
     try{combatArchive=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]');}catch(e){}
     const combatLines=Array.isArray(combatArchive)?combatArchive.slice(-500).map(x=>typeof x==='string'?x:JSON.stringify(x)):[];
-    const report=['TBH PIXEL AUTO BATTLER — FULL DIAGNOSTIC REPORT','Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'),'Auth: '+(currentUser?'signed in':'signed out'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG (up to 300) ===',inventoryLog.join('\\n')||'No inventory events','=== COMBAT LOG ARCHIVE (up to 500) ===',combatLines.join('\\n')||'No combat archive','=== VISIBLE COMBAT LOG ===',$('log')?.innerText||'','=== STATUS COPY ===',$('copy-log-status')?.innerText||''].join('\\n\\n');
+    const report=['TBH PIXEL AUTO BATTLER — FULL DIAGNOSTIC REPORT','Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'),'Auth: '+(currentUser?'signed in':'signed out'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== STATUS PAGE VALUES / EQUIPMENT STAT DIAGNOSTIC ===',safeJson({status_page_values:{atk:$('detail-atk')?.textContent||$('overall-atk')?.textContent||null,def:$('detail-def')?.textContent||$('overall-def')?.textContent||null,hp:$('detail-hp')?.textContent||$('overall-hp')?.textContent||null,overall_atk:$('overall-atk')?.textContent||null,overall_def:$('overall-def')?.textContent||null,overall_hp:$('overall-hp')?.textContent||null},frontend_stat_breakdown:window.tbhStatBreakdown||null,supabase_server_diagnostic:window.tbhServerStatDiagnostic||null,supabase_diagnostic_error:window.tbhServerStatDiagnosticError||null,interpretation:{server_atk:'ตรวจ server_combat.normal_attack_uses_equipment_atk และ ultimate_uses_equipment_atk',server_def:'ตรวจ server_combat.normal_attack_uses_equipment_def และ monster_damage_reduces_by_equipment_def',reminder:'รายงานนี้เป็นการตรวจข้อมูลและนิยามฟังก์ชัน ไม่ได้เรียกโจมตีจริงหรือเปลี่ยน HP/รางวัล'}}),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG (up to 300) ===',inventoryLog.join('\\n')||'No inventory events','=== COMBAT LOG ARCHIVE (up to 500) ===',combatLines.join('\\n')||'No combat archive','=== VISIBLE COMBAT LOG ===',$('log')?.innerText||'','=== STATUS COPY ===',$('copy-log-status')?.innerText||''].join('\\n\\n');
     let copied=false;
     if(navigator.clipboard?.writeText){
       try{
@@ -1254,15 +1237,21 @@ $('settings-signout').onclick=signOutUser;
     if(!copied)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก กรุณาเปิดหน้าเว็บใน Safari แล้วลองอีกครั้ง');
     button.textContent='✓ คัดลอกแล้ว';
     if(mainCopyButton)mainCopyButton.textContent='✓ คัดลอกแล้ว';
+    if(statusCopyButton)statusCopyButton.textContent='✓ คัดลอกแล้ว';
+    const statStatus=$('stat-diagnostic-copy-status');
+    if(statStatus)statStatus.textContent='คัดลอกรายงานมาตรฐานพร้อมข้อมูล Status และผลตรวจ Supabase (ถ้ามี) แล้ว'; 
     if(status)status.textContent='คัดลอกรายงานฉบับเต็มแล้ว — วางข้อความส่งมาในแชตได้เลย';
   }catch(e){
     const reason=String(e?.message||e);
     addInventoryLog('Copy diagnostic ไม่สำเร็จ',{error:reason});
     button.textContent='คัดลอกไม่สำเร็จ';
     if(mainCopyButton)mainCopyButton.textContent='คัดลอกไม่สำเร็จ';
+    if(statusCopyButton)statusCopyButton.textContent='คัดลอกไม่สำเร็จ';
+    const statStatus=$('stat-diagnostic-copy-status');
+    if(statStatus)statStatus.textContent='คัดลอกไม่สำเร็จ: '+reason;
     if(status)status.textContent='คัดลอกไม่สำเร็จ: '+reason;
   }finally{
-    setTimeout(()=>{button.textContent=original;button.disabled=false;if(mainCopyButton){mainCopyButton.textContent=original;mainCopyButton.disabled=false;}},3000);
+    setTimeout(()=>{button.textContent=original;button.disabled=false;if(mainCopyButton){mainCopyButton.textContent=original;mainCopyButton.disabled=false;}if(statusCopyButton){statusCopyButton.textContent='⧉ Copy ตรวจสอบ';statusCopyButton.disabled=false;}},3000);
   }
  });;
  backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
