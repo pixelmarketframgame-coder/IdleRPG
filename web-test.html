@@ -463,6 +463,7 @@ body{padding:8px}
   $('copy-log').addEventListener('click', () => {
     const fullReportButton = document.getElementById('inventory-copy-log');
     if (fullReportButton) {
+      $('copy-log').textContent = 'กำลังคัดลอก…';
       fullReportButton.click();
       $('copy-log-status').textContent = 'กำลังคัดลอกรายงานวิเคราะห์ฉบับเต็ม…';
     } else {
@@ -1224,10 +1225,11 @@ $('settings-signout').onclick=signOutUser;
  $inv('inventory-open').addEventListener('click',open);$inv('inventory-close').addEventListener('click',close);
  $inv('inventory-copy-log').addEventListener('click',async()=>{
   const button=$inv('inventory-copy-log');
+  const mainCopyButton=$('copy-log');
   let combatArchive=[];try{combatArchive=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]');}catch(e){}
   const combatLines=Array.isArray(combatArchive)?combatArchive.slice(-500).map(x=>typeof x==='string'?x:JSON.stringify(x)): [];
   const report=['TBH PIXEL AUTO BATTLER — FULL DIAGNOSTIC REPORT','Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'),'Auth: '+(currentUser?'signed in':'signed out'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG (up to 300) ===',inventoryLog.join('\n')||'No inventory events','=== COMBAT LOG ARCHIVE (up to 500) ===',combatLines.join('\n')||'No combat archive','=== VISIBLE COMBAT LOG ===',$('log')?.innerText||'','=== STATUS COPY ===',$('copy-log-status')?.innerText||''].join('\n\n');
-  try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(report);else{const ta=document.createElement('textarea');ta.value=report;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก');}button.textContent='✓ Copied';setTimeout(()=>button.textContent='📋 Copy Log',1600);}catch(e){addInventoryLog('Copy diagnostic ไม่สำเร็จ',{error:String(e)});button.textContent='คัดลอกไม่สำเร็จ';setTimeout(()=>button.textContent='📋 Copy Log',2200);}
+  try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(report);else{const ta=document.createElement('textarea');ta.value=report;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก');}button.textContent='✓ คัดลอกแล้ว';if(mainCopyButton)mainCopyButton.textContent='✓ คัดลอกแล้ว';setTimeout(()=>{button.textContent='📋 Copy Log';if(mainCopyButton)mainCopyButton.textContent='📋 Copy Log';},2000);}catch(e){addInventoryLog('Copy diagnostic ไม่สำเร็จ',{error:String(e)});button.textContent='คัดลอกไม่สำเร็จ';if(mainCopyButton)mainCopyButton.textContent='คัดลอกไม่สำเร็จ';setTimeout(()=>{button.textContent='📋 Copy Log';if(mainCopyButton)mainCopyButton.textContent='📋 Copy Log';},2500);}
  });
  backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.classList.contains('hidden'))close();});
@@ -1277,6 +1279,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.54"></script>
+<script src="game.js?v=0.6.55"></script>
 </body>
 </html>
