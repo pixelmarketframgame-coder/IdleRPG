@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.53",
+  "version": "v0.6.54",
   "updated_at": "2026-11-21",
-  "notes": "Expand diagnostic logging: capture complete equipment RPC request/response, before/after equipment and server stats, inventory snapshot, and combined combat archive in Inventory Copy Log."
+  "notes": "Fix main Game-page Copy Log to invoke the same full diagnostic report as Inventory Copy Log; cache-bust game.js."
 }
