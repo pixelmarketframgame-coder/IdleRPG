@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.62",
+  "version": "v0.6.63",
   "updated_at": "2026-11-21",
-  "notes": "Fix reportText scope so the manual diagnostic report modal can open after bypassing clipboard."
+  "notes": "Fix Settings diagnostic report handler DOM helper scope so the manual report modal can open."
 }
