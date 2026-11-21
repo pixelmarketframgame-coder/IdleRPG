@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.64",
-  "updated_at": "2026-11-21",
-  "notes": "Fix full diagnostic report generation referencing auth state outside its script scope."
+  "version": "v0.6.65",
+  "updated_at": "2026-11-22",
+  "notes": "Add Quick Diagnostic as the default short report and Full Diagnostic with extended log history; include omitted-entry counts."
 }
