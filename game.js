@@ -176,11 +176,13 @@ function sendToFlutterFlow(payload) {
     // Web build: route game intents through the shared Supabase API layer.
     // Keep the legacy Flutter channel only as a backward-compatible bridge.
     if (window.TBHGame && typeof window.TBHGame.handleGameEvent === "function") {
+        // The web facade is authoritative; do not also dispatch through the
+        // legacy Flutter channel or the same action would execute twice.
         Promise.resolve(window.TBHGame.handleGameEvent(payload)).catch((error) => {
             console.error("Game API action failed", error);
         });
-    }
-    if (window.FlutterChannel && window.FlutterChannel.postMessage) {
+    } else if (window.FlutterChannel && window.FlutterChannel.postMessage) {
+        // Backward compatibility for a host that does not provide TBHGame.
         window.FlutterChannel.postMessage(JSON.stringify(payload));
     }
 }
