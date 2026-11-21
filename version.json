@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.55",
+  "version": "v0.6.56",
   "updated_at": "2026-11-21",
-  "notes": "Show copied confirmation on both Game and Inventory Copy Log buttons; show failure state when clipboard operation fails."
+  "notes": "Prevent Copy Log from hanging on pending clipboard writes; add timeout, fallback copy, and visible error status."
 }
