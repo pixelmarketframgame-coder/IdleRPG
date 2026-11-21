@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.58",
+  "version": "v0.6.59",
   "updated_at": "2026-11-21",
-  "notes": "Fix iOS Safari diagnostic copy: synchronous in-gesture copy fallback and background Supabase stat diagnostic refresh."
+  "notes": "Add visible selectable manual-copy fallback when automatic diagnostic copying fails; fix report line breaks."
 }
