@@ -458,36 +458,15 @@ body{padding:8px}
     while ($('log').children.length > 150) $('log').lastElementChild.remove();
     try { const saved=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]'); saved.push({at:new Date().toISOString(),message:el.textContent}); localStorage.setItem('tbh_status_log_archive',JSON.stringify(saved.slice(-500))); } catch(e) {}
   };
-  $('copy-log').addEventListener('click', async () => {
-    const lines = Array.from($('log').children).map(el => el.textContent || '');
-    const report = [
-      'TBH Pixel Auto Battler Debug Log',
-      'Version: ' + APP_VERSION,
-      'Time: ' + new Date().toISOString(),
-      'Page: ' + location.href,
-      'Signed in: ' + Boolean(currentUser),
-      'Status: ' + ($('message')?.textContent || ''),
-      'Combat hint: ' + ($('combat-hint')?.textContent || ''),
-      'Monster HUD: ' + ($('monster-hud-name')?.textContent || ''),
-      'Monster HP: ' + ($('monster-hud-hp')?.textContent || ''),
-      '--- Recent log entries ---',
-      ...(lines.length ? lines : ['(no log entries)'])
-    ].join('\\n');
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(report);
-      } else {
-        const area = document.createElement('textarea');
-        area.value = report;
-        area.style.position = 'fixed'; area.style.opacity = '0';
-        document.body.appendChild(area); area.focus(); area.select();
-        const ok = document.execCommand('copy');
-        area.remove();
-        if (!ok) throw new Error('Clipboard API unavailable');
-      }
-      $('copy-log-status').textContent = 'คัดลอก Log แล้ว — กลับมาวางในแชตได้เลย';
-    } catch (err) {
-      $('copy-log-status').textContent = 'คัดลอกอัตโนมัติไม่ได้ กรุณาเลือกและคัดลอกข้อความใน Log ด้วยตนเอง';
+  // Both Copy Log buttons must produce the same full diagnostic report.
+  // The Inventory handler owns the authoritative inventory/status snapshot.
+  $('copy-log').addEventListener('click', () => {
+    const fullReportButton = document.getElementById('inventory-copy-log');
+    if (fullReportButton) {
+      fullReportButton.click();
+      $('copy-log-status').textContent = 'กำลังคัดลอกรายงานวิเคราะห์ฉบับเต็ม…';
+    } else {
+      $('copy-log-status').textContent = 'ไม่พบตัวสร้างรายงานฉบับเต็ม กรุณารีเฟรชหน้าเว็บ';
     }
   });
   let lastCombatSnapshot = null;
@@ -1298,6 +1277,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.53"></script>
+<script src="game.js?v=0.6.54"></script>
 </body>
 </html>
