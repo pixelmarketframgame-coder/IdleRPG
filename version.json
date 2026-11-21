@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.52",
+  "version": "v0.6.53",
   "updated_at": "2026-11-21",
-  "notes": "Use get_player_game_state as the shared authoritative data contract for Inventory, Equipment and Status; remove duplicate direct table reads and local derived totals from Inventory."
+  "notes": "Expand diagnostic logging: capture complete equipment RPC request/response, before/after equipment and server stats, inventory snapshot, and combined combat archive in Inventory Copy Log."
 }
