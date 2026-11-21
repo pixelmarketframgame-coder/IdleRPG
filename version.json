@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.60",
+  "version": "v0.6.61",
   "updated_at": "2026-11-21",
-  "notes": "Consolidate the full diagnostic report copy action into Settings; remove the three duplicate copy buttons and fix manual-copy fallback report scope."
+  "notes": "Open the full diagnostic report immediately in a selectable manual-copy modal; bypass unreliable iOS clipboard handling."
 }
