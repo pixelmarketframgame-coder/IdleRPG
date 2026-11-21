@@ -1046,6 +1046,7 @@ $('settings-signout').onclick=signOutUser;
 /* Inventory UI backed by Supabase; equip/unequip uses ownership-checked RPC. */
 (()=> {
  const $inv=id=>document.getElementById(id);
+ const $= $inv; // Local DOM helper: this script has its own scope.
  const backdrop=$inv('inventory-backdrop');
  if(!backdrop||!$inv('inventory-open'))return;
  const client=window.tbhSupabase;
@@ -1339,6 +1340,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.62"></script>
+<script src="game.js?v=0.6.63"></script>
 </body>
 </html>
