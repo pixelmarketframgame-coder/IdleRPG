@@ -1179,7 +1179,8 @@ $('settings-signout').onclick=signOutUser;
    equipped:!!x.equipped
   }));
   const eq=state.equipment||{};
-  gearSlots.forEach(s=>equipped[s.id]=eq[s.id]?.id||items.find(x=>x.equipped&&itemSlot(x)===s.id)?.id||null);
+  const contractSlot={eq_weapon:'weapon',eq_head:'head',eq_armor:'armor',eq_legs:'legs',eq_wings:'wings',eq_left_accessory:'left_accessory',eq_right_accessory:'right_accessory'};
+  gearSlots.forEach(s=>equipped[s.id]=eq[contractSlot[s.id]]?.id||items.find(x=>x.equipped&&itemSlot(x)===s.id)?.id||null);
   renderAll();
  }
  window.tbhLoadStatBreakdown=async()=>{await loadInventory();return window.tbhStatBreakdown||null;};
