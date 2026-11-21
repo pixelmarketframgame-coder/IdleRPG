@@ -294,8 +294,8 @@ body{padding:8px}
     <section class="status-modal" style="width:min(420px,100%)">
       <div class="modal-head"><div><h2 class="title" id="settings-modal-title" style="margin:0">⚙ SETTINGS</h2><p class="hint" style="margin:5px 0 0">การตั้งค่าหน้าเว็บทดสอบ</p></div><button id="close-settings" class="modal-close" aria-label="ปิด Settings">✕</button></div>
       <div class="row"><button id="settings-check-version" class="primary" type="button">🔄 ตรวจสอบเวอร์ชัน / อัปเดต</button></div>
-      <div class="row" style="margin-top:10px"><button id="inventory-copy-log" class="primary" type="button" style="width:100%">📋 คัดลอกรายงานวิเคราะห์ฉบับเต็ม</button></div>
-      <p id="settings-copy-log-status" class="hint" role="status" style="margin:7px 0 12px">รายงานจะรวมสถานะตัวละคร อุปกรณ์ Inventory และ Combat Log</p>
+      <div class="row" style="margin-top:10px;gap:7px"><button id="inventory-copy-log" class="primary" type="button" data-report-mode="quick" style="flex:1">📋 Quick Log</button><button id="inventory-copy-log-full" type="button" data-report-mode="full" style="flex:1">🧾 Full Log</button></div>
+      <p id="settings-copy-log-status" class="hint" role="status" style="margin:7px 0 12px">Quick: รายงานสั้น ใช้ส่งตรวจทั่วไป · Full: รายละเอียด Log ย้อนหลังทั้งหมด</p>
       <p id="settings-version-status" class="hint" role="status" style="margin:8px 0 12px">เวอร์ชันที่ใช้งาน: กำลังโหลด…</p>
       <div class="row"><button id="settings-refresh" type="button">↻ รีเฟรช / โหลดสถานะ</button><button id="settings-signout" class="green" type="button">ออกจากระบบ</button></div>
     </section>
@@ -1179,120 +1179,68 @@ $('settings-signout').onclick=signOutUser;
  async function open(){backdrop.classList.remove('hidden');document.body.style.overflow='hidden';loading=true;renderAll();try{await loadInventory();}catch(e){items=[];gearSlots.forEach(s=>equipped[s.id]=null);renderAll();const root=$inv('inventory-items');root.replaceChildren();const msg=document.createElement('div');msg.className='inventory-empty';msg.textContent='โหลด Inventory ไม่สำเร็จ: '+(e.message||e);root.append(msg);}finally{loading=false;$inv('inventory-close').focus();}}
  function close(){backdrop.classList.add('hidden');document.body.style.overflow='';$inv('inventory-open').focus();}
  $inv('inventory-open').addEventListener('click',open);$inv('inventory-close').addEventListener('click',close);
- $inv('inventory-copy-log').addEventListener('click',async()=>{
-  const button=$inv('inventory-copy-log');
-  const mainCopyButton=null;
-  const statusCopyButton=null;
-  const status=$('settings-copy-log-status');
-  const original='📋 Copy Log';
-  let reportText='';
-  button.disabled=true;
-  if(mainCopyButton)mainCopyButton.disabled=true;
-  if(statusCopyButton)statusCopyButton.disabled=true;
-  button.textContent='กำลังคัดลอก…';
-  if(mainCopyButton)mainCopyButton.textContent='กำลังคัดลอก…';
-  if(statusCopyButton)statusCopyButton.textContent='กำลังคัดลอก…';
-  if(status)status.textContent='กำลังเตรียมรายงานวิเคราะห์ฉบับเต็ม…';
-  try{
-    let combatArchive=[];
-    try{combatArchive=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]');}catch(e){}
-    const combatLines=Array.isArray(combatArchive)?combatArchive.slice(-500).map(x=>typeof x==='string'?x:JSON.stringify(x)):[];
-    reportText=['TBH PIXEL AUTO BATTLER — FULL DIAGNOSTIC REPORT','Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'), 'Auth: '+(window.tbhSupabase?.auth?'Supabase auth client available':'Supabase auth client unavailable'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== STATUS PAGE VALUES / EQUIPMENT STAT DIAGNOSTIC ===',safeJson({status_page_values:{atk:$('detail-atk')?.textContent||$('overall-atk')?.textContent||null,def:$('detail-def')?.textContent||$('overall-def')?.textContent||null,hp:$('detail-hp')?.textContent||$('overall-hp')?.textContent||null,overall_atk:$('overall-atk')?.textContent||null,overall_def:$('overall-def')?.textContent||null,overall_hp:$('overall-hp')?.textContent||null},frontend_stat_breakdown:window.tbhStatBreakdown||null,supabase_server_diagnostic:window.tbhServerStatDiagnostic||null,supabase_diagnostic_error:window.tbhServerStatDiagnosticError||null,interpretation:{server_atk:'ตรวจ server_combat.normal_attack_uses_equipment_atk และ ultimate_uses_equipment_atk',server_def:'ตรวจ server_combat.normal_attack_uses_equipment_def และ monster_damage_reduces_by_equipment_def',reminder:'รายงานนี้เป็นการตรวจข้อมูลและนิยามฟังก์ชัน ไม่ได้เรียกโจมตีจริงหรือเปลี่ยน HP/รางวัล'}}),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG (up to 300) ===',inventoryLog.join('\n')||'No inventory events','=== COMBAT LOG ARCHIVE (up to 500) ===',combatLines.join('\n')||'No combat archive','=== VISIBLE COMBAT LOG ===',$('log')?.innerText||'','=== STATUS COPY ===',$('settings-copy-log-status')?.innerText||''].join('\n\n');
-    // v0.6.61: bypass unreliable iOS clipboard promises and show the report immediately.
-    throw new Error('เปิดรายงานให้คัดลอกด้วยมือ');
-    // iOS Safari requires the legacy copy command to run synchronously
-    // during the original user tap. Keep the textarea inside the viewport.
-    let copied=false;
-    const ta=document.createElement('textarea');
-    ta.value=reportText;
-    ta.setAttribute('readonly','');
-    ta.setAttribute('aria-hidden','true');
-    ta.style.position='fixed';
-    ta.style.left='0';
-    ta.style.top='0';
-    ta.style.width='2px';
-    ta.style.height='2px';
-    ta.style.padding='0';
-    ta.style.border='0';
-    ta.style.opacity='0.01';
-    ta.style.fontSize='16px';
-    ta.style.zIndex='2147483647';
-    document.body.appendChild(ta);
-    ta.focus({preventScroll:true});
-    ta.select();
-    ta.setSelectionRange(0,ta.value.length);
-    try{copied=!!document.execCommand('copy');}catch(copyError){}
-    ta.remove();
-    // Clipboard API is a secondary path, invoked immediately in the tap handler.
-    if(!copied&&navigator.clipboard?.writeText){
-      try{
-        await Promise.race([navigator.clipboard.writeText(reportText),new Promise((_,reject)=>setTimeout(()=>reject(new Error('clipboard timeout')),2500))]);
-        copied=true;
-      }catch(clipboardError){}
-    }
-    if(!copied)throw new Error('iOS/Safari ปฏิเสธการคัดลอกอัตโนมัติ กรุณาลองเปิดใน Safari แล้วแตะคัดลอกอีกครั้ง');
-    button.textContent='✓ คัดลอกแล้ว';
-    if(mainCopyButton)mainCopyButton.textContent='✓ คัดลอกแล้ว';
-    if(statusCopyButton)statusCopyButton.textContent='✓ คัดลอกแล้ว';
-    const statStatus=$('stat-diagnostic-copy-status');
-    if(statStatus)statStatus.textContent='คัดลอกรายงานมาตรฐานพร้อมข้อมูล Status และผลตรวจ Supabase (ถ้ามี) แล้ว'; 
-    if(status)status.textContent='คัดลอกรายงานฉบับเต็มแล้ว — วางข้อความส่งมาในแชตได้เลย';
-  }catch(e){
-    const reason=String(e?.message||e);
-    addInventoryLog('Copy diagnostic ไม่สำเร็จ',{error:reason});
-    button.textContent='ต้องคัดลอกด้วยมือ';
-    if(mainCopyButton)mainCopyButton.textContent='ต้องคัดลอกด้วยมือ';
-    if(statusCopyButton)statusCopyButton.textContent='ต้องคัดลอกด้วยมือ';
-    const statStatus=$('stat-diagnostic-copy-status');
-    if(statStatus)statStatus.textContent='ระบบคัดลอกอัตโนมัติไม่สำเร็จ — เลือกข้อความในหน้าต่างที่เปิดขึ้นแล้วกด Copy';
-    if(status)status.textContent='ระบบคัดลอกอัตโนมัติไม่สำเร็จ — เปิดรายงานให้เลือกคัดลอกด้วยมือแล้ว';
-    // Guaranteed manual path: expose the complete report in a visible,
-    // selectable textarea instead of losing it when clipboard APIs fail.
-    let fallback=document.getElementById('tbh-manual-copy-fallback');
-    if(!fallback){
-      fallback=document.createElement('div');
-      fallback.id='tbh-manual-copy-fallback';
-      fallback.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;';
-      const panel=document.createElement('div');
-      panel.style.cssText='background:#171717;color:#fff;width:100%;max-width:760px;max-height:95%;display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:12px;box-sizing:border-box;';
-      const heading=document.createElement('strong');
-      heading.textContent='คัดลอกรายงานด้วยมือ';
-      const instruction=document.createElement('div');
-      instruction.textContent='แตะปุ่ม “เลือกข้อความทั้งหมด” จากนั้นแตะค้างในช่องข้อความ แล้วเลือก Copy';
-      instruction.style.cssText='font-size:14px;line-height:1.5;';
-      const area=document.createElement('textarea');
-      area.id='tbh-manual-copy-text';
-      area.value=reportText;
-      area.setAttribute('readonly','');
-      area.style.cssText='width:100%;height:58vh;min-height:220px;resize:vertical;box-sizing:border-box;background:#fff;color:#111;padding:10px;font-size:13px;line-height:1.4;border-radius:6px;-webkit-user-select:text;user-select:text;';
-      const actions=document.createElement('div');
-      actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;';
-      const selectButton=document.createElement('button');
-      selectButton.type='button';
-      selectButton.textContent='เลือกข้อความทั้งหมด';
-      selectButton.style.cssText='padding:12px 16px;border-radius:8px;font-weight:700;';
-      selectButton.addEventListener('click',()=>{area.focus();area.select();area.setSelectionRange(0,area.value.length);});
-      const closeButton=document.createElement('button');
-      closeButton.type='button';
-      closeButton.textContent='ปิด';
-      closeButton.style.cssText='padding:12px 16px;border-radius:8px;';
-      closeButton.addEventListener('click',()=>fallback.remove());
-      actions.append(selectButton,closeButton);
-      panel.append(heading,instruction,area,actions);
-      fallback.append(panel);
-      document.body.append(fallback);
-    }else{
-      const area=fallback.querySelector('#tbh-manual-copy-text');
-      if(area)area.value=reportText;
-      fallback.style.display='flex';
-    }
-    const area=fallback.querySelector('#tbh-manual-copy-text');
-    if(area){area.focus();area.select();area.setSelectionRange(0,area.value.length);}
-  }finally{
-    setTimeout(()=>{button.textContent=original;button.disabled=false;if(mainCopyButton){mainCopyButton.textContent=original;mainCopyButton.disabled=false;}if(statusCopyButton){statusCopyButton.textContent='⧉ Copy ตรวจสอบ';statusCopyButton.disabled=false;}},3000);
-  }
- });;
- backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
+   const reportButtons=[$inv('inventory-copy-log'),$inv('inventory-copy-log-full')].filter(Boolean);
+  reportButtons.forEach(reportButton=>reportButton.addEventListener('click',async(event)=>{
+   const button=event.currentTarget;
+   const mode=button.dataset.reportMode==='full'?'full':'quick';
+   const isFull=mode==='full';
+   const status=$('settings-copy-log-status');
+   let reportText='';
+   reportButtons.forEach(b=>{b.disabled=true;});
+   button.textContent='กำลังเตรียม…';
+   if(status)status.textContent=isFull?'กำลังเตรียม Full Diagnostic…':'กำลังเตรียม Quick Diagnostic…';
+   try{
+     let combatArchive=[];
+     try{combatArchive=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]');}catch(e){}
+     const allCombatLines=Array.isArray(combatArchive)?combatArchive.map(x=>typeof x==='string'?x:JSON.stringify(x)):[];
+     const allInventoryLines=Array.isArray(inventoryLog)?inventoryLog:[];
+     const visibleCombatText=$('log')?.innerText||'';
+     const visibleCombatLines=visibleCombatText.split(/\\r?\\n/).filter(Boolean);
+     const inventoryLimit=isFull?300:30;
+     const combatLimit=isFull?500:40;
+     const visibleLimit=isFull?visibleCombatLines.length:25;
+     const inventoryLines=allInventoryLines.slice(-inventoryLimit);
+     const combatLines=allCombatLines.slice(-combatLimit);
+     const visibleLines=visibleCombatLines.slice(-visibleLimit);
+     reportText=['TBH PIXEL AUTO BATTLER — '+(isFull?'FULL':'QUICK')+' DIAGNOSTIC REPORT','Report mode: '+(isFull?'FULL':'QUICK'),'Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'),'Auth: '+(window.tbhSupabase?.auth?'Supabase auth client available':'Supabase auth client unavailable'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== STATUS PAGE VALUES / EQUIPMENT STAT DIAGNOSTIC ===',safeJson({status_page_values:{atk:$('detail-atk')?.textContent||$('overall-atk')?.textContent||null,def:$('detail-def')?.textContent||$('overall-def')?.textContent||null,hp:$('detail-hp')?.textContent||$('overall-hp')?.textContent||null,overall_atk:$('overall-atk')?.textContent||null,overall_def:$('overall-def')?.textContent||null,overall_hp:$('overall-hp')?.textContent||null},frontend_stat_breakdown:window.tbhStatBreakdown||null,supabase_server_diagnostic:window.tbhServerStatDiagnostic||null,supabase_diagnostic_error:window.tbhServerStatDiagnosticError||null,interpretation:{server_atk:'ตรวจ server_combat.normal_attack_uses_equipment_atk และ ultimate_uses_equipment_atk',server_def:'ตรวจ server_combat.normal_attack_uses_equipment_def และ monster_damage_reduces_by_equipment_def',reminder:'รายงานนี้เป็นการตรวจข้อมูลและนิยามฟังก์ชัน ไม่ได้เรียกโจมตีจริงหรือเปลี่ยน HP/รางวัล'}}),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG ('+inventoryLines.length+'/'+allInventoryLines.length+'; omitted '+Math.max(0,allInventoryLines.length-inventoryLines.length)+') ===',inventoryLines.join('\\n')||'No inventory events','=== COMBAT LOG ARCHIVE ('+combatLines.length+'/'+allCombatLines.length+'; omitted '+Math.max(0,allCombatLines.length-combatLines.length)+') ===',combatLines.join('\\n')||'No combat archive','=== VISIBLE COMBAT LOG ('+visibleLines.length+'/'+visibleCombatLines.length+'; omitted '+Math.max(0,visibleCombatLines.length-visibleLines.length)+') ===',visibleLines.join('\\n')||'No visible combat log','=== STATUS COPY ===',$('settings-copy-log-status')?.innerText||''].join('\\n\\n');
+     // Preserve the iOS-safe manual selection flow.
+     throw new Error('เปิดรายงานให้คัดลอกด้วยมือ');
+     let copied=false;
+     const ta=document.createElement('textarea');ta.value=reportText;ta.setAttribute('readonly','');ta.setAttribute('aria-hidden','true');
+     ta.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;padding:0;border:0;opacity:.01;font-size:16px;z-index:2147483647';
+     document.body.appendChild(ta);ta.focus({preventScroll:true});ta.select();ta.setSelectionRange(0,ta.value.length);
+     try{copied=!!document.execCommand('copy');}catch(copyError){}ta.remove();
+     if(!copied&&navigator.clipboard?.writeText){try{await Promise.race([navigator.clipboard.writeText(reportText),new Promise((_,reject)=>setTimeout(()=>reject(new Error('clipboard timeout')),2500))]);copied=true;}catch(clipboardError){}}
+     if(!copied)throw new Error('iOS/Safari ปฏิเสธการคัดลอกอัตโนมัติ');
+     button.textContent='✓ พร้อมแล้ว';if(status)status.textContent='เตรียมรายงาน '+(isFull?'Full':'Quick')+' แล้ว';
+   }catch(e){
+     addInventoryLog('Copy diagnostic ไม่สำเร็จ',{mode,error:String(e?.message||e)});
+     button.textContent='เปิดรายงานแล้ว';if(status)status.textContent='เปิดรายงาน '+(isFull?'Full':'Quick')+' แล้ว — แตะ “เลือกข้อความทั้งหมด” แล้ว Copy';
+     let fallback=document.getElementById('tbh-manual-copy-fallback');
+     if(!fallback){
+       fallback=document.createElement('div');fallback.id='tbh-manual-copy-fallback';
+       fallback.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;';
+       const panel=document.createElement('div');panel.style.cssText='background:#171717;color:#fff;width:100%;max-width:760px;max-height:95%;display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:12px;box-sizing:border-box;';
+       const heading=document.createElement('strong');heading.textContent='คัดลอกรายงาน '+(isFull?'ฉบับเต็ม':'ฉบับย่อ')+' ด้วยมือ';
+       const instruction=document.createElement('div');instruction.textContent='แตะปุ่ม “เลือกข้อความทั้งหมด” จากนั้นแตะค้างในช่องข้อความ แล้วเลือก Copy';instruction.style.cssText='font-size:14px;line-height:1.5;';
+       const area=document.createElement('textarea');area.id='tbh-manual-copy-text';area.value=reportText;area.setAttribute('readonly','');
+       area.style.cssText='width:100%;height:58vh;min-height:220px;resize:vertical;box-sizing:border-box;background:#fff;color:#111;padding:10px;font-size:13px;line-height:1.4;border-radius:6px;-webkit-user-select:text;user-select:text;';
+       const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;';
+       const selectButton=document.createElement('button');selectButton.type='button';selectButton.textContent='เลือกข้อความทั้งหมด';selectButton.style.cssText='padding:12px 16px;border-radius:8px;font-weight:700;';
+       selectButton.addEventListener('click',()=>{area.focus();area.select();area.setSelectionRange(0,area.value.length);});
+       const closeButton=document.createElement('button');closeButton.type='button';closeButton.textContent='ปิด';closeButton.style.cssText='padding:12px 16px;border-radius:8px;';closeButton.addEventListener('click',()=>fallback.remove());
+       actions.append(selectButton,closeButton);panel.append(heading,instruction,area,actions);fallback.append(panel);document.body.append(fallback);
+     }else{
+       const area=fallback.querySelector('#tbh-manual-copy-text');if(area)area.value=reportText;
+       const heading=fallback.querySelector('strong');if(heading)heading.textContent='คัดลอกรายงาน '+(isFull?'ฉบับเต็ม':'ฉบับย่อ')+' ด้วยมือ';
+       fallback.style.display='flex';
+     }
+     const area=fallback.querySelector('#tbh-manual-copy-text');if(area){area.focus();area.select();area.setSelectionRange(0,area.value.length);}
+   }finally{
+     setTimeout(()=>{reportButtons.forEach(b=>{b.disabled=false;b.textContent=b.dataset.reportMode==='full'?'🧾 Full Log':'📋 Quick Log';});},3000);
+   }
+  }));
+backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.classList.contains('hidden'))close();});
  $inv('inventory-filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;filter=b.dataset.filter;$inv('inventory-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderItems();});
  async function persistEquipment(slot,inventoryId){
@@ -1340,6 +1288,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.63"></script>
+<script src="game.js?v=0.6.65"></script>
 </body>
 </html>
