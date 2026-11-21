@@ -1134,7 +1134,7 @@ $('settings-signout').onclick=signOutUser;
   if(key.includes('accessory')||id.includes('ring')||id.includes('amulet'))return 'eq_left_accessory';
   return null;
  };
- let filter='all',selectedItem=null,selectedSlot=null,profileData=null,playerStats=null,items=[],loading=false;
+ let filter='all',selectedItem=null,selectedSlot=null,profileData=null,playerStats=null,inventoryState=null,items=[],loading=false;
  const inventoryLog=[];
  const addInventoryLog=(message)=>{const line='['+new Date().toISOString()+'] '+String(message);inventoryLog.push(line);if(inventoryLog.length>80)inventoryLog.shift();try{const saved=JSON.parse(localStorage.getItem('tbh_inventory_log_archive')||'[]');saved.push(line);localStorage.setItem('tbh_inventory_log_archive',JSON.stringify(saved.slice(-300)));}catch(e){}const box=$inv('inventory-log-preview');if(box)box.textContent=inventoryLog.slice(-8).join('\n');};
  const equipped={eq_weapon:null,eq_head:null,eq_armor:null,eq_legs:null,eq_wings:null,eq_left_accessory:null,eq_right_accessory:null};
@@ -1151,38 +1151,35 @@ $('settings-signout').onclick=signOutUser;
  const itemIcon=item=>{const s=String(item?.template?.mastery_type_id||'').toLowerCase();return s.includes('helm')?'🪖':s.includes('armor')?'🛡️':s.includes('wing')?'🪽':s.includes('accessory')?'💍':(item?.item_template_id||'').startsWith('wpn_')?'⚔️':'📦';};
  const itemSlot=item=>slotForTemplate(item?.template)||gearSlots.find(s=>equipped[s.id]===item?.id)?.id||null;
  function stats(){
-  const level=Math.max(1,num(profileData?.level)||1),ps=playerStats||{};
-  const atkLevel=Math.max(1,num(ps.atk_level)||1),hpLevel=Math.max(1,num(ps.hp_level)||1);
-  const str=num(ps.str),vit=num(ps.vit);
-  const atk=Math.max(1,Math.round(10*Math.pow(level,1.20))+(atkLevel-1)*5+str*2);
-  const hp=Math.max(1,100+(hpLevel-1)*20+(level-1)*10+vit*10);
-  const total=Object.values(equipped).map(id=>items.find(x=>x.id===id)).filter(Boolean).reduce((a,x)=>{const b=itemBonuses(x);a.atk+=b.atk;a.def+=b.def;a.hp+=b.hp;return a;},{atk,def:0,hp});
+  const server=inventoryState?.stats||{};
   const equipment=gearSlots.map(slot=>{const item=items.find(x=>x.id===equipped[slot.id]);if(!item)return null;const bonus=itemBonuses(item);return {slot:slot.label,name:itemName(item),atk:bonus.atk,def:bonus.def,hp:bonus.hp};}).filter(Boolean);
-  window.tbhStatBreakdown={level,atk:{base:atk,gear:total.atk-atk,total:total.atk,atkLevel,str},def:{base:0,gear:total.def,total:total.def},hp:{base:hp,gear:total.hp-hp,total:total.hp,hpLevel,vit},equipment};
+  const gear=equipment.reduce((a,x)=>({atk:a.atk+x.atk,def:a.def+x.def,hp:a.hp+x.hp}),{atk:0,def:0,hp:0});
+  const total={atk:num(server.atk),def:num(server.def),hp:num(server.max_hp)};
+  window.tbhStatBreakdown={level:num(profileData?.level)||1,atk:{base:total.atk-gear.atk,gear:gear.atk,total:total.atk},def:{base:total.def-gear.def,gear:gear.def,total:total.def},hp:{base:total.hp-gear.hp,gear:gear.hp,total:total.hp},equipment};
   return total;
  }
  function setText(id,value){const el=$inv(id);if(el)el.textContent=value;}
  async function loadInventory(){
   if(!client)throw new Error('ไม่พบการเชื่อมต่อ Supabase');
   const {data:userResult,error:userError}=await client.auth.getUser();if(userError)throw userError;
-  const user=userResult?.user;if(!user)throw new Error('กรุณาเข้าสู่ระบบก่อนดู Inventory');
-  const fields='id,nickname,level,exp,gold,character_created,eq_weapon,eq_head,eq_armor,eq_legs,eq_wings,eq_left_accessory,eq_right_accessory';
-  const {data:p,error:pe}=await client.from('profiles').select(fields).eq('id',user.id).maybeSingle();
-  if(pe)throw pe;if(!p)throw new Error('ไม่พบข้อมูลตัวละครของบัญชีนี้');
-  profileData=p;
-  const {data:ps,error:pse}=await client.from('player_stats').select('atk_level,hp_level,str,agi,dex,luk,int_stat,vit,stat_points').eq('player_id',user.id).maybeSingle();
-  if(pse)throw pse;playerStats=ps||{};
-  const {data:rows,error:ie}=await client.from('player_inventory').select('id,player_id,item_template_id,bonus_options,acquired_at').eq('player_id',user.id).order('acquired_at',{ascending:true});
-  if(ie)throw ie;
-  const raw=rows||[],templateIds=[...new Set(raw.map(x=>x.item_template_id).filter(Boolean))];
-  let templates=[];
-  if(templateIds.length){
-   const {data:ts,error:te}=await client.from('item_templates').select('id,name,mastery_type_id,tier,element,base_atk,base_def,base_hp,sprite_key').in('id',templateIds);
-   if(te)throw te;templates=ts||[];
-  }
-  const byId=new Map(templates.map(t=>[t.id,t]));
-  items=raw.map(x=>({...x,template:byId.get(x.item_template_id)||null,type:(byId.get(x.item_template_id)?.base_atk||byId.get(x.item_template_id)?.base_def||byId.get(x.item_template_id)?.base_hp||slotForTemplate(byId.get(x.item_template_id)))?'gear':'material'}));
-  gearSlots.forEach(s=>equipped[s.id]=p[s.id]||null);
+  if(!userResult?.user)throw new Error('กรุณาเข้าสู่ระบบก่อนดู Inventory');
+  // Single source of truth: the same server contract used by Status and Phaser.
+  const {data,error}=await client.rpc('get_player_game_state');
+  if(error)throw error;
+  const state=typeof data==='string'?JSON.parse(data):data;
+  if(!state?.success||!state.player)throw new Error('Supabase ไม่ส่งสถานะตัวละครที่ถูกต้อง');
+  inventoryState=state;
+  profileData=state.player;
+  playerStats=state.stats||{};
+  const raw=Array.isArray(state.inventory)?state.inventory:[];
+  items=raw.map(x=>({
+   id:x.id,item_template_id:x.item_template_id,bonus_options:x.bonus_options||[],
+   template:{id:x.item_template_id,name:x.name,mastery_type_id:x.mastery_type_id,tier:x.tier,element:x.element,base_atk:x.base_atk,base_def:x.base_def,base_hp:x.base_hp,sprite_key:x.sprite_key},
+   type:(num(x.base_atk)||num(x.base_def)||num(x.base_hp)||slotForTemplate({id:x.item_template_id,mastery_type_id:x.mastery_type_id}))?'gear':'material',
+   equipped:!!x.equipped
+  }));
+  const eq=state.equipment||{};
+  gearSlots.forEach(s=>equipped[s.id]=eq[s.id]?.id||items.find(x=>x.equipped&&itemSlot(x)===s.id)?.id||null);
   renderAll();
  }
  window.tbhLoadStatBreakdown=async()=>{await loadInventory();return window.tbhStatBreakdown||null;};
@@ -1275,6 +1272,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.51"></script>
+<script src="game.js?v=0.6.52"></script>
 </body>
 </html>
