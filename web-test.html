@@ -1226,11 +1226,45 @@ $('settings-signout').onclick=signOutUser;
  $inv('inventory-copy-log').addEventListener('click',async()=>{
   const button=$inv('inventory-copy-log');
   const mainCopyButton=$('copy-log');
-  let combatArchive=[];try{combatArchive=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]');}catch(e){}
-  const combatLines=Array.isArray(combatArchive)?combatArchive.slice(-500).map(x=>typeof x==='string'?x:JSON.stringify(x)): [];
-  const report=['TBH PIXEL AUTO BATTLER — FULL DIAGNOSTIC REPORT','Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'),'Auth: '+(currentUser?'signed in':'signed out'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG (up to 300) ===',inventoryLog.join('\n')||'No inventory events','=== COMBAT LOG ARCHIVE (up to 500) ===',combatLines.join('\n')||'No combat archive','=== VISIBLE COMBAT LOG ===',$('log')?.innerText||'','=== STATUS COPY ===',$('copy-log-status')?.innerText||''].join('\n\n');
-  try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(report);else{const ta=document.createElement('textarea');ta.value=report;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก');}button.textContent='✓ คัดลอกแล้ว';if(mainCopyButton)mainCopyButton.textContent='✓ คัดลอกแล้ว';setTimeout(()=>{button.textContent='📋 Copy Log';if(mainCopyButton)mainCopyButton.textContent='📋 Copy Log';},2000);}catch(e){addInventoryLog('Copy diagnostic ไม่สำเร็จ',{error:String(e)});button.textContent='คัดลอกไม่สำเร็จ';if(mainCopyButton)mainCopyButton.textContent='คัดลอกไม่สำเร็จ';setTimeout(()=>{button.textContent='📋 Copy Log';if(mainCopyButton)mainCopyButton.textContent='📋 Copy Log';},2500);}
- });
+  const status=$('copy-log-status');
+  const original='📋 Copy Log';
+  button.disabled=true;
+  if(mainCopyButton)mainCopyButton.disabled=true;
+  button.textContent='กำลังคัดลอก…';
+  if(mainCopyButton)mainCopyButton.textContent='กำลังคัดลอก…';
+  if(status)status.textContent='กำลังเตรียมรายงานวิเคราะห์ฉบับเต็ม…';
+  try{
+    let combatArchive=[];
+    try{combatArchive=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]');}catch(e){}
+    const combatLines=Array.isArray(combatArchive)?combatArchive.slice(-500).map(x=>typeof x==='string'?x:JSON.stringify(x)):[];
+    const report=['TBH PIXEL AUTO BATTLER — FULL DIAGNOSTIC REPORT','Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'),'Auth: '+(currentUser?'signed in':'signed out'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG (up to 300) ===',inventoryLog.join('\\n')||'No inventory events','=== COMBAT LOG ARCHIVE (up to 500) ===',combatLines.join('\\n')||'No combat archive','=== VISIBLE COMBAT LOG ===',$('log')?.innerText||'','=== STATUS COPY ===',$('copy-log-status')?.innerText||''].join('\\n\\n');
+    let copied=false;
+    if(navigator.clipboard?.writeText){
+      try{
+        await Promise.race([navigator.clipboard.writeText(report),new Promise((_,reject)=>setTimeout(()=>reject(new Error('clipboard timeout')),2500))]);
+        copied=true;
+      }catch(clipboardError){}
+    }
+    if(!copied){
+      const ta=document.createElement('textarea');
+      ta.value=report;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';ta.style.top='0';
+      document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);
+      copied=!!document.execCommand('copy');ta.remove();
+    }
+    if(!copied)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก กรุณาเปิดหน้าเว็บใน Safari แล้วลองอีกครั้ง');
+    button.textContent='✓ คัดลอกแล้ว';
+    if(mainCopyButton)mainCopyButton.textContent='✓ คัดลอกแล้ว';
+    if(status)status.textContent='คัดลอกรายงานฉบับเต็มแล้ว — วางข้อความส่งมาในแชตได้เลย';
+  }catch(e){
+    const reason=String(e?.message||e);
+    addInventoryLog('Copy diagnostic ไม่สำเร็จ',{error:reason});
+    button.textContent='คัดลอกไม่สำเร็จ';
+    if(mainCopyButton)mainCopyButton.textContent='คัดลอกไม่สำเร็จ';
+    if(status)status.textContent='คัดลอกไม่สำเร็จ: '+reason;
+  }finally{
+    setTimeout(()=>{button.textContent=original;button.disabled=false;if(mainCopyButton){mainCopyButton.textContent=original;mainCopyButton.disabled=false;}},3000);
+  }
+ });;
  backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.classList.contains('hidden'))close();});
  $inv('inventory-filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;filter=b.dataset.filter;$inv('inventory-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderItems();});
