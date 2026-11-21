@@ -1255,12 +1255,54 @@ $('settings-signout').onclick=signOutUser;
   }catch(e){
     const reason=String(e?.message||e);
     addInventoryLog('Copy diagnostic ไม่สำเร็จ',{error:reason});
-    button.textContent='คัดลอกไม่สำเร็จ';
-    if(mainCopyButton)mainCopyButton.textContent='คัดลอกไม่สำเร็จ';
-    if(statusCopyButton)statusCopyButton.textContent='คัดลอกไม่สำเร็จ';
+    button.textContent='ต้องคัดลอกด้วยมือ';
+    if(mainCopyButton)mainCopyButton.textContent='ต้องคัดลอกด้วยมือ';
+    if(statusCopyButton)statusCopyButton.textContent='ต้องคัดลอกด้วยมือ';
     const statStatus=$('stat-diagnostic-copy-status');
-    if(statStatus)statStatus.textContent='คัดลอกไม่สำเร็จ: '+reason;
-    if(status)status.textContent='คัดลอกไม่สำเร็จ: '+reason;
+    if(statStatus)statStatus.textContent='ระบบคัดลอกอัตโนมัติไม่สำเร็จ — เลือกข้อความในหน้าต่างที่เปิดขึ้นแล้วกด Copy';
+    if(status)status.textContent='ระบบคัดลอกอัตโนมัติไม่สำเร็จ — เปิดรายงานให้เลือกคัดลอกด้วยมือแล้ว';
+    // Guaranteed manual path: expose the complete report in a visible,
+    // selectable textarea instead of losing it when clipboard APIs fail.
+    let fallback=document.getElementById('tbh-manual-copy-fallback');
+    if(!fallback){
+      fallback=document.createElement('div');
+      fallback.id='tbh-manual-copy-fallback';
+      fallback.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;';
+      const panel=document.createElement('div');
+      panel.style.cssText='background:#171717;color:#fff;width:100%;max-width:760px;max-height:95%;display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:12px;box-sizing:border-box;';
+      const heading=document.createElement('strong');
+      heading.textContent='คัดลอกรายงานด้วยมือ';
+      const instruction=document.createElement('div');
+      instruction.textContent='แตะปุ่ม “เลือกข้อความทั้งหมด” จากนั้นแตะค้างในช่องข้อความ แล้วเลือก Copy';
+      instruction.style.cssText='font-size:14px;line-height:1.5;';
+      const area=document.createElement('textarea');
+      area.id='tbh-manual-copy-text';
+      area.value=report;
+      area.setAttribute('readonly','');
+      area.style.cssText='width:100%;height:58vh;min-height:220px;resize:vertical;box-sizing:border-box;background:#fff;color:#111;padding:10px;font-size:13px;line-height:1.4;border-radius:6px;-webkit-user-select:text;user-select:text;';
+      const actions=document.createElement('div');
+      actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;';
+      const selectButton=document.createElement('button');
+      selectButton.type='button';
+      selectButton.textContent='เลือกข้อความทั้งหมด';
+      selectButton.style.cssText='padding:12px 16px;border-radius:8px;font-weight:700;';
+      selectButton.addEventListener('click',()=>{area.focus();area.select();area.setSelectionRange(0,area.value.length);});
+      const closeButton=document.createElement('button');
+      closeButton.type='button';
+      closeButton.textContent='ปิด';
+      closeButton.style.cssText='padding:12px 16px;border-radius:8px;';
+      closeButton.addEventListener('click',()=>fallback.remove());
+      actions.append(selectButton,closeButton);
+      panel.append(heading,instruction,area,actions);
+      fallback.append(panel);
+      document.body.append(fallback);
+    }else{
+      const area=fallback.querySelector('#tbh-manual-copy-text');
+      if(area)area.value=report;
+      fallback.style.display='flex';
+    }
+    const area=fallback.querySelector('#tbh-manual-copy-text');
+    if(area){area.focus();area.select();area.setSelectionRange(0,area.value.length);}
   }finally{
     setTimeout(()=>{button.textContent=original;button.disabled=false;if(mainCopyButton){mainCopyButton.textContent=original;mainCopyButton.disabled=false;}if(statusCopyButton){statusCopyButton.textContent='⧉ Copy ตรวจสอบ';statusCopyButton.disabled=false;}},3000);
   }
