@@ -270,13 +270,13 @@ body{padding:8px}
     <div class="panel">
       
       <div id="game-container"></div><div class="game-actions" style="margin-top:12px"><button id="ultimate" class="primary">⚡ Ultimate</button><button id="challenge" class="green hidden">🏆 Challenge ด่าน</button><button id="refresh">↻ โหลดสถานะจากเซิร์ฟเวอร์</button></div><p class="hint" id="combat-hint">การต่อสู้และรางวัลคำนวณจาก Supabase · เมื่อผู้เล่นตายจะเกิดใหม่และรีเซ็ต HP มอนสเตอร์เต็ม</p></div>
-    <div class="panel"><div class="top" style="margin-bottom:10px"><h2 class="title" style="margin:0">🎒 ของรางวัล / กิจกรรม</h2><button id="copy-log" type="button">📋 Copy Log</button></div><div class="hint" style="margin-bottom:8px">คัดลอก log ล่าสุดไม่เกิน 150 รายการ พร้อมเวอร์ชันและสถานะหน้าเว็บ</div><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div><div id="copy-log-status" class="hint" role="status" style="margin-top:8px"></div></div>
+    <div class="panel"><div class="top" style="margin-bottom:10px"><h2 class="title" style="margin:0">🎒 ของรางวัล / กิจกรรม</h2></div><div id="last-reward" class="status">ยังไม่มีรางวัลในเซสชันนี้</div><div id="log" class="log" style="margin-top:10px"></div></div>
     <div class="inventory-overview" aria-live="polite"><strong>ค่าสถานะตัวละคร</strong><span>⚔️ ATK <b id="overall-atk">—</b></span><span>🛡️ DEF <b id="overall-def">—</b></span><span>❤️ HP <b id="overall-hp">—</b></span></div>
     <div class="inventory-bottom-bar"><button id="inventory-open" class="inventory-launch" type="button" aria-label="เปิดกระเป๋า Inventory"><span class="bag-icon" aria-hidden="true">🎒</span><span class="bag-label">BAG</span></button></div>
   </section>
   <div id="inventory-backdrop" class="inventory-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="inventory-title">
     <section class="inventory-window">
-      <header class="inventory-head"><h2 id="inventory-title">🎒 INVENTORY / GEAR</h2><div class="inventory-head-actions"><button id="inventory-copy-log" class="inventory-copy-log" type="button">📋 Copy Log</button><button id="inventory-close" class="inventory-close" type="button" aria-label="ปิด Inventory">✕</button></div></header>
+      <header class="inventory-head"><h2 id="inventory-title">🎒 INVENTORY / GEAR</h2><div class="inventory-head-actions"><button id="inventory-close" class="inventory-close" type="button" aria-label="ปิด Inventory">✕</button></div></header>
       <div id="inventory-log-preview" class="inventory-log-preview" role="status" aria-live="polite">Inventory log จะแสดงที่นี่</div>
       <div class="inventory-layout">
         <section class="inventory-section"><h3 class="inventory-section-title">⚔ EQUIPPED GEAR · 7 SLOTS</h3><div id="gear-slots" class="gear-slots"></div><p class="inventory-note">เลือกช่องอุปกรณ์เพื่อดูรายละเอียดหรือถอดไอเทม</p></section>
@@ -294,6 +294,8 @@ body{padding:8px}
     <section class="status-modal" style="width:min(420px,100%)">
       <div class="modal-head"><div><h2 class="title" id="settings-modal-title" style="margin:0">⚙ SETTINGS</h2><p class="hint" style="margin:5px 0 0">การตั้งค่าหน้าเว็บทดสอบ</p></div><button id="close-settings" class="modal-close" aria-label="ปิด Settings">✕</button></div>
       <div class="row"><button id="settings-check-version" class="primary" type="button">🔄 ตรวจสอบเวอร์ชัน / อัปเดต</button></div>
+      <div class="row" style="margin-top:10px"><button id="inventory-copy-log" class="primary" type="button" style="width:100%">📋 คัดลอกรายงานวิเคราะห์ฉบับเต็ม</button></div>
+      <p id="settings-copy-log-status" class="hint" role="status" style="margin:7px 0 12px">รายงานจะรวมสถานะตัวละคร อุปกรณ์ Inventory และ Combat Log</p>
       <p id="settings-version-status" class="hint" role="status" style="margin:8px 0 12px">เวอร์ชันที่ใช้งาน: กำลังโหลด…</p>
       <div class="row"><button id="settings-refresh" type="button">↻ รีเฟรช / โหลดสถานะ</button><button id="settings-signout" class="green" type="button">ออกจากระบบ</button></div>
     </section>
@@ -376,7 +378,7 @@ body{padding:8px}
   </div>
   <div id="stat-log-backdrop" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="stat-log-title">
     <section class="stat-preview" style="width:min(560px,100%);max-height:90vh;overflow:auto">
-      <div class="modal-head"><div><h2 class="title" id="stat-log-title" style="margin:0">📋 ที่มาของค่าสถานะ</h2><p class="hint" style="margin:5px 0 0">แยกค่าหน้า Status และตรวจสอบสูตรฝั่ง Supabase</p></div><div style="display:flex;gap:6px;align-items:center"><button id="copy-stat-diagnostic" type="button" style="padding:6px 9px;font-size:12px;background:#17694f;border-color:#278b6b;white-space:nowrap">⧉ Copy ตรวจสอบ</button><button id="close-stat-log" class="modal-close" aria-label="ปิด Log">✕</button></div></div>
+      <div class="modal-head"><div><h2 class="title" id="stat-log-title" style="margin:0">📋 ที่มาของค่าสถานะ</h2><p class="hint" style="margin:5px 0 0">แยกค่าหน้า Status และตรวจสอบสูตรฝั่ง Supabase</p></div><button id="close-stat-log" class="modal-close" aria-label="ปิด Log">✕</button></div>
       <div id="stat-log-content" class="status" style="white-space:normal;max-height:58vh;overflow:auto">กำลังคำนวณรายละเอียดค่าสถานะ…</div>
       <p id="stat-diagnostic-copy-status" class="hint" role="status" aria-live="polite" style="margin:8px 0 0">กด Copy ตรวจสอบ เพื่อคัดลอกค่า Status, อุปกรณ์ที่สวม และผลตรวจสูตร Supabase สำหรับส่งมาตรวจสอบ</p>
     </section>
@@ -458,18 +460,6 @@ body{padding:8px}
     while ($('log').children.length > 150) $('log').lastElementChild.remove();
     try { const saved=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]'); saved.push({at:new Date().toISOString(),message:el.textContent}); localStorage.setItem('tbh_status_log_archive',JSON.stringify(saved.slice(-500))); } catch(e) {}
   };
-  // Both Copy Log buttons must produce the same full diagnostic report.
-  // The Inventory handler owns the authoritative inventory/status snapshot.
-  $('copy-log').addEventListener('click', () => {
-    const fullReportButton = document.getElementById('inventory-copy-log');
-    if (fullReportButton) {
-      $('copy-log').textContent = 'กำลังคัดลอก…';
-      fullReportButton.click();
-      $('copy-log-status').textContent = 'กำลังคัดลอกรายงานวิเคราะห์ฉบับเต็ม…';
-    } else {
-      $('copy-log-status').textContent = 'ไม่พบตัวสร้างรายงานฉบับเต็ม กรุณารีเฟรชหน้าเว็บ';
-    }
-  });
   let lastCombatSnapshot = null;
   function logCombatState(combat) {
     const status = String(combat.status || 'unknown');
@@ -882,17 +872,8 @@ $('settings-signout').onclick=signOutUser;
   $('open-status').onclick=async()=>{statusBackdrop.classList.remove('hidden');try{await loadStats();}catch(e){msg('โหลดค่าสถานะไม่สำเร็จ: '+e.message,true);}};
   $('close-status').onclick=closeStatus;
   $('open-stat-log').onclick=async()=>{statLogBackdrop.classList.remove('hidden');const root=$('stat-log-content');if(root)root.textContent='กำลังโหลดอุปกรณ์และคำนวณค่าสถานะ…';try{if(window.tbhLoadStatBreakdown)await window.tbhLoadStatBreakdown();}catch(e){console.warn('Unable to refresh stat breakdown',e);}renderStatLog();};
-  $('copy-stat-diagnostic').onclick=()=>{
-    const button=$('copy-stat-diagnostic'),status=$('stat-diagnostic-copy-status');
-    const fullReportButton=$('inventory-copy-log');
-    if(!fullReportButton){
-      if(status)status.textContent='ไม่พบตัวสร้างรายงานมาตรฐาน กรุณารีเฟรชหน้าเว็บ';
-      return;
-    }
-    // Copy synchronously inside the real tap; never wait for Supabase first.
-    if(status)status.textContent='กำลังคัดลอกรายงานมาตรฐาน…';
-    fullReportButton.click();
-    // Refresh the server diagnostic in the background for the next report.
+  // Refresh Supabase stat diagnostics in the background for the Settings report.
+  $('inventory-copy-log').addEventListener('click',()=>{
     if(client&&currentUser){
       client.rpc('get_equipment_stat_diagnostics').then(({data,error})=>{
         if(error)throw error;
@@ -903,7 +884,7 @@ $('settings-signout').onclick=signOutUser;
         window.tbhServerStatDiagnosticError=String(e?.message||e);
       });
     }
-  };
+  });
   $('close-stat-log').onclick=closeStatLog;
   statLogBackdrop.addEventListener('click',e=>{if(e.target===statLogBackdrop)closeStatLog();});
   statusBackdrop.addEventListener('click',e=>{if(e.target===statusBackdrop)closeStatus();});
@@ -1199,9 +1180,9 @@ $('settings-signout').onclick=signOutUser;
  $inv('inventory-open').addEventListener('click',open);$inv('inventory-close').addEventListener('click',close);
  $inv('inventory-copy-log').addEventListener('click',async()=>{
   const button=$inv('inventory-copy-log');
-  const mainCopyButton=$('copy-log');
-  const statusCopyButton=$('copy-stat-diagnostic');
-  const status=$('copy-log-status');
+  const mainCopyButton=null;
+  const statusCopyButton=null;
+  const status=$('settings-copy-log-status');
   const original='📋 Copy Log';
   button.disabled=true;
   if(mainCopyButton)mainCopyButton.disabled=true;
@@ -1214,12 +1195,13 @@ $('settings-signout').onclick=signOutUser;
     let combatArchive=[];
     try{combatArchive=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]');}catch(e){}
     const combatLines=Array.isArray(combatArchive)?combatArchive.slice(-500).map(x=>typeof x==='string'?x:JSON.stringify(x)):[];
-    const report=['TBH PIXEL AUTO BATTLER — FULL DIAGNOSTIC REPORT','Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'),'Auth: '+(currentUser?'signed in':'signed out'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== STATUS PAGE VALUES / EQUIPMENT STAT DIAGNOSTIC ===',safeJson({status_page_values:{atk:$('detail-atk')?.textContent||$('overall-atk')?.textContent||null,def:$('detail-def')?.textContent||$('overall-def')?.textContent||null,hp:$('detail-hp')?.textContent||$('overall-hp')?.textContent||null,overall_atk:$('overall-atk')?.textContent||null,overall_def:$('overall-def')?.textContent||null,overall_hp:$('overall-hp')?.textContent||null},frontend_stat_breakdown:window.tbhStatBreakdown||null,supabase_server_diagnostic:window.tbhServerStatDiagnostic||null,supabase_diagnostic_error:window.tbhServerStatDiagnosticError||null,interpretation:{server_atk:'ตรวจ server_combat.normal_attack_uses_equipment_atk และ ultimate_uses_equipment_atk',server_def:'ตรวจ server_combat.normal_attack_uses_equipment_def และ monster_damage_reduces_by_equipment_def',reminder:'รายงานนี้เป็นการตรวจข้อมูลและนิยามฟังก์ชัน ไม่ได้เรียกโจมตีจริงหรือเปลี่ยน HP/รางวัล'}}),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG (up to 300) ===',inventoryLog.join('\n')||'No inventory events','=== COMBAT LOG ARCHIVE (up to 500) ===',combatLines.join('\n')||'No combat archive','=== VISIBLE COMBAT LOG ===',$('log')?.innerText||'','=== STATUS COPY ===',$('copy-log-status')?.innerText||''].join('\n\n');
+    let reportText='';
+    reportText=['TBH PIXEL AUTO BATTLER — FULL DIAGNOSTIC REPORT','Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'),'Auth: '+(currentUser?'signed in':'signed out'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== STATUS PAGE VALUES / EQUIPMENT STAT DIAGNOSTIC ===',safeJson({status_page_values:{atk:$('detail-atk')?.textContent||$('overall-atk')?.textContent||null,def:$('detail-def')?.textContent||$('overall-def')?.textContent||null,hp:$('detail-hp')?.textContent||$('overall-hp')?.textContent||null,overall_atk:$('overall-atk')?.textContent||null,overall_def:$('overall-def')?.textContent||null,overall_hp:$('overall-hp')?.textContent||null},frontend_stat_breakdown:window.tbhStatBreakdown||null,supabase_server_diagnostic:window.tbhServerStatDiagnostic||null,supabase_diagnostic_error:window.tbhServerStatDiagnosticError||null,interpretation:{server_atk:'ตรวจ server_combat.normal_attack_uses_equipment_atk และ ultimate_uses_equipment_atk',server_def:'ตรวจ server_combat.normal_attack_uses_equipment_def และ monster_damage_reduces_by_equipment_def',reminder:'รายงานนี้เป็นการตรวจข้อมูลและนิยามฟังก์ชัน ไม่ได้เรียกโจมตีจริงหรือเปลี่ยน HP/รางวัล'}}),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG (up to 300) ===',inventoryLog.join('\n')||'No inventory events','=== COMBAT LOG ARCHIVE (up to 500) ===',combatLines.join('\n')||'No combat archive','=== VISIBLE COMBAT LOG ===',$('log')?.innerText||'','=== STATUS COPY ===',$('settings-copy-log-status')?.innerText||''].join('\n\n');
     // iOS Safari requires the legacy copy command to run synchronously
     // during the original user tap. Keep the textarea inside the viewport.
     let copied=false;
     const ta=document.createElement('textarea');
-    ta.value=report;
+    ta.value=reportText;
     ta.setAttribute('readonly','');
     ta.setAttribute('aria-hidden','true');
     ta.style.position='fixed';
@@ -1241,7 +1223,7 @@ $('settings-signout').onclick=signOutUser;
     // Clipboard API is a secondary path, invoked immediately in the tap handler.
     if(!copied&&navigator.clipboard?.writeText){
       try{
-        await Promise.race([navigator.clipboard.writeText(report),new Promise((_,reject)=>setTimeout(()=>reject(new Error('clipboard timeout')),2500))]);
+        await Promise.race([navigator.clipboard.writeText(reportText),new Promise((_,reject)=>setTimeout(()=>reject(new Error('clipboard timeout')),2500))]);
         copied=true;
       }catch(clipboardError){}
     }
@@ -1277,7 +1259,7 @@ $('settings-signout').onclick=signOutUser;
       instruction.style.cssText='font-size:14px;line-height:1.5;';
       const area=document.createElement('textarea');
       area.id='tbh-manual-copy-text';
-      area.value=report;
+      area.value=reportText;
       area.setAttribute('readonly','');
       area.style.cssText='width:100%;height:58vh;min-height:220px;resize:vertical;box-sizing:border-box;background:#fff;color:#111;padding:10px;font-size:13px;line-height:1.4;border-radius:6px;-webkit-user-select:text;user-select:text;';
       const actions=document.createElement('div');
@@ -1298,7 +1280,7 @@ $('settings-signout').onclick=signOutUser;
       document.body.append(fallback);
     }else{
       const area=fallback.querySelector('#tbh-manual-copy-text');
-      if(area)area.value=report;
+      if(area)area.value=reportText;
       fallback.style.display='flex';
     }
     const area=fallback.querySelector('#tbh-manual-copy-text');
