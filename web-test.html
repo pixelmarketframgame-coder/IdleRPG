@@ -673,17 +673,9 @@ body{padding:8px}
         msg('Ultimate ไม่สำเร็จ: '+e.message,true);
       }
     } else if(payload.event==='MONSTER_KILL_REQUEST'){
-      try{
-        const {data,error}=await client.rpc('resolve_monster_kill',{p_monster_id:payload.monsterId});
-        if(error) throw error;
-        const result=typeof data==='string'?JSON.parse(data):data;
-        if(!result?.success) throw new Error(result?.message||result?.error||'เซิร์ฟเวอร์ไม่ยืนยันการกำจัดมอนสเตอร์');
-        await syncProfileOnly();
-        await loadBattleState();
-        window.onFlutterFlowResponse({event:'MONSTER_KILL_RESULT',requestId:payload.requestId,success:true,reward:result,state:await makeState()});
-        $('last-reward').textContent='ได้รับ EXP +'+(result.exp_gain??0)+' · Gold +'+(result.gold_gain??0)+(result.material_quantity?' · วัสดุ '+result.material_id+' x'+result.material_quantity:'');
-        log('เซิร์ฟเวอร์ยืนยันรางวัล: EXP +'+(result.exp_gain??0)+', Gold +'+(result.gold_gain??0));
-      }catch(e){window.onFlutterFlowResponse({event:'MONSTER_KILL_RESULT',requestId:payload.requestId,success:false,message:e.message});msg('การต่อสู้ไม่สำเร็จ: '+e.message,true);log('RPC resolve_monster_kill: '+e.message);}
+      // A Phaser kill event is only an intent. The authoritative advance_combat
+      // tick resolves HP, death, kill credit and rewards; never trust a client kill ID.
+      await pollCombat();
     } else if(payload.event==='STAGE_CHALLENGE_REQUEST'){
       try{
         const {data:sd,error:se}=await client.rpc('get_stage_status');if(se)throw se;
@@ -699,6 +691,19 @@ body{padding:8px}
       }catch(e){window.onFlutterFlowResponse({event:'CHALLENGE_RESULT',success:false,message:e.message});msg('Challenge ไม่สำเร็จ: '+e.message,true);log('RPC resolve_stage_challenge: '+e.message);}
     }
   }
+  // Central web-game contract: one Supabase client and one authoritative event path.
+  // Keep the existing inline UI/auth flow as the owner; do not load the legacy
+  // web-game-core.js alongside it because that file creates a second client and timers.
+  window.TBHGame = {
+    db: client,
+    getState: () => ({ player: profile, user: currentUser }),
+    refreshState: async () => { await syncPlayer(); return await makeState(); },
+    handleGameEvent: handleGameMessage,
+    challengeStage: () => handleGameMessage({event:'STAGE_CHALLENGE_REQUEST'}),
+    useUltimate: () => handleGameMessage({event:'ULTIMATE_REQUEST'})
+  };
+  window.tbhSupabase = client;
+
   async function syncProfileOnly(){
     const {data,error}=await client.from('profiles').select('id,nickname,level,exp,gold,current_stage,character_created,active_pet_skin').eq('id',currentUser.id).single();
     if(error)throw error;profile=data;
@@ -1270,6 +1275,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.50"></script>
+<script src="game.js?v=0.6.51"></script>
 </body>
 </html>
