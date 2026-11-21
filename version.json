@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.57",
+  "version": "v0.6.58",
   "updated_at": "2026-11-21",
-  "notes": "Unify Game, Inventory, and Status diagnostic copy buttons into one full report including Status values and Supabase equipment diagnostics."
+  "notes": "Fix iOS Safari diagnostic copy: synchronous in-gesture copy fallback and background Supabase stat diagnostic refresh."
 }
