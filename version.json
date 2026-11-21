@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.59",
+  "version": "v0.6.60",
   "updated_at": "2026-11-21",
-  "notes": "Add visible selectable manual-copy fallback when automatic diagnostic copying fails; fix report line breaks."
+  "notes": "Consolidate the full diagnostic report copy action into Settings; remove the three duplicate copy buttons and fix manual-copy fallback report scope."
 }
