@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.54",
+  "version": "v0.6.55",
   "updated_at": "2026-11-21",
-  "notes": "Fix main Game-page Copy Log to invoke the same full diagnostic report as Inventory Copy Log; cache-bust game.js."
+  "notes": "Show copied confirmation on both Game and Inventory Copy Log buttons; show failure state when clipboard operation fails."
 }
