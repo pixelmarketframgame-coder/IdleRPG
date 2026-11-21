@@ -1136,7 +1136,21 @@ $('settings-signout').onclick=signOutUser;
  };
  let filter='all',selectedItem=null,selectedSlot=null,profileData=null,playerStats=null,inventoryState=null,items=[],loading=false;
  const inventoryLog=[];
- const addInventoryLog=(message)=>{const line='['+new Date().toISOString()+'] '+String(message);inventoryLog.push(line);if(inventoryLog.length>80)inventoryLog.shift();try{const saved=JSON.parse(localStorage.getItem('tbh_inventory_log_archive')||'[]');saved.push(line);localStorage.setItem('tbh_inventory_log_archive',JSON.stringify(saved.slice(-300)));}catch(e){}const box=$inv('inventory-log-preview');if(box)box.textContent=inventoryLog.slice(-8).join('\n');};
+ try{const prior=JSON.parse(localStorage.getItem('tbh_inventory_log_archive')||'[]');if(Array.isArray(prior))inventoryLog.push(...prior.slice(-300).map(x=>typeof x==='string'?x:JSON.stringify(x)));}catch(e){}
+ const safeJson=value=>{try{return JSON.stringify(value,(key,val)=>/token|password|authorization|apikey/i.test(key)?'[REDACTED]':val,2);}catch(e){return String(value);}};
+ const addInventoryLog=(message,details)=>{
+  const line='['+new Date().toISOString()+'] '+String(message)+(details?'\n'+safeJson(details):'');
+  inventoryLog.push(line);if(inventoryLog.length>300)inventoryLog.splice(0,inventoryLog.length-300);
+  try{localStorage.setItem('tbh_inventory_log_archive',JSON.stringify(inventoryLog.slice(-300)));}catch(e){}
+  const box=$inv('inventory-log-preview');if(box)box.textContent=inventoryLog.slice(-8).join('\n');
+ };
+ const inventoryDiagnostic=()=>({
+  captured_at:new Date().toISOString(),version:document.querySelector('.version-tag')?.textContent||'unknown',
+  player:{nickname:profileData?.nickname||null,level:profileData?.level??null,gold:profileData?.gold??null},
+  stats:inventoryState?.stats||null,stat_breakdown:window.tbhStatBreakdown||null,
+  equipment:Object.fromEntries(gearSlots.map(slot=>[slot.id,{inventory_id:equipped[slot.id]||null,item:(items.find(x=>x.id===equipped[slot.id])?.template?.name)||null}])),
+  inventory_count:items.length,inventory:items.map(x=>({id:x.id,item_template_id:x.item_template_id,name:itemName(x),type:x.type,equipped:x.equipped,bonus_options:x.bonus_options,base_atk:x.template?.base_atk,base_def:x.template?.base_def,base_hp:x.template?.base_hp,mastery_type_id:x.template?.mastery_type_id}))
+ });
  const equipped={eq_weapon:null,eq_head:null,eq_armor:null,eq_legs:null,eq_wings:null,eq_left_accessory:null,eq_right_accessory:null};
  const num=v=>Number.isFinite(Number(v))?Number(v):0;
  const itemBonuses=item=>{
@@ -1230,33 +1244,44 @@ $('settings-signout').onclick=signOutUser;
  function close(){backdrop.classList.add('hidden');document.body.style.overflow='';$inv('inventory-open').focus();}
  $inv('inventory-open').addEventListener('click',open);$inv('inventory-close').addEventListener('click',close);
  $inv('inventory-copy-log').addEventListener('click',async()=>{
-  const button=$inv('inventory-copy-log');const logText=['=== INVENTORY LOG ===',inventoryLog.join('\n')||'ยังไม่มีเหตุการณ์ Inventory', '=== COMBAT LOG ===',$inv('log')?.innerText||'', '=== LAST REWARD ===',$inv('last-reward')?.innerText||'', '=== COPY STATUS ===',$inv('copy-log-status')?.innerText||''].join('\n\n');
-  try{if(!logText.trim())throw new Error('ยังไม่มี log ให้คัดลอก');if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(logText);else{const ta=document.createElement('textarea');ta.value=logText;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก');}button.textContent='✓ Copied';setTimeout(()=>button.textContent='📋 Copy Log',1600);}catch(e){button.textContent='คัดลอกไม่สำเร็จ';setTimeout(()=>button.textContent='📋 Copy Log',2200);}
+  const button=$inv('inventory-copy-log');
+  let combatArchive=[];try{combatArchive=JSON.parse(localStorage.getItem('tbh_status_log_archive')||'[]');}catch(e){}
+  const combatLines=Array.isArray(combatArchive)?combatArchive.slice(-500).map(x=>typeof x==='string'?x:JSON.stringify(x)): [];
+  const report=['TBH PIXEL AUTO BATTLER — FULL DIAGNOSTIC REPORT','Captured: '+new Date().toISOString(),'URL: '+location.href,'App version: '+(document.querySelector('.version-tag')?.textContent||'unknown'),'Auth: '+(currentUser?'signed in':'signed out'),'Page message: '+($('message')?.textContent||''),'Combat hint: '+($('combat-hint')?.textContent||''),'Monster HUD: '+($('monster-hud-name')?.textContent||'')+' · '+($('monster-hud-hp')?.textContent||''),'Last reward: '+($('last-reward')?.textContent||''),'=== AUTHORITATIVE INVENTORY / STATUS SNAPSHOT ===',safeJson(inventoryDiagnostic()),'=== INVENTORY ACTION LOG (up to 300) ===',inventoryLog.join('\n')||'No inventory events','=== COMBAT LOG ARCHIVE (up to 500) ===',combatLines.join('\n')||'No combat archive','=== VISIBLE COMBAT LOG ===',$('log')?.innerText||'','=== STATUS COPY ===',$('copy-log-status')?.innerText||''].join('\n\n');
+  try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(report);else{const ta=document.createElement('textarea');ta.value=report;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw new Error('เบราว์เซอร์ไม่อนุญาตให้คัดลอก');}button.textContent='✓ Copied';setTimeout(()=>button.textContent='📋 Copy Log',1600);}catch(e){addInventoryLog('Copy diagnostic ไม่สำเร็จ',{error:String(e)});button.textContent='คัดลอกไม่สำเร็จ';setTimeout(()=>button.textContent='📋 Copy Log',2200);}
  });
  backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!backdrop.classList.contains('hidden'))close();});
  $inv('inventory-filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;filter=b.dataset.filter;$inv('inventory-filters').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));renderItems();});
  async function persistEquipment(slot,inventoryId){
-  addInventoryLog((inventoryId?'ขอสวมใส่':'ขอถอดอุปกรณ์')+' · slot='+slot+' · inventory_id='+(inventoryId||'null'));
+  const before=inventoryDiagnostic();
+  const requestedItem=items.find(x=>x.id===inventoryId)||null;
+  const action=inventoryId?'EQUIP':'UNEQUIP';
+  addInventoryLog('เริ่มคำขอ '+action,{slot,inventory_id:inventoryId||null,item:requestedItem?{id:requestedItem.id,item_template_id:requestedItem.item_template_id,name:itemName(requestedItem),mastery_type_id:requestedItem.template?.mastery_type_id,bonus_options:requestedItem.bonus_options,base_atk:requestedItem.template?.base_atk,base_def:requestedItem.template?.base_def,base_hp:requestedItem.template?.base_hp}:null,before});
   const equipButton=$inv('inventory-equip'),unequipButton=$inv('inventory-unequip');
   equipButton.disabled=true;unequipButton.disabled=true;
   try{
-   const {data,error}=await client.rpc('set_equipped_item',{p_slot:slot,p_inventory_id:inventoryId||null});
-   if(error)throw error;
+   const rpcArgs={p_slot:slot,p_inventory_id:inventoryId||null};
+   const {data,error}=await client.rpc('set_equipped_item',rpcArgs);
+   if(error){addInventoryLog('RPC set_equipped_item ตอบกลับ ERROR',{rpc:'set_equipped_item',args:rpcArgs,error:{message:error.message,code:error.code,details:error.details,hint:error.hint}});throw error;}
+   addInventoryLog('RPC set_equipped_item สำเร็จ',{rpc:'set_equipped_item',args:rpcArgs,response:data});
    await loadInventory();
    const item=items.find(x=>x.id===inventoryId);
-   const action=inventoryId?'สวมใส่':'ถอดอุปกรณ์';
-   const notice=$inv('inventory-detail');notice.dataset.notice=action+'สำเร็จ';
+   const actionLabel=inventoryId?'สวมใส่':'ถอดอุปกรณ์';
+   const after=inventoryDiagnostic();
+   const verified=inventoryId?equipped[slot]===inventoryId:equipped[slot]==null;
+   addInventoryLog((verified?'ยืนยันผล':'คำเตือน: ผลหลังโหลดไม่ตรง')+' · '+actionLabel,{slot,requested_inventory_id:inventoryId||null,actual_inventory_id:equipped[slot]||null,verified,before_equipment:before.equipment,after_equipment:after.equipment,stats_before:before.stats,stats_after:after.stats,stat_breakdown_after:after.stat_breakdown,full_state_after:after});
+   const notice=$inv('inventory-detail');notice.dataset.notice=actionLabel+(verified?'สำเร็จ':'ต้องตรวจสอบ');
    if(inventoryId){selectedItem=inventoryId;selectedSlot=slot;}else{selectedItem=null;selectedSlot=slot;}
    renderAll();
-   const msg=document.createElement('p');msg.className='inventory-hint';msg.textContent=action+'สำเร็จ'+(item?' · '+itemName(item):'');
+   const msg=document.createElement('p');msg.className='inventory-hint';msg.textContent=actionLabel+(verified?'สำเร็จ':' แต่ข้อมูลหลังโหลดไม่ตรง')+(item?' · '+itemName(item):'');
    $inv('inventory-detail').append(msg);
   }catch(e){
-   const detail=String(e?.message||e);addInventoryLog('บันทึกอุปกรณ์ไม่สำเร็จ: '+detail+' · slot='+slot+' · inventory_id='+(inventoryId||'null'));
+   const detail=String(e?.message||e);addInventoryLog('บันทึกอุปกรณ์ไม่สำเร็จ',{action,slot,inventory_id:inventoryId||null,error:{message:e?.message,code:e?.code,details:e?.details,hint:e?.hint,stack:e?.stack},state_after_failure:inventoryDiagnostic()});
    renderAll();
    const msg=document.createElement('p');msg.className='inventory-hint';msg.textContent='บันทึกอุปกรณ์ไม่สำเร็จ: '+detail+' (กด Copy Log เพื่อคัดลอกรายละเอียด)';
    $inv('inventory-detail').append(msg);
-  }
+  }finally{equipButton.disabled=false;unequipButton.disabled=false;renderDetail();}
  }
  $inv('inventory-equip').addEventListener('click',async()=>{
   const item=items.find(x=>x.id===selectedItem);const slot=itemSlot(item);
@@ -1273,6 +1298,6 @@ $('settings-signout').onclick=signOutUser;
 })(); 
 </script>
 
-<script src="game.js?v=0.6.52"></script>
+<script src="game.js?v=0.6.53"></script>
 </body>
 </html>
