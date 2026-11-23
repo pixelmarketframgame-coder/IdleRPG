@@ -1213,6 +1213,7 @@ $('settings-signout').onclick=signOutUser;
        const quickInventoryLines=inventoryLines.map(x=>String(x).split('\n')[0].slice(0,160));
        const quickCombatLines=(visibleLines.length?visibleLines:combatLines).slice(-3).map(x=>String(x).slice(0,160));
        reportParts.push('Recent inventory events ('+inventoryLines.length+'/'+allInventoryLines.length+')',quickInventoryLines.join('\n')||'None','Recent combat events ('+quickCombatLines.length+' shown)',quickCombatLines.join('\n')||'None','=== END QUICK REPORT ===');
+     }
      reportText=reportParts.join('\n\n');
      // Preserve the iOS-safe manual selection flow.
      throw new Error('เปิดรายงานให้คัดลอกด้วยมือ');
