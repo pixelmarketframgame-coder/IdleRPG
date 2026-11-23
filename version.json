@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.66",
+  "version": "v0.6.67",
   "updated_at": "2026-11-23",
-  "notes": "Make Quick Diagnostic genuinely concise; reserve full inventory, server diagnostic details, and extended logs for Full Diagnostic."
+  "notes": "Quick Diagnostic omits raw inventory snapshots, keeps five short inventory event headers and three short combat lines; Full retains full detail."
 }
