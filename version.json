@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.65",
-  "updated_at": "2026-11-22",
-  "notes": "Add Quick Diagnostic as the default short report and Full Diagnostic with extended log history; include omitted-entry counts."
+  "version": "v0.6.66",
+  "updated_at": "2026-11-23",
+  "notes": "Make Quick Diagnostic genuinely concise; reserve full inventory, server diagnostic details, and extended logs for Full Diagnostic."
 }
