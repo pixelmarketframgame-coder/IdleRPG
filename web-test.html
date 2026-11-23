@@ -1210,8 +1210,9 @@ $('settings-signout').onclick=signOutUser;
      if(isFull){
        reportParts.push('=== INVENTORY LOG ('+inventoryLines.length+'/'+allInventoryLines.length+') ===',inventoryLines.join('\n')||'None','=== COMBAT ARCHIVE ('+combatLines.length+'/'+allCombatLines.length+') ===',combatLines.join('\n')||'None','=== VISIBLE COMBAT LOG ('+visibleLines.length+'/'+visibleCombatLines.length+') ===',visibleLines.join('\n')||'None','=== STATUS COPY ===',$('settings-copy-log-status')?.innerText||'');
      }else{
-       reportParts.push('Recent inventory events ('+inventoryLines.length+'/'+allInventoryLines.length+')',inventoryLines.join('\n')||'None','Recent combat events',visibleLines.join('\n')||combatLines.join('\n')||'None','=== END QUICK REPORT ===');
-     }
+       const quickInventoryLines=inventoryLines.map(x=>String(x).split('\n')[0].slice(0,160));
+       const quickCombatLines=(visibleLines.length?visibleLines:combatLines).slice(-3).map(x=>String(x).slice(0,160));
+       reportParts.push('Recent inventory events ('+inventoryLines.length+'/'+allInventoryLines.length+')',quickInventoryLines.join('\n')||'None','Recent combat events ('+quickCombatLines.length+' shown)',quickCombatLines.join('\n')||'None','=== END QUICK REPORT ===');
      reportText=reportParts.join('\n\n');
      // Preserve the iOS-safe manual selection flow.
      throw new Error('เปิดรายงานให้คัดลอกด้วยมือ');
@@ -1298,6 +1299,6 @@ backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
 })(); 
 </script>
 
-<script src="game.js?v=0.6.66"></script>
+<script src="game.js?v=0.6.67"></script>
 </body>
 </html>
