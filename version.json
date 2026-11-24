@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.68",
+  "version": "v0.6.69",
   "updated_at": "2026-11-24",
-  "notes": "Diagnostic report now attempts automatic copy and provides a one-tap Copy button with iOS selection fallback."
+  "notes": "Diagnostic Log now opens a report preview first; copying is user-triggered from the preview with iOS manual-selection fallback."
 }
