@@ -1241,7 +1241,7 @@ $('settings-signout').onclick=signOutUser;
        const heading=fallback.querySelector('strong');if(heading)heading.textContent='Diagnostic Report — '+(isFull?'Full Log':'Quick Log');
        fallback.style.display='flex';
      }
-     const area=fallback.querySelector('#tbh-manual-copy-text');if(area){area.focus();area.select();area.setSelectionRange(0,area.value.length);}
+     const area=fallback.querySelector('#tbh-manual-copy-text');if(area)area.scrollTop=0;
    }finally{
      setTimeout(()=>{reportButtons.forEach(b=>{b.disabled=false;b.textContent=b.dataset.reportMode==='full'?'🧾 Full Log':'📋 Quick Log';});},3000);
    }
