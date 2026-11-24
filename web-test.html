@@ -1215,8 +1215,7 @@ $('settings-signout').onclick=signOutUser;
        reportParts.push('Recent inventory events ('+inventoryLines.length+'/'+allInventoryLines.length+')',quickInventoryLines.join('\n')||'None','Recent combat events ('+quickCombatLines.length+' shown)',quickCombatLines.join('\n')||'None','=== END QUICK REPORT ===');
      }
      reportText=reportParts.join('\n\n');
-     // Preserve the iOS-safe manual selection flow.
-     throw new Error('เปิดรายงานให้คัดลอกด้วยมือ');
+     // Try automatic copy first; show the manual Copy panel only if the browser blocks it.
      let copied=false;
      const ta=document.createElement('textarea');ta.value=reportText;ta.setAttribute('readonly','');ta.setAttribute('aria-hidden','true');
      ta.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;padding:0;border:0;opacity:.01;font-size:16px;z-index:2147483647';
@@ -1238,10 +1237,12 @@ $('settings-signout').onclick=signOutUser;
        const area=document.createElement('textarea');area.id='tbh-manual-copy-text';area.value=reportText;area.setAttribute('readonly','');
        area.style.cssText='width:100%;height:58vh;min-height:220px;resize:vertical;box-sizing:border-box;background:#fff;color:#111;padding:10px;font-size:13px;line-height:1.4;border-radius:6px;-webkit-user-select:text;user-select:text;';
        const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;';
+       const copyButton=document.createElement('button');copyButton.type='button';copyButton.textContent='📋 Copy คัดลอกรายงาน';copyButton.style.cssText='padding:12px 16px;border-radius:8px;font-weight:700;background:#176b45;color:#fff;';
+       copyButton.addEventListener('click',async()=>{try{if(!navigator.clipboard?.writeText)throw new Error('clipboard unavailable');await navigator.clipboard.writeText(reportText);copyButton.textContent='✓ คัดลอกแล้ว';instruction.textContent='คัดลอกรายงานสำเร็จแล้ว สามารถปิดหน้าต่างนี้ได้';if(status)status.textContent='คัดลอกรายงาน '+(isFull?'Full':'Quick')+' สำเร็จแล้ว';}catch(copyError){area.focus();area.select();area.setSelectionRange(0,area.value.length);instruction.textContent='เบราว์เซอร์ไม่อนุญาตคัดลอกอัตโนมัติ — เลือกข้อความไว้แล้ว ให้แตะค้างในช่องแล้วเลือก Copy';}});
        const selectButton=document.createElement('button');selectButton.type='button';selectButton.textContent='เลือกข้อความทั้งหมด';selectButton.style.cssText='padding:12px 16px;border-radius:8px;font-weight:700;';
        selectButton.addEventListener('click',()=>{area.focus();area.select();area.setSelectionRange(0,area.value.length);});
        const closeButton=document.createElement('button');closeButton.type='button';closeButton.textContent='ปิด';closeButton.style.cssText='padding:12px 16px;border-radius:8px;';closeButton.addEventListener('click',()=>fallback.remove());
-       actions.append(selectButton,closeButton);panel.append(heading,instruction,area,actions);fallback.append(panel);document.body.append(fallback);
+       actions.append(copyButton,selectButton,closeButton);panel.append(heading,instruction,area,actions);fallback.append(panel);document.body.append(fallback);
      }else{
        const area=fallback.querySelector('#tbh-manual-copy-text');if(area)area.value=reportText;
        const heading=fallback.querySelector('strong');if(heading)heading.textContent='คัดลอกรายงาน '+(isFull?'ฉบับเต็ม':'ฉบับย่อ')+' ด้วยมือ';
@@ -1300,6 +1301,6 @@ backdrop.addEventListener('click',e=>{if(e.target===backdrop)close();});
 })(); 
 </script>
 
-<script src="game.js?v=0.6.67"></script>
+<script src="game.js?v=0.6.68"></script>
 </body>
 </html>
