@@ -1215,25 +1215,18 @@ $('settings-signout').onclick=signOutUser;
        reportParts.push('Recent inventory events ('+inventoryLines.length+'/'+allInventoryLines.length+')',quickInventoryLines.join('\n')||'None','Recent combat events ('+quickCombatLines.length+' shown)',quickCombatLines.join('\n')||'None','=== END QUICK REPORT ===');
      }
      reportText=reportParts.join('\n\n');
-     // Try automatic copy first; show the manual Copy panel only if the browser blocks it.
-     let copied=false;
-     const ta=document.createElement('textarea');ta.value=reportText;ta.setAttribute('readonly','');ta.setAttribute('aria-hidden','true');
-     ta.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;padding:0;border:0;opacity:.01;font-size:16px;z-index:2147483647';
-     document.body.appendChild(ta);ta.focus({preventScroll:true});ta.select();ta.setSelectionRange(0,ta.value.length);
-     try{copied=!!document.execCommand('copy');}catch(copyError){}ta.remove();
-     if(!copied&&navigator.clipboard?.writeText){try{await Promise.race([navigator.clipboard.writeText(reportText),new Promise((_,reject)=>setTimeout(()=>reject(new Error('clipboard timeout')),2500))]);copied=true;}catch(clipboardError){}}
-     if(!copied)throw new Error('iOS/Safari ปฏิเสธการคัดลอกอัตโนมัติ');
-     button.textContent='✓ พร้อมแล้ว';if(status)status.textContent='เตรียมรายงาน '+(isFull?'Full':'Quick')+' แล้ว';
+     // Always open the report preview first. Copy happens only after the user presses Copy.
+     throw new Error('SHOW_REPORT_PREVIEW');
    }catch(e){
-     addInventoryLog('Copy diagnostic ไม่สำเร็จ',{mode,error:String(e?.message||e)});
-     button.textContent='เปิดรายงานแล้ว';if(status)status.textContent='เปิดรายงาน '+(isFull?'Full':'Quick')+' แล้ว — แตะ “เลือกข้อความทั้งหมด” แล้ว Copy';
+     if(String(e?.message||e)!=='SHOW_REPORT_PREVIEW')addInventoryLog('เปิด Diagnostic report ไม่สำเร็จ',{mode,error:String(e?.message||e)});
+     button.textContent='เปิดรายงานแล้ว';if(status)status.textContent='เปิดรายงาน '+(isFull?'Full':'Quick')+' แล้ว — ตรวจดูรายงานก่อน แล้วกด Copy';
      let fallback=document.getElementById('tbh-manual-copy-fallback');
      if(!fallback){
        fallback=document.createElement('div');fallback.id='tbh-manual-copy-fallback';
        fallback.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;';
        const panel=document.createElement('div');panel.style.cssText='background:#171717;color:#fff;width:100%;max-width:760px;max-height:95%;display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:12px;box-sizing:border-box;';
-       const heading=document.createElement('strong');heading.textContent='คัดลอกรายงาน '+(isFull?'ฉบับเต็ม':'ฉบับย่อ')+' ด้วยมือ';
-       const instruction=document.createElement('div');instruction.textContent='แตะปุ่ม “เลือกข้อความทั้งหมด” จากนั้นแตะค้างในช่องข้อความ แล้วเลือก Copy';instruction.style.cssText='font-size:14px;line-height:1.5;';
+       const heading=document.createElement('strong');heading.textContent='Diagnostic Report — '+(isFull?'Full Log':'Quick Log');
+       const instruction=document.createElement('div');instruction.textContent='ตรวจสอบรายงานด้านล่าง แล้วกด “Copy คัดลอกรายงาน” เมื่อต้องการคัดลอก';instruction.style.cssText='font-size:14px;line-height:1.5;';
        const area=document.createElement('textarea');area.id='tbh-manual-copy-text';area.value=reportText;area.setAttribute('readonly','');
        area.style.cssText='width:100%;height:58vh;min-height:220px;resize:vertical;box-sizing:border-box;background:#fff;color:#111;padding:10px;font-size:13px;line-height:1.4;border-radius:6px;-webkit-user-select:text;user-select:text;';
        const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;flex-wrap:wrap;';
@@ -1245,7 +1238,7 @@ $('settings-signout').onclick=signOutUser;
        actions.append(copyButton,selectButton,closeButton);panel.append(heading,instruction,area,actions);fallback.append(panel);document.body.append(fallback);
      }else{
        const area=fallback.querySelector('#tbh-manual-copy-text');if(area)area.value=reportText;
-       const heading=fallback.querySelector('strong');if(heading)heading.textContent='คัดลอกรายงาน '+(isFull?'ฉบับเต็ม':'ฉบับย่อ')+' ด้วยมือ';
+       const heading=fallback.querySelector('strong');if(heading)heading.textContent='Diagnostic Report — '+(isFull?'Full Log':'Quick Log');
        fallback.style.display='flex';
      }
      const area=fallback.querySelector('#tbh-manual-copy-text');if(area){area.focus();area.select();area.setSelectionRange(0,area.value.length);}
